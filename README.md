@@ -83,6 +83,50 @@ Optional environment overrides:
 DB_HOST=127.0.0.1 DB_PORT=5432 DB_NAME=openclaw_memory DB_USER=openclaw_memory DB_PASSWORD=openclaw_memory ./scripts/first_run.sh
 ```
 
+
+## Add DB memory to an existing OpenClaw install
+
+Use this path when OpenClaw is already installed and you want to attach the database-memory layer without replacing your current workspace.
+
+```bash
+git clone https://github.com/StefRush2099/Zorg_MemoryDB.git
+cd Zorg_MemoryDB
+OPENCLAW_WORKSPACE=/path/to/existing/openclaw/workspace ./scripts/upgrade_existing_openclaw.sh
+```
+
+The upgrade script performs the full attachment process:
+
+1. creates or reuses `.venv-sqlmem` in the existing OpenClaw workspace
+2. copies the DB-memory tools into that workspace
+3. creates `sql_memory_map.json`
+4. starts the bundled PostgreSQL container when no reachable database is configured and Docker is available
+5. applies the memory database schema
+6. updates the existing markdown files with the permanent DB-memory rules
+7. imports existing `MEMORY.md`, `memory/*.md`, `AGENTS.md`, `SOUL.md`, `USER.md`, `TOOLS.md`, `IDENTITY.md`, and `HEARTBEAT.md` content into the database
+8. refreshes the recall materialized views
+9. verifies the attached database can list recall tables
+
+You can also point the upgrade at an external PostgreSQL database:
+
+```bash
+OPENCLAW_WORKSPACE=/path/to/existing/openclaw/workspace DB_HOST=postgres.example.local DB_PORT=5432 DB_NAME=openclaw_memory DB_USER=openclaw_memory DB_PASSWORD=openclaw_memory ./scripts/upgrade_existing_openclaw.sh
+```
+
+After the upgrade, run recall checks from the existing OpenClaw workspace:
+
+```bash
+cd /path/to/existing/openclaw/workspace
+.venv-sqlmem/bin/python memory_sql_tool.py tables
+.venv-sqlmem/bin/python memory_sql_tool.py search "important project rule" --table all --limit 10
+```
+
+To launch OpenClaw through the DB-memory wrapper from this repository:
+
+```bash
+cd Zorg_MemoryDB
+OPENCLAW_WORKSPACE=/path/to/existing/openclaw/workspace ./scripts/openclaw-db-memory
+```
+
 ## Using the memory tools
 
 ```bash

@@ -19,13 +19,48 @@ The goal is simple: make OpenClaw remember more like an operational system. Data
 
 ## Quick start
 
+### Local or VM install
+
 ```bash
 git clone https://github.com/StefRush2099/Zorg_MemoryDB.git
 cd Zorg_MemoryDB
 ./scripts/openclaw-db-memory
 ```
 
-That launcher runs the first-time setup automatically before starting OpenClaw:
+### Docker container install
+
+Start the PostgreSQL memory database with the included Compose file:
+
+```bash
+git clone https://github.com/StefRush2099/Zorg_MemoryDB.git
+cd Zorg_MemoryDB
+docker compose up -d postgres
+```
+
+Then run the OpenClaw DB-memory setup inside your OpenClaw container:
+
+```bash
+docker exec -it <openclaw-container> bash
+cd /workspace
+git clone https://github.com/StefRush2099/Zorg_MemoryDB.git
+cd Zorg_MemoryDB
+DB_HOST=host.docker.internal DB_PORT=5432 DB_NAME=openclaw_memory DB_USER=openclaw_memory DB_PASSWORD=openclaw_memory ./scripts/first_run.sh
+./scripts/openclaw-db-memory
+```
+
+On Linux hosts where `host.docker.internal` is not available, start the OpenClaw container with:
+
+```bash
+docker run --add-host=host.docker.internal:host-gateway ...
+```
+
+If the database runs in the same Docker Compose network as OpenClaw, use the Compose service name instead:
+
+```bash
+DB_HOST=postgres DB_PORT=5432 DB_NAME=openclaw_memory DB_USER=openclaw_memory DB_PASSWORD=openclaw_memory ./scripts/first_run.sh
+```
+
+The launcher runs the first-time setup automatically before starting OpenClaw:
 
 1. creates the Python memory-tool environment
 2. creates `sql_memory_map.json` if needed

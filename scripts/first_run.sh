@@ -139,9 +139,18 @@ import_and_verify(){
   log "database memory ready"
 }
 
+enforce_builtin_memory_search(){
+  if command -v openclaw >/dev/null 2>&1 || [ -d "${OPENCLAW_HOME:-$HOME/.openclaw}/plugin-runtime-deps" ]; then
+    log "enforcing DB-backed built-in memory_search routing"
+    OPENCLAW_WORKSPACE="$ROOT" SQL_MEMORY_MAP="$ROOT/sql_memory_map.json" "$PYTHON" scripts/enforce_db_memory_search.py >/dev/null || \
+      log "built-in memory_search enforcement skipped; run scripts/enforce_db_memory_search.py after OpenClaw is installed"
+  fi
+}
+
 ensure_python_env
 write_config
 ensure_memory_files
 start_postgres_if_needed || { log "could not reach PostgreSQL. Install/start PostgreSQL or Docker, then rerun."; exit 1; }
 apply_schema
 import_and_verify
+enforce_builtin_memory_search

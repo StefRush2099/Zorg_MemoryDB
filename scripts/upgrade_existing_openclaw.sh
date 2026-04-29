@@ -60,9 +60,10 @@ copy_files(){
   cp "$REPO_ROOT/scripts/memory_sql_tool.py" "$TARGET_WORKSPACE/memory_sql_tool.py"
   cp "$REPO_ROOT/scripts/memory_recall_router.py" "$TARGET_WORKSPACE/memory_recall_router.py"
   cp "$REPO_ROOT/scripts/memory_speed_test.py" "$TARGET_WORKSPACE/memory_speed_test.py"
+  cp "$REPO_ROOT/scripts/enforce_db_memory_search.py" "$TARGET_WORKSPACE/scripts/enforce_db_memory_search.py"
   cp "$REPO_ROOT/scripts/import_markdown_memory.py" "$TARGET_WORKSPACE/scripts/import_markdown_memory.py"
   cp "$REPO_ROOT/db/schema.sql" "$TARGET_WORKSPACE/db/schema.sql"
-  chmod +x "$TARGET_WORKSPACE/memory_sql_tool.py" "$TARGET_WORKSPACE/memory_recall_router.py" "$TARGET_WORKSPACE/memory_speed_test.py" "$TARGET_WORKSPACE/scripts/import_markdown_memory.py"
+  chmod +x "$TARGET_WORKSPACE/memory_sql_tool.py" "$TARGET_WORKSPACE/memory_recall_router.py" "$TARGET_WORKSPACE/memory_speed_test.py" "$TARGET_WORKSPACE/scripts/enforce_db_memory_search.py" "$TARGET_WORKSPACE/scripts/import_markdown_memory.py"
 }
 
 write_config(){
@@ -173,6 +174,13 @@ import_and_verify(){
   log "existing OpenClaw workspace is now attached to DB memory"
 }
 
+enforce_builtin_memory_search(){
+  cd "$TARGET_WORKSPACE"
+  log "enforcing DB-backed built-in memory_search routing"
+  OPENCLAW_WORKSPACE="$TARGET_WORKSPACE" SQL_MEMORY_MAP="$TARGET_WORKSPACE/sql_memory_map.json" "$PYTHON" scripts/enforce_db_memory_search.py >/dev/null || \
+    log "built-in memory_search enforcement skipped; run scripts/enforce_db_memory_search.py after OpenClaw is installed"
+}
+
 ensure_python_env
 copy_files
 write_config
@@ -180,3 +188,4 @@ start_postgres_if_needed || { log "could not reach PostgreSQL. Start PostgreSQL/
 apply_schema
 append_rules
 import_and_verify
+enforce_builtin_memory_search

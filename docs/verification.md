@@ -25,5 +25,18 @@ cp config/sql_memory_map.example.json sql_memory_map.json
 # edit connection fields
 python scripts/memory_sql_tool.py tables
 python scripts/memory_sql_tool.py refresh
+python scripts/memory_recall_router.py "project runbook" --limit 5
 python scripts/memory_speed_test.py
 ```
+
+## Built-in memory_search routing smoke test
+
+Run this from an OpenClaw workspace after setup or after an OpenClaw update:
+
+```bash
+OPENCLAW_WORKSPACE=/path/to/openclaw/workspace python scripts/enforce_db_memory_search.py
+```
+
+Expected result: JSON with `"ok": true`. If OpenClaw runtime files are present, the script reports them under `runtimeFiles` and patches default memory recall to route through PostgreSQL via `memory_recall_router.py`.
+
+This check is structural only; do not add live memory exports or database dumps to the repository.

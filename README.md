@@ -13,6 +13,7 @@ The goal is simple: make OpenClaw remember more like an operational system. Data
 - OpenClaw launch wrapper in `scripts/openclaw-db-memory`
 - Docker Compose PostgreSQL fallback in `docker-compose.yml`
 - DB-first recall tooling in `scripts/`
+- built-in `memory_search` DB-routing enforcer in `scripts/enforce_db_memory_search.py`
 - default database config template in `config/sql_memory_map.example.json`
 - permanent memory operating rules in `AGENTS.md`, `SOUL.md`, `TOOLS.md`, and `docs/`
 - workspace markdown templates in `templates/`
@@ -69,7 +70,8 @@ The launcher runs the first-time setup automatically before starting OpenClaw:
 5. imports local markdown memory files into the database
 6. refreshes recall materialized views
 7. verifies the memory tool can list tables
-8. launches `openclaw`
+8. enforces DB-backed routing for OpenClaw's built-in `memory_search` when OpenClaw is installed
+9. launches `openclaw`
 
 If you only want to initialize the database memory layer without launching OpenClaw:
 
@@ -105,6 +107,7 @@ The upgrade script performs the full attachment process:
 7. imports existing `MEMORY.md`, `memory/*.md`, `AGENTS.md`, `SOUL.md`, `USER.md`, `TOOLS.md`, `IDENTITY.md`, and `HEARTBEAT.md` content into the database
 8. refreshes the recall materialized views
 9. verifies the attached database can list recall tables
+10. enforces DB-backed routing for OpenClaw's built-in `memory_search` so default memory recall no longer depends on remote embedding/API-key providers
 
 You can also point the upgrade at an external PostgreSQL database:
 
@@ -118,7 +121,17 @@ After the upgrade, run recall checks from the existing OpenClaw workspace:
 cd /path/to/existing/openclaw/workspace
 .venv-sqlmem/bin/python memory_sql_tool.py tables
 .venv-sqlmem/bin/python memory_sql_tool.py search "important project rule" --table all --limit 10
+.venv-sqlmem/bin/python memory_recall_router.py "important project rule" --limit 10
 ```
+
+To repair built-in memory-search routing after an OpenClaw update or configure run:
+
+```bash
+cd /path/to/existing/openclaw/workspace
+.venv-sqlmem/bin/python scripts/enforce_db_memory_search.py
+```
+
+That script changes only structural runtime/config wiring. It does not publish or copy memory contents.
 
 To launch OpenClaw through the DB-memory wrapper from this repository:
 
@@ -132,6 +145,7 @@ OPENCLAW_WORKSPACE=/path/to/existing/openclaw/workspace ./scripts/openclaw-db-me
 ```bash
 .venv-sqlmem/bin/python scripts/memory_sql_tool.py tables
 .venv-sqlmem/bin/python scripts/memory_sql_tool.py search "project runbook" --table all --limit 10
+.venv-sqlmem/bin/python scripts/memory_recall_router.py "project runbook" --limit 10
 .venv-sqlmem/bin/python scripts/memory_sql_tool.py master --limit 40
 .venv-sqlmem/bin/python scripts/memory_speed_test.py
 ```

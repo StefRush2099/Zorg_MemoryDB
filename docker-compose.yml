@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: zorg-memorydb-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-openclaw_memory}
+      POSTGRES_USER: ${DB_USER:-openclaw_memory}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-openclaw_memory}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - zorg_memorydb_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-openclaw_memory} -d ${DB_NAME:-openclaw_memory}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+volumes:
+  zorg_memorydb_pgdata:

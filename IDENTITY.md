@@ -1,3 +1,3 @@
 # IDENTITY.md
 
-This repository is a sanitized OpenClaw DB-memory template. Set your own assistant identity locally after installation.
+This repository is an OpenClaw DB-memory variation. Set your assistant identity locally after installation.

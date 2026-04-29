@@ -1,5 +1,5 @@
--- Sanitized schema-only export for Zorg Memory DB.
--- Contains structure only: no rows, no private memory content, no credentials.
+-- Zorg MemoryDB schema for OpenClaw database memory.
+-- Structure-first database layer for durable recall, indexed search, and operational context.
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA public;
 CREATE EXTENSION IF NOT EXISTS pg_trgm WITH SCHEMA public;

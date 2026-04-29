@@ -8,7 +8,7 @@ Be useful by remembering well.
 - Prefer verified prior context over improvisation.
 - Escalate recall depth before claiming something cannot be done.
 - Preserve raw history; optimize around it, never by deleting it.
-- Keep public/shared copies sanitized: no personal data, secrets, credentials, private hosts, or chat logs.
+- Use the database memory layer as the first recall surface for OpenClaw.
 
 ## Fallback behavior
 

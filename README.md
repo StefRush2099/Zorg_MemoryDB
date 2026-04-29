@@ -1,44 +1,60 @@
 # Zorg MemoryDB for OpenClaw
 
-A sanitized, public DB-memory variant for OpenClaw-compatible workspaces.
+Zorg MemoryDB is an OpenClaw variation with PostgreSQL-backed memory attached from the start.
 
-This repository publishes the database-memory structure and operating rules, not a copy of any private memory. It is designed so a downloaded instance can create the same schema and then repopulate it with its own local markdown/session/project data.
+Instead of treating memory as loose markdown that has to be scanned repeatedly, this design gives OpenClaw a structured recall layer with tables, indexes, materialized views, and query functions. The result is a more useful assistant: it can retrieve prior rules, project context, runbooks, host/service relationships, and operational facts faster and with better structure than flat-file lookup alone.
 
-## What is included
+The goal is simple: make OpenClaw remember more like an operational system. Database memory improves recall quality, keeps important context queryable, supports performance tuning as the memory grows, and gives future instances a clean structure they can immediately populate and use.
 
-- PostgreSQL schema-only structure in `db/schema.sql`
+## Included
+
+- PostgreSQL memory schema in `db/schema.sql`
+- automatic first-run bootstrap in `scripts/first_run.sh`
+- OpenClaw launch wrapper in `scripts/openclaw-db-memory`
+- Docker Compose PostgreSQL fallback in `docker-compose.yml`
 - DB-first recall tooling in `scripts/`
-- sanitized config example in `config/sql_memory_map.example.json`
+- default database config template in `config/sql_memory_map.example.json`
 - permanent memory operating rules in `AGENTS.md`, `SOUL.md`, `TOOLS.md`, and `docs/`
-- empty templates for workspace markdown files in `templates/`
-
-## What is not included
-
-- no personal memories
-- no chat history rows
-- no credentials or tokens
-- no private hostnames/IPs
-- no private project data
-- no production database dump with data
+- workspace markdown templates in `templates/`
 
 ## Quick start
 
 ```bash
 git clone https://github.com/StefRush2099/Zorg_MemoryDB.git
 cd Zorg_MemoryDB
-createdb openclaw_memory
-export DATABASE_URL='postgresql://USER:PASSWORD@127.0.0.1:5432/openclaw_memory'
-./scripts/install_db_memory.sh
-cp config/sql_memory_map.example.json sql_memory_map.json
-# edit sql_memory_map.json for your database
-.venv-sqlmem/bin/python scripts/memory_sql_tool.py tables
+./scripts/openclaw-db-memory
 ```
 
-After installing, copy or create your own `AGENTS.md`, `SOUL.md`, `USER.md`, `TOOLS.md`, `IDENTITY.md`, `HEARTBEAT.md`, and `memory/*.md`, then run:
+That launcher runs the first-time setup automatically before starting OpenClaw:
+
+1. creates the Python memory-tool environment
+2. creates `sql_memory_map.json` if needed
+3. starts the bundled PostgreSQL container when no reachable database is configured and Docker is available
+4. creates/applies the database schema
+5. imports local markdown memory files into the database
+6. refreshes recall materialized views
+7. verifies the memory tool can list tables
+8. launches `openclaw`
+
+If you only want to initialize the database memory layer without launching OpenClaw:
 
 ```bash
-OPENCLAW_WORKSPACE="$PWD" .venv-sqlmem/bin/python scripts/import_markdown_memory.py
-OPENCLAW_WORKSPACE="$PWD" .venv-sqlmem/bin/python scripts/memory_sql_tool.py refresh
+./scripts/first_run.sh
+```
+
+Optional environment overrides:
+
+```bash
+DB_HOST=127.0.0.1 DB_PORT=5432 DB_NAME=openclaw_memory DB_USER=openclaw_memory DB_PASSWORD=openclaw_memory ./scripts/first_run.sh
+```
+
+## Using the memory tools
+
+```bash
+.venv-sqlmem/bin/python scripts/memory_sql_tool.py tables
+.venv-sqlmem/bin/python scripts/memory_sql_tool.py search "project runbook" --table all --limit 10
+.venv-sqlmem/bin/python scripts/memory_sql_tool.py master --limit 40
+.venv-sqlmem/bin/python scripts/memory_speed_test.py
 ```
 
 ## Core rule

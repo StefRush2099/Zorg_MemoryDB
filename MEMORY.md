@@ -1,6 +1,6 @@
 # MEMORY.md
 
-Public sanitized template. Do not add private memory to this repository.
+Public template for durable memory rules.
 
 Permanent DB-memory rules:
 
@@ -9,4 +9,3 @@ Permanent DB-memory rules:
 - Use markdown fallback only when DB recall is unavailable or explicitly allowed.
 - Escalate recall depth before claiming inability.
 - Preserve durable history; optimize additively.
-- Never publish personal data, credentials, private hosts, chat logs, or production rows.

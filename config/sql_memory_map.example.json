@@ -1,0 +1,19 @@
+{
+  "postgres": {
+    "host": "127.0.0.1",
+    "port": 5432,
+    "database": "openclaw_memory",
+    "user": "openclaw_memory",
+    "password": "CHANGE_ME_OR_USE_PGPASSWORD"
+  },
+  "table_map": {
+    "MEMORY.md": "zorg_memory",
+    "memory/*.md": "zorg_memory",
+    "AGENTS.md": "md_agents",
+    "SOUL.md": "md_soul",
+    "USER.md": "md_user",
+    "TOOLS.md": "md_tools",
+    "IDENTITY.md": "md_identity",
+    "HEARTBEAT.md": "md_heartbeat"
+  }
+}

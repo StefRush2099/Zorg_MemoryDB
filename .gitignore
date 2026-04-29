@@ -1,0 +1,13 @@
+sql_memory_map.json
+.env
+.env.*
+*.dump
+*.backup
+*.sql.gz
+*.sqlite
+*.db
+.venv*/
+__pycache__/
+memory/
+logs/
+*.log

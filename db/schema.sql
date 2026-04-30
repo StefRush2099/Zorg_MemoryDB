@@ -298,6 +298,87 @@ CREATE TABLE IF NOT EXISTS public."memory_relationships" (
   "created_at" timestamptz DEFAULT now() NOT NULL
 );
 
+
+-- Additive vector/neural-style semantic recall layer.
+-- These derived structures improve recall without pruning or deleting source history.
+CREATE TABLE IF NOT EXISTS public."memory_semantic_nodes" (
+  "id" uuid DEFAULT gen_random_uuid() NOT NULL,
+  "node_key" text NOT NULL,
+  "node_type" text NOT NULL,
+  "canonical_label" text NOT NULL,
+  "aliases" text[] DEFAULT '{}'::text[] NOT NULL,
+  "description" text,
+  "llm_hint" text,
+  "source_model" text,
+  "confidence" numeric(6,4),
+  "metadata" jsonb DEFAULT '{}'::jsonb NOT NULL,
+  "active" boolean DEFAULT true NOT NULL,
+  "created_at" timestamptz DEFAULT now() NOT NULL,
+  "updated_at" timestamptz DEFAULT now() NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS public."memory_semantic_edges" (
+  "id" uuid DEFAULT gen_random_uuid() NOT NULL,
+  "subject_type" text NOT NULL,
+  "subject_key" text NOT NULL,
+  "relation" text NOT NULL,
+  "object_type" text NOT NULL,
+  "object_key" text NOT NULL,
+  "weight" numeric(8,5) DEFAULT 1.0 NOT NULL,
+  "weight_basis" text,
+  "llm_reason" text,
+  "source_model" text,
+  "evidence_source" text,
+  "evidence_hash" text,
+  "metadata" jsonb DEFAULT '{}'::jsonb NOT NULL,
+  "active" boolean DEFAULT true NOT NULL,
+  "created_at" timestamptz DEFAULT now() NOT NULL,
+  "updated_at" timestamptz DEFAULT now() NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS public."memory_embedding_slots" (
+  "id" uuid DEFAULT gen_random_uuid() NOT NULL,
+  "source_type" text NOT NULL,
+  "source_key" text NOT NULL,
+  "embedding_model" text NOT NULL,
+  "embedding_dim" integer,
+  "embedding_vector" double precision[],
+  "embedding_hash" text,
+  "content_hash" text,
+  "metadata" jsonb DEFAULT '{}'::jsonb NOT NULL,
+  "created_at" timestamptz DEFAULT now() NOT NULL,
+  "updated_at" timestamptz DEFAULT now() NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS public."memory_recall_hints" (
+  "id" uuid DEFAULT gen_random_uuid() NOT NULL,
+  "source_type" text NOT NULL,
+  "source_key" text NOT NULL,
+  "hint_kind" text NOT NULL,
+  "hint_text" text NOT NULL,
+  "related_keys" text[] DEFAULT '{}'::text[] NOT NULL,
+  "weight" numeric(8,5) DEFAULT 1.0 NOT NULL,
+  "source_model" text,
+  "metadata" jsonb DEFAULT '{}'::jsonb NOT NULL,
+  "active" boolean DEFAULT true NOT NULL,
+  "created_at" timestamptz DEFAULT now() NOT NULL,
+  "updated_at" timestamptz DEFAULT now() NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS public."memory_query_observations" (
+  "id" uuid DEFAULT gen_random_uuid() NOT NULL,
+  "observed_at" timestamptz DEFAULT now() NOT NULL,
+  "query_text" text NOT NULL,
+  "query_intent" text,
+  "source_type" text NOT NULL,
+  "source_key" text NOT NULL,
+  "rank_seen" integer,
+  "was_useful" boolean,
+  "usefulness_score" numeric(8,5),
+  "feedback_basis" text,
+  "metadata" jsonb DEFAULT '{}'::jsonb NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS public."memory_request_category_map" (
   "id" uuid NOT NULL,
   "request_id" uuid NOT NULL,
@@ -1757,6 +1838,22 @@ CREATE INDEX IF NOT EXISTS idx_memory_context_notes_source_path ON public.memory
 CREATE INDEX IF NOT EXISTS idx_memory_project_aliases_alias_norm ON public.memory_project_aliases USING btree (alias_norm);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_memory_project_aliases_unique ON public.memory_project_aliases USING btree (project_key, alias_norm);
 CREATE INDEX IF NOT EXISTS idx_memory_project_facts_project_key ON public.memory_project_facts USING btree (project_key);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_memory_semantic_nodes_key ON public.memory_semantic_nodes USING btree (node_key);
+CREATE INDEX IF NOT EXISTS idx_memory_semantic_nodes_type ON public.memory_semantic_nodes USING btree (node_type);
+CREATE INDEX IF NOT EXISTS idx_memory_semantic_nodes_aliases ON public.memory_semantic_nodes USING gin (aliases);
+CREATE INDEX IF NOT EXISTS idx_memory_semantic_nodes_label_trgm ON public.memory_semantic_nodes USING gin (canonical_label gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS idx_memory_semantic_edges_subject ON public.memory_semantic_edges USING btree (subject_type, subject_key);
+CREATE INDEX IF NOT EXISTS idx_memory_semantic_edges_object ON public.memory_semantic_edges USING btree (object_type, object_key);
+CREATE INDEX IF NOT EXISTS idx_memory_semantic_edges_relation_weight ON public.memory_semantic_edges USING btree (relation, weight DESC);
+CREATE INDEX IF NOT EXISTS idx_memory_embedding_slots_source ON public.memory_embedding_slots USING btree (source_type, source_key);
+CREATE INDEX IF NOT EXISTS idx_memory_embedding_slots_model_hash ON public.memory_embedding_slots USING btree (embedding_model, embedding_hash);
+CREATE INDEX IF NOT EXISTS idx_memory_recall_hints_source ON public.memory_recall_hints USING btree (source_type, source_key);
+CREATE INDEX IF NOT EXISTS idx_memory_recall_hints_text_trgm ON public.memory_recall_hints USING gin (hint_text gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS idx_memory_query_observations_query_trgm ON public.memory_query_observations USING gin (query_text gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS idx_memory_query_observations_source ON public.memory_query_observations USING btree (source_type, source_key);
+CREATE INDEX IF NOT EXISTS idx_memory_query_observations_observed_at ON public.memory_query_observations USING btree (observed_at DESC);
+
 CREATE INDEX IF NOT EXISTS idx_memory_request_category_map_category_key ON public.memory_request_category_map USING btree (category_key);
 CREATE INDEX IF NOT EXISTS idx_memory_request_category_map_request_id ON public.memory_request_category_map USING btree (request_id);
 CREATE INDEX IF NOT EXISTS idx_memory_request_intake_created_at ON public.memory_request_intake USING btree (created_at DESC);

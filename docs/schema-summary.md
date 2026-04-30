@@ -14,3 +14,15 @@ Main recall objects:
 - `zorg_get_project_context`, `zorg_get_host_context`, `zorg_get_runbook_context` - targeted recall entry points
 
 Fresh installs contain no data. The structure is intended to be repopulated locally.
+
+## Weighted semantic recall objects
+
+The schema includes additive tables for vector/neural-style recall evolution:
+
+- `memory_semantic_nodes` - LLM-derived concepts/entities/intents/rules/projects/etc.
+- `memory_semantic_edges` - weighted graph edges between source rows, semantic nodes, and other recall objects.
+- `memory_embedding_slots` - provider-agnostic embedding/vector metadata and optional vector payload storage.
+- `memory_recall_hints` - LLM-readable explanations that make familiarity/relevance explicit for future models.
+- `memory_query_observations` - query/result feedback used to strengthen useful associations over time.
+
+These objects are derived/additive. They may be rebuilt, but source memory rows must not be removed for performance.

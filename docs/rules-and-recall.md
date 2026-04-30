@@ -8,7 +8,8 @@
 4. Weak first-pass recall requires deeper recall, not an immediate conclusion.
 5. Before claiming inability, search prior working solutions, runbooks, project records, backups, mirrors, and related operational facts.
 6. Preserve all source history; do not prune original data for performance.
-7. Public exports must be schema/tooling/rules only unless all data is intentionally synthetic.
+7. Whenever any meaningful structural, configuration, routing, schema, indexing, recall, benchmark, enforcement, or operational-rule change is made to the memory database or recall system, publish the matching structural update to `Zorg_MemoryDB` and update the relevant markdown/runbooks.
+8. Public exports must be schema/tooling/rules only unless all data is intentionally synthetic.
 
 ## Recall escalation
 

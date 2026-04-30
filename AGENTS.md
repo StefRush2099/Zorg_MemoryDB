@@ -1,5 +1,9 @@
 # AGENTS.md - DB Memory Operating Rules
 
+## Top-level DB Memory Publication Rule
+
+Whenever any meaningful structural, configuration, routing, schema, indexing, recall, benchmark, enforcement, or operational-rule change is made to the memory database or memory recall system, the matching structural change must be published to the GitHub `Zorg_MemoryDB` repository. Update the relevant markdown/runbook files at the same time so future installs reproduce the current behavior. Do not publish personal memory contents, credentials, live database rows, contact data, transcripts, or private operator context — only structure, scripts, schema, templates, and documentation.
+
 ## Priority 0: memory before action
 
 Before any reply, tool call, command, file change, external action, or claim of inability:

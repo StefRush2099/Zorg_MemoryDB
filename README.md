@@ -150,6 +150,8 @@ OPENCLAW_WORKSPACE=/path/to/existing/openclaw/workspace ./scripts/openclaw-db-me
 .venv-sqlmem/bin/python scripts/memory_speed_test.py
 ```
 
-## Core rule
+## Core rules
 
 Memory is not an optional note system. It is the first context layer. OpenClaw should check DB memory before acting, prefer DB recall over flat files, and preserve original source history while adding indexes, views, and summaries around it.
+
+Top-level DB Memory Publication Rule: whenever any meaningful structural, configuration, routing, schema, indexing, recall, benchmark, enforcement, or operational-rule change is made to the memory database or recall system, the matching structural update should be published back to `Zorg_MemoryDB` with the relevant markdown/runbooks updated. Publish only structure, scripts, schema, templates, and documentation — not personal memory contents, credentials, live database rows, contact data, transcripts, or private operator context.

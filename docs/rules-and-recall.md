@@ -38,3 +38,7 @@ The DB-memory structure should evolve like a vector/semantic memory graph while 
 - materialized recall surfaces that combine text, vector scores, graph weights, recency, hard-rule priority, and user corrections
 
 Superseded or bad process records are marked as superseded/deprecated with additive metadata. They are not deleted from source history.
+
+## Fast-path optimization rule
+
+Recall fast paths may use additive derived materialized views such as `zorg_memory_search_fast_mv` for precomputed lowercase text, tsvectors, ranking helpers, and indexes. These surfaces are rebuildable caches only; they must not be treated as replacements for source memory and must never justify source-data pruning.

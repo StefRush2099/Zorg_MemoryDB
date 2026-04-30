@@ -902,6 +902,16 @@ CREATE OR REPLACE FUNCTION public.pgp_sym_encrypt_bytea(bytea, text, text)
  PARALLEL SAFE STRICT
 AS '$libdir/pgcrypto', $function$pgp_sym_encrypt_bytea$function$;
 
+CREATE OR REPLACE FUNCTION public.refresh_zorg_memory_search_fast_mv()
+ RETURNS void
+ LANGUAGE plpgsql
+AS $function$
+begin
+  refresh materialized view public.zorg_memory_search_fast_mv;
+  analyze public.zorg_memory_search_fast_mv;
+end;
+$function$;
+
 CREATE OR REPLACE FUNCTION public.refresh_zorg_master_context()
  RETURNS void
  LANGUAGE plpgsql
@@ -1397,6 +1407,9 @@ CREATE OR REPLACE FUNCTION public.zorg_search_memory(p_query text, p_limit integ
 AS $function$
 DECLARE
   v_limit integer := greatest(coalesce(p_limit, 10), 1);
+  v_query_lc text := lower(coalesce(p_query, ''));
+  v_ts_en tsquery := plainto_tsquery('english', coalesce(p_query, ''));
+  v_ts_simple tsquery := plainto_tsquery('simple', coalesce(p_query, ''));
 BEGIN
   RETURN QUERY
   WITH fts_matches AS (
@@ -1408,14 +1421,9 @@ BEGIN
       z.priority,
       left(z.content, 240) AS snippet,
       0 AS match_rank
-    FROM public.zorg_memory_search_mv z
-    WHERE (
-        to_tsvector('english', z.content) @@ plainto_tsquery('english', p_query)
-        OR to_tsvector('simple', z.content) @@ plainto_tsquery('simple', p_query)
-      )
-    ORDER BY
-      CASE WHEN z.source_table = 'zorg_memory' THEN 1 ELSE 0 END,
-      z.event_ts DESC
+    FROM public.zorg_memory_search_fast_mv z
+    WHERE (z.content_fts_en @@ v_ts_en OR z.content_fts_simple @@ v_ts_simple)
+    ORDER BY z.source_rank, z.event_ts DESC
     LIMIT v_limit
   ), fts_count AS (
     SELECT count(*) AS c FROM fts_matches
@@ -1428,16 +1436,14 @@ BEGIN
       z.priority,
       left(z.content, 240) AS snippet,
       1 AS match_rank
-    FROM public.zorg_memory_search_mv z
-    WHERE z.content ILIKE '%' || p_query || '%'
+    FROM public.zorg_memory_search_fast_mv z
+    WHERE z.content_lc LIKE '%' || v_query_lc || '%'
       AND NOT EXISTS (
         SELECT 1 FROM fts_matches f
         WHERE f.source_table = z.source_table
           AND f.source_id = z.source_id
       )
-    ORDER BY
-      CASE WHEN z.source_table = 'zorg_memory' THEN 1 ELSE 0 END,
-      z.event_ts DESC
+    ORDER BY z.source_rank, z.event_ts DESC
     LIMIT v_limit
   )
   SELECT r.source_table, r.source_id, r.event_ts, r.category, r.priority, r.snippet
@@ -1448,10 +1454,7 @@ BEGIN
     FROM exact_matches
     WHERE (SELECT c FROM fts_count) < v_limit
   ) r
-  ORDER BY
-    CASE WHEN r.source_table = 'zorg_memory' THEN 1 ELSE 0 END,
-    r.match_rank,
-    r.event_ts DESC
+  ORDER BY r.match_rank, r.event_ts DESC
   LIMIT v_limit;
 END;
 $function$;
@@ -1504,6 +1507,24 @@ AS $function$
   limit greatest(coalesce(p_limit, 10), 1);
 $function$;
 
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS public."zorg_memory_search_fast_mv" AS
+ SELECT source_table,
+    source_id,
+    event_ts,
+    category,
+    priority,
+    content,
+    lower(content) AS content_lc,
+    to_tsvector('english'::regconfig, content) AS content_fts_en,
+    to_tsvector('simple'::regconfig, content) AS content_fts_simple,
+    CASE
+        WHEN (source_table = 'zorg_memory'::text) THEN 1
+        ELSE 0
+    END AS source_rank,
+    length(content) AS content_len
+   FROM zorg_memory_search_mv
+WITH NO DATA;
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS public."zorg_master_context_mv" AS
  SELECT 'directive'::text AS source_type,
@@ -1881,6 +1902,12 @@ CREATE INDEX IF NOT EXISTS idx_zorg_memory_memory_priority ON public.zorg_memory
 CREATE INDEX IF NOT EXISTS idx_zorg_memory_memory_value_coalesce_trgm ON public.zorg_memory USING gin (COALESCE(memory_value, ''::text) gin_trgm_ops);
 CREATE INDEX IF NOT EXISTS idx_zorg_memory_search_blob_trgm ON public.zorg_memory USING gin ((((((((((COALESCE(memory_value, ''::text) || ' '::text) || COALESCE(chat_session_log, ''::text)) || ' '::text) || COALESCE(memory_key, ''::text)) || ' '::text) || COALESCE(system_prompt, ''::text)) || ' '::text) || COALESCE(ai_response, ''::text))) gin_trgm_ops);
 CREATE INDEX IF NOT EXISTS idx_zorg_memory_system_prompt_coalesce_trgm ON public.zorg_memory USING gin (COALESCE(system_prompt, ''::text) gin_trgm_ops);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_zms_fast_mv_pk ON public.zorg_memory_search_fast_mv USING btree (source_table, source_id);
+CREATE INDEX IF NOT EXISTS idx_zms_fast_mv_content_lc_trgm ON public.zorg_memory_search_fast_mv USING gin (content_lc gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS idx_zms_fast_mv_fts_en ON public.zorg_memory_search_fast_mv USING gin (content_fts_en);
+CREATE INDEX IF NOT EXISTS idx_zms_fast_mv_fts_simple ON public.zorg_memory_search_fast_mv USING gin (content_fts_simple);
+CREATE INDEX IF NOT EXISTS idx_zms_fast_mv_rank_ts ON public.zorg_memory_search_fast_mv USING btree (source_rank, event_ts DESC);
+CREATE INDEX IF NOT EXISTS idx_zms_fast_mv_priority_rank_ts ON public.zorg_memory_search_fast_mv USING btree (priority, source_rank, event_ts DESC);
 CREATE INDEX IF NOT EXISTS idx_zms_mv_content_fts ON public.zorg_memory_search_mv USING gin (to_tsvector('english'::regconfig, content));
 CREATE INDEX IF NOT EXISTS idx_zms_mv_content_fts_simple ON public.zorg_memory_search_mv USING gin (to_tsvector('simple'::regconfig, content));
 CREATE INDEX IF NOT EXISTS idx_zms_mv_content_trgm ON public.zorg_memory_search_mv USING gin (content gin_trgm_ops);
@@ -1913,5 +1940,6 @@ CREATE TRIGGER "trg_zorg_progress_tracker_updated_at" BEFORE UPDATE ON public."z
 
 -- Fresh installs start empty. Populate with scripts/import_markdown_memory.py or your own ingestion pipeline, then run:
 -- SELECT refresh_zorg_memory_search_mv();
+-- SELECT refresh_zorg_memory_search_fast_mv();
 -- SELECT refresh_zorg_master_context();
 

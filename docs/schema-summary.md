@@ -26,3 +26,7 @@ The schema includes additive tables for vector/neural-style recall evolution:
 - `memory_query_observations` - query/result feedback used to strengthen useful associations over time.
 
 These objects are derived/additive. They may be rebuilt, but source memory rows must not be removed for performance.
+
+## Fast recall surface
+
+`zorg_memory_search_fast_mv` is an additive derived materialized view over `zorg_memory_search_mv`. It precomputes lowercase content, English/simple tsvectors, source rank, and content length so recall queries avoid repeated per-row text normalization/vectorization. It is refreshable/rebuildable derived data and must not replace or prune source memory.

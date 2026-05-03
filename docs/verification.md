@@ -29,6 +29,15 @@ python scripts/memory_recall_router.py "project runbook" --limit 5
 python scripts/memory_speed_test.py
 ```
 
+`memory_speed_test.py` now loads a benchmark corpus from `DB_BENCHMARK_QUERIES`, then `db_benchmark_queries.json` in the OpenClaw workspace, and finally `config/db_benchmark_queries.example.json`. The public example corpus intentionally includes both simple lookups and complex multi-condition recall prompts so DB-vs-flat-file checks catch regressions in deeper historical recall paths, not only easy keyword searches.
+
+Useful knobs:
+
+```bash
+MEMORY_SPEED_RUNS=20 python scripts/memory_speed_test.py
+DB_BENCHMARK_QUERIES=/path/to/db_benchmark_queries.json python scripts/memory_speed_test.py
+```
+
 ## Built-in memory_search routing smoke test
 
 Run this from an OpenClaw workspace after setup or after an OpenClaw update:

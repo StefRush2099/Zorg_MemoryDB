@@ -25,7 +25,8 @@ RUN apt-get update \
       tini \
     && rm -rf /var/lib/apt/lists/*
 
-RUN npm install -g openclaw@latest
+ARG OPENCLAW_VERSION=latest
+RUN npm install -g openclaw@${OPENCLAW_VERSION}
 
 WORKDIR /opt/zorg-memorydb
 COPY . /opt/zorg-memorydb

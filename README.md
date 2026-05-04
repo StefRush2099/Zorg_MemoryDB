@@ -1,51 +1,62 @@
 # Zorg MemoryDB OpenClaw Template
 
-Zorg MemoryDB is now an all-in-one OpenClaw install template. Clone this repository, start Docker Compose, and it brings up a complete clean OpenClaw Gateway with PostgreSQL-backed Zorg DB memory already installed, configured, connected, imported, and enforced.
+Zorg MemoryDB is a sanitized, all-in-one OpenClaw install template for the latest Ubuntu release, currently **Ubuntu 26.04 LTS**.
 
-This repository is **not** only a database add-on. The Docker build installs OpenClaw itself, starts PostgreSQL, seeds the OpenClaw workspace with the Zorg MemoryDB template, applies the schema, writes `sql_memory_map.json`, imports the markdown memory/rules, enforces DB-backed `memory_search`, and then starts the OpenClaw Gateway.
+It installs and runs the full latest OpenClaw package (`openclaw@latest`) with PostgreSQL-backed Zorg DB memory already installed, configured, connected, imported, refreshed, and enforced. This repository is not just a database add-on.
 
-## What starts
+Fresh installs include schema and public templates only. They do **not** include live database rows, private memory, credentials, transcripts, contact data, or operator context.
 
-- `openclaw` service: full OpenClaw CLI/Gateway install with Zorg DB memory enabled
-- `postgres` service: PostgreSQL 16 memory database on the private Compose network
-- persistent Docker volumes for OpenClaw state/workspace and PostgreSQL data
-- first-run bootstrap that wires OpenClaw memory recall to PostgreSQL before Gateway startup
+## Install paths
 
-## Quick start: complete Docker OpenClaw install
+Choose one:
+
+1. **Standard Ubuntu install** — native OpenClaw + local PostgreSQL on latest Ubuntu.
+2. **Docker install** — complete OpenClaw + PostgreSQL stack with Docker Compose.
+3. **Dockge install** — Dockge-managed Compose stack for latest Ubuntu servers.
+
+## 1. Standard Ubuntu install
+
+Docs: [`docs/standard-ubuntu-install.md`](docs/standard-ubuntu-install.md)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/StefRush2099/Zorg_MemoryDB/main/scripts/install_standard_ubuntu.sh | bash
+```
+
+This installs Ubuntu packages, `openclaw@latest`, local PostgreSQL, the Zorg MemoryDB schema/tools, and DB-backed OpenClaw memory routing.
+
+## 2. Docker install
+
+Docs: [`docs/docker-install.md`](docs/docker-install.md)
 
 ```bash
 git clone https://github.com/StefRush2099/Zorg_MemoryDB.git
 cd Zorg_MemoryDB
 cp .env.example .env
-# Optional but recommended: edit OPENCLAW_GATEWAY_TOKEN and DB_PASSWORD in .env
+# edit OPENCLAW_GATEWAY_TOKEN and DB_PASSWORD in .env before real use
 docker compose up -d --build
 ```
 
-OpenClaw Gateway starts on port `18789` by default. The default token is in `.env`; change it before exposing the service beyond a trusted local machine.
+OpenClaw Gateway starts on port `18789` by default.
 
-Check status:
+## 3. Dockge install
 
-```bash
-docker compose ps
-docker compose logs -f openclaw
-```
+Docs: [`docs/dockge-install.md`](docs/dockge-install.md)
 
-Verify DB memory inside the OpenClaw container:
+Recommended Dockge path:
 
 ```bash
-docker compose exec openclaw bash -lc 'cd /home/openclaw/.openclaw/workspace && .venv-sqlmem/bin/python scripts/memory_sql_tool.py tables'
-docker compose exec openclaw bash -lc 'cd /home/openclaw/.openclaw/workspace && .venv-sqlmem/bin/python scripts/memory_recall_router.py "database memory" --limit 5'
+cd /opt/stacks
+sudo git clone https://github.com/StefRush2099/Zorg_MemoryDB.git
+sudo chown -R "$USER:$USER" /opt/stacks/Zorg_MemoryDB
+cd /opt/stacks/Zorg_MemoryDB
+cp .env.example .env
 ```
 
-## Quick start for systems that need sudo for git clone or Docker
+Then import/start `/opt/stacks/Zorg_MemoryDB/docker-compose.yml` in Dockge.
 
-Some locked-down systems need elevated rights even to clone into the target directory, or require sudo for Docker. Use the bootstrap script path:
+## Sudo-heavy Ubuntu systems
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/StefRush2099/Zorg_MemoryDB/main/scripts/bootstrap_full_openclaw.sh | bash
-```
-
-Or manually:
+Some systems require sudo for clone or Docker. Use:
 
 ```bash
 sudo git clone https://github.com/StefRush2099/Zorg_MemoryDB.git
@@ -54,70 +65,71 @@ sudo cp .env.example .env
 sudo docker compose up -d --build
 ```
 
-If the clone creates root-owned files but you want to manage the repo as your normal user afterward:
+If desired afterward:
 
 ```bash
 sudo chown -R "$USER:$USER" Zorg_MemoryDB
 ```
 
-## Configuration
+## What starts in Docker/Dockge
 
-Copy `.env.example` to `.env` and edit as needed:
-
-```bash
-DB_NAME=openclaw_memory
-DB_USER=openclaw_memory
-DB_PASSWORD=openclaw_memory
-OPENCLAW_GATEWAY_PORT=18789
-OPENCLAW_GATEWAY_BIND=lan
-OPENCLAW_GATEWAY_AUTH=token
-OPENCLAW_GATEWAY_TOKEN=change-me-zorg-token
-```
-
-The container writes the matching OpenClaw memory configuration to:
-
-```text
-/home/openclaw/.openclaw/workspace/sql_memory_map.json
-```
-
-Inside Docker, `DB_HOST` is already set to the Compose service name `postgres`, so no manual host/container linking is required. PostgreSQL is not published to the host by default; OpenClaw reaches it over the private Compose network.
+- `openclaw`: full latest OpenClaw CLI/Gateway install with Zorg DB memory enabled
+- `postgres`: PostgreSQL 16 memory database on the private Compose network
+- persistent Docker volumes for OpenClaw state/workspace and PostgreSQL data
+- first-run bootstrap that wires OpenClaw memory recall to PostgreSQL before Gateway startup
 
 ## First-run behavior
 
 When the `openclaw` container starts, `docker/entrypoint.sh` runs the complete setup:
 
-1. install/use the bundled full OpenClaw CLI from the Docker image
-2. seed `/home/openclaw/.openclaw/workspace` from this template repository if needed
-3. create `.venv-sqlmem`
-4. write `sql_memory_map.json`
-5. wait for the PostgreSQL service
-6. apply `db/schema.sql`
-7. import markdown memory/rule files into PostgreSQL
-8. refresh recall/search materialized views
-9. enforce OpenClaw built-in `memory_search` routing through Zorg DB memory
-10. start `openclaw gateway run`
+1. uses the full latest OpenClaw CLI installed in the image
+2. seeds `/home/openclaw/.openclaw/workspace` from this sanitized template repository if needed
+3. creates `.venv-sqlmem`
+4. writes `sql_memory_map.json`
+5. waits for PostgreSQL
+6. applies `db/schema.sql`
+7. imports public/template markdown memory rules into PostgreSQL
+8. refreshes recall/search materialized views
+9. enforces OpenClaw built-in `memory_search` routing through Zorg DB memory
+10. starts `openclaw gateway run`
+
+## Verify
+
+```bash
+docker compose ps
+docker compose exec openclaw bash -lc 'cd /home/openclaw/.openclaw/workspace && .venv-sqlmem/bin/python scripts/memory_sql_tool.py tables'
+docker compose exec openclaw bash -lc 'cd /home/openclaw/.openclaw/workspace && .venv-sqlmem/bin/python scripts/memory_recall_router.py "database memory" --limit 5'
+```
+
+Expected recall mode: `database-direct-structured`.
+
+## Sanitized full template
+
+Docs: [`docs/sanitized-template.md`](docs/sanitized-template.md)
+
+Included:
+
+- full OpenClaw latest install path
+- Dockerfile and Compose/Dockge stack
+- native Ubuntu install script
+- PostgreSQL schema, functions, indexes, materialized views, recall tooling, and bootstrap scripts
+- public markdown templates and operating rules
+
+Not included:
+
+- live DB rows/dumps
+- private `MEMORY.md` or `memory/*.md`
+- credentials, `.env`, `sql_memory_map.json`, cookies, OAuth tokens, API keys, SSH keys, contacts, emails, transcripts, or private operator context
 
 ## Existing OpenClaw installs
 
-The primary path is now the all-in-one Docker template above. If you intentionally need to attach Zorg MemoryDB to an already-installed OpenClaw workspace, the legacy upgrade helper remains available:
+The primary path is now a clean all-in-one install. If you intentionally need to attach Zorg MemoryDB to an already-installed OpenClaw workspace, the migration helper remains available:
 
 ```bash
 OPENCLAW_WORKSPACE=/path/to/existing/openclaw/workspace ./scripts/upgrade_existing_openclaw.sh
 ```
 
-Use that only for migration/repair. New clean installs should use Docker Compose from this repo.
-
-## Included
-
-- `Dockerfile` — full OpenClaw + Zorg MemoryDB container image
-- `docker-compose.yml` — OpenClaw Gateway + PostgreSQL all-in-one stack
-- `docker/entrypoint.sh` — first-run OpenClaw/Zorg DB wiring before Gateway startup
-- `scripts/bootstrap_full_openclaw.sh` — clone/start helper for sudo-heavy systems
-- `db/schema.sql` — Zorg DB memory schema, functions, indexes, views, and recall structures
-- `scripts/first_run.sh` — idempotent memory DB bootstrap
-- `scripts/memory_sql_tool.py` and `scripts/memory_recall_router.py` — canonical DB recall tools
-- `scripts/enforce_db_memory_search.py` — DB-backed OpenClaw `memory_search` enforcement
-- `templates/` and top-level markdown files — clean memory/rule workspace templates
+Use that only for migration/repair. New installs should use the standard Ubuntu, Docker, or Dockge paths above.
 
 ## Core rule
 

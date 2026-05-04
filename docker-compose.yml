@@ -3,6 +3,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        OPENCLAW_VERSION: ${OPENCLAW_VERSION:-latest}
     image: zorg-memorydb-openclaw:latest
     container_name: zorg-openclaw
     restart: unless-stopped

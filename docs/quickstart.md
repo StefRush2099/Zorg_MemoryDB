@@ -1,8 +1,20 @@
-# Quickstart: All-in-One OpenClaw + Zorg MemoryDB
+# Quickstart: OpenClaw + Zorg MemoryDB on Latest Ubuntu
 
-This repo is the clean-install template. It starts both OpenClaw and the Zorg PostgreSQL memory database together.
+Target OS for all install paths: the latest Ubuntu release, currently **Ubuntu 26.04 LTS**.
 
-## Normal Docker start
+This repo is the clean-install template. It starts or installs full OpenClaw with Zorg PostgreSQL memory already connected.
+
+## Option 1: Standard Ubuntu install
+
+Native install on Ubuntu, no Docker required:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/StefRush2099/Zorg_MemoryDB/main/scripts/install_standard_ubuntu.sh | bash
+```
+
+Details: [`standard-ubuntu-install.md`](standard-ubuntu-install.md)
+
+## Option 2: Docker install
 
 ```bash
 git clone https://github.com/StefRush2099/Zorg_MemoryDB.git
@@ -10,6 +22,22 @@ cd Zorg_MemoryDB
 cp .env.example .env
 docker compose up -d --build
 ```
+
+Details: [`docker-install.md`](docker-install.md)
+
+## Option 3: Dockge install
+
+Clone the repo into the Dockge stacks folder and start `docker-compose.yml` from Dockge:
+
+```bash
+cd /opt/stacks
+sudo git clone https://github.com/StefRush2099/Zorg_MemoryDB.git
+sudo chown -R "$USER:$USER" /opt/stacks/Zorg_MemoryDB
+cd /opt/stacks/Zorg_MemoryDB
+cp .env.example .env
+```
+
+Details: [`dockge-install.md`](dockge-install.md)
 
 ## Sudo-heavy systems
 
@@ -22,13 +50,9 @@ sudo cp .env.example .env
 sudo docker compose up -d --build
 ```
 
-Or use the bootstrap helper:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/StefRush2099/Zorg_MemoryDB/main/scripts/bootstrap_full_openclaw.sh | bash
-```
-
 ## Verify
+
+Docker/Dockge:
 
 ```bash
 docker compose ps
@@ -36,6 +60,16 @@ docker compose exec openclaw bash -lc 'cd /home/openclaw/.openclaw/workspace && 
 docker compose exec openclaw bash -lc 'cd /home/openclaw/.openclaw/workspace && .venv-sqlmem/bin/python scripts/memory_recall_router.py "openclaw database memory" --limit 5'
 ```
 
+Native:
+
+```bash
+cd ~/Zorg_MemoryDB
+.venv-sqlmem/bin/python scripts/memory_sql_tool.py tables
+.venv-sqlmem/bin/python scripts/memory_recall_router.py "openclaw database memory" --limit 5
+```
+
+Expected recall mode: `database-direct-structured`.
+
 ## What you should not need to do
 
-You should not need to manually connect the database to OpenClaw. The OpenClaw container does that on startup before launching the Gateway.
+You should not need to manually connect the database to OpenClaw. Each install path handles that during startup/bootstrap.

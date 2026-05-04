@@ -6,15 +6,12 @@ services:
       args:
         OPENCLAW_VERSION: ${OPENCLAW_VERSION:-latest}
     image: zorg-memorydb-openclaw:latest
-    container_name: zorg-openclaw
     restart: unless-stopped
-    depends_on:
-      postgres:
-        condition: service_healthy
     environment:
       OPENCLAW_HOME: /home/openclaw/.openclaw
       OPENCLAW_WORKSPACE: /home/openclaw/.openclaw/workspace
-      DB_HOST: postgres
+      PGDATA: /home/openclaw/.openclaw/postgresql/data
+      DB_HOST: 127.0.0.1
       DB_PORT: 5432
       DB_NAME: ${DB_NAME:-openclaw_memory}
       DB_USER: ${DB_USER:-openclaw_memory}
@@ -28,24 +25,5 @@ services:
     volumes:
       - zorg_openclaw_home:/home/openclaw/.openclaw
 
-  postgres:
-    image: postgres:16
-    container_name: zorg-memorydb-postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: ${DB_NAME:-openclaw_memory}
-      POSTGRES_USER: ${DB_USER:-openclaw_memory}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-openclaw_memory}
-    expose:
-      - "5432"
-    volumes:
-      - zorg_memorydb_pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-openclaw_memory} -d ${DB_NAME:-openclaw_memory}"]
-      interval: 5s
-      timeout: 5s
-      retries: 20
-
 volumes:
   zorg_openclaw_home:
-  zorg_memorydb_pgdata:

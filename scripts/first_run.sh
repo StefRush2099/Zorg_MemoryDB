@@ -46,7 +46,7 @@ PY
 }
 
 write_config(){
-  if [ ! -f sql_memory_map.json ]; then
+  if [ ! -f sql_memory_map.json ] || [ "${ZORG_FORCE_WRITE_CONFIG:-0}" = "1" ]; then
     log "creating sql_memory_map.json"
     "$PYTHON" - <<'PY'
 import json, os

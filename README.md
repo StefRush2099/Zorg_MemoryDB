@@ -11,8 +11,8 @@ Fresh installs include schema and public templates only. They do **not** include
 Choose one:
 
 1. **Standard Ubuntu install** — native OpenClaw + local PostgreSQL on latest Ubuntu.
-2. **Docker install** — complete OpenClaw + PostgreSQL stack with Docker Compose.
-3. **Dockge install** — Dockge-managed Compose stack for latest Ubuntu servers.
+2. **Docker install** — one self-contained OpenClaw/Zorg container with embedded PostgreSQL, managed by Docker Compose.
+3. **Dockge install** — one Dockge-managed OpenClaw/Zorg container with embedded PostgreSQL for latest Ubuntu servers.
 
 ## 1. Standard Ubuntu install
 
@@ -73,10 +73,10 @@ sudo chown -R "$USER:$USER" Zorg_MemoryDB
 
 ## What starts in Docker/Dockge
 
-- `openclaw`: full latest OpenClaw CLI/Gateway install with Zorg DB memory enabled
-- `postgres`: PostgreSQL 16 memory database on the private Compose network
-- persistent Docker volumes for OpenClaw state/workspace and PostgreSQL data
-- first-run bootstrap that wires OpenClaw memory recall to PostgreSQL before Gateway startup
+- one `openclaw` service/container: full latest OpenClaw CLI/Gateway install with Zorg DB memory enabled
+- embedded PostgreSQL server running inside that same container on `127.0.0.1`
+- one persistent Docker volume for OpenClaw state/workspace and embedded PostgreSQL data
+- first-run bootstrap that wires OpenClaw memory recall to the embedded PostgreSQL server before Gateway startup
 
 ## First-run behavior
 
@@ -86,7 +86,7 @@ When the `openclaw` container starts, `docker/entrypoint.sh` runs the complete s
 2. seeds `/home/openclaw/.openclaw/workspace` from this sanitized template repository if needed
 3. creates `.venv-sqlmem`
 4. writes `sql_memory_map.json`
-5. waits for PostgreSQL
+5. starts/uses embedded PostgreSQL inside the same container
 6. applies `db/schema.sql`
 7. imports public/template markdown memory rules into PostgreSQL
 8. refreshes recall/search materialized views
@@ -97,6 +97,7 @@ When the `openclaw` container starts, `docker/entrypoint.sh` runs the complete s
 
 ```bash
 docker compose ps
+docker compose exec openclaw bash -lc 'pg_isready -h 127.0.0.1 -p 5432'
 docker compose exec openclaw bash -lc 'cd /home/openclaw/.openclaw/workspace && .venv-sqlmem/bin/python scripts/memory_sql_tool.py tables'
 docker compose exec openclaw bash -lc 'cd /home/openclaw/.openclaw/workspace && .venv-sqlmem/bin/python scripts/memory_recall_router.py "database memory" --limit 5'
 ```

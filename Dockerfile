@@ -1,9 +1,12 @@
 FROM node:22-bookworm
 
 ENV DEBIAN_FRONTEND=noninteractive \
+    LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8 \
     OPENCLAW_HOME=/home/openclaw/.openclaw \
     OPENCLAW_WORKSPACE=/home/openclaw/.openclaw/workspace \
-    DB_HOST=postgres \
+    PGDATA=/home/openclaw/.openclaw/postgresql/data \
+    DB_HOST=127.0.0.1 \
     DB_PORT=5432 \
     DB_NAME=openclaw_memory \
     DB_USER=openclaw_memory \
@@ -18,10 +21,12 @@ RUN apt-get update \
       ca-certificates \
       curl \
       git \
+      gosu \
+      postgresql \
+      postgresql-client \
       python3 \
       python3-pip \
       python3-venv \
-      postgresql-client \
       tini \
     && rm -rf /var/lib/apt/lists/*
 

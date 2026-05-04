@@ -2,7 +2,9 @@
 
 Target OS: the latest Ubuntu release, currently **Ubuntu 26.04 LTS**.
 
-This is the recommended clean install path. Docker Compose starts the complete OpenClaw + Zorg MemoryDB stack. No separate OpenClaw container or manual database attachment is required.
+This is the recommended clean install path. Docker Compose starts **one self-contained OpenClaw/Zorg container**. PostgreSQL runs inside that same container, matching the Zorg memory structure instead of creating a separate Docker-managed PostgreSQL service.
+
+No separate OpenClaw container, separate PostgreSQL container, or manual database attachment is required.
 
 ## Install Docker on Ubuntu
 
@@ -18,7 +20,7 @@ If your user is not in the Docker group, either use `sudo docker ...` or add you
 sudo usermod -aG docker "$USER"
 ```
 
-## Start the full stack
+## Start the full single-container stack
 
 ```bash
 git clone https://github.com/StefRush2099/Zorg_MemoryDB.git
@@ -39,12 +41,13 @@ sudo docker compose up -d --build
 
 ## What the stack includes
 
-- `openclaw`: full OpenClaw latest install, built from this repo's Dockerfile
-- `postgres`: PostgreSQL 16 memory database on the private Compose network
-- `zorg_openclaw_home`: persistent OpenClaw state/workspace volume
-- `zorg_memorydb_pgdata`: persistent PostgreSQL data volume
+- one `openclaw` Compose service built from this repo's Dockerfile
+- full latest OpenClaw install
+- embedded PostgreSQL server running inside the same container
+- Zorg MemoryDB schema, scripts, config, imports, materialized views, and DB-backed recall enforcement
+- one persistent `zorg_openclaw_home` volume containing OpenClaw state/workspace and embedded PostgreSQL data under `/home/openclaw/.openclaw/postgresql/data`
 
-The OpenClaw container automatically connects to PostgreSQL using the Compose service name `postgres`.
+This is intentionally not a two-container `openclaw` + `postgres` layout.
 
 ## Verify
 
@@ -52,6 +55,7 @@ The OpenClaw container automatically connects to PostgreSQL using the Compose se
 docker compose ps
 docker compose logs -f openclaw
 
+docker compose exec openclaw bash -lc 'pg_isready -h 127.0.0.1 -p 5432'
 docker compose exec openclaw bash -lc 'cd /home/openclaw/.openclaw/workspace && .venv-sqlmem/bin/python scripts/memory_sql_tool.py tables'
 docker compose exec openclaw bash -lc 'cd /home/openclaw/.openclaw/workspace && .venv-sqlmem/bin/python scripts/memory_recall_router.py "database memory" --limit 5'
 ```
@@ -65,4 +69,4 @@ git pull
 docker compose up -d --build
 ```
 
-The template remains sanitized. Database rows live only in the Docker volume and are not committed to GitHub.
+The template remains sanitized. Database rows live only in the local Docker volume and are not committed to GitHub.

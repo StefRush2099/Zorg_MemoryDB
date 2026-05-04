@@ -2,7 +2,7 @@
 
 Target OS for all install paths: the latest Ubuntu release, currently **Ubuntu 26.04 LTS**.
 
-This repo is the clean-install template. It starts or installs full OpenClaw with Zorg PostgreSQL memory already connected.
+This repo is the clean-install template. It starts or installs full OpenClaw with Zorg PostgreSQL memory already connected. In Docker/Dockge, OpenClaw and PostgreSQL run inside the same self-contained OpenClaw/Zorg container.
 
 ## Option 1: Standard Ubuntu install
 
@@ -56,6 +56,7 @@ Docker/Dockge:
 
 ```bash
 docker compose ps
+docker compose exec openclaw bash -lc 'pg_isready -h 127.0.0.1 -p 5432'
 docker compose exec openclaw bash -lc 'cd /home/openclaw/.openclaw/workspace && .venv-sqlmem/bin/python scripts/memory_sql_tool.py tables'
 docker compose exec openclaw bash -lc 'cd /home/openclaw/.openclaw/workspace && .venv-sqlmem/bin/python scripts/memory_recall_router.py "openclaw database memory" --limit 5'
 ```

@@ -6,6 +6,14 @@ It installs and runs the full latest OpenClaw package (`openclaw@latest`) with P
 
 Fresh installs include schema and public templates only. They do **not** include live database rows, private memory, credentials, transcripts, contact data, or operator context.
 
+## Packages and releases
+
+- GitHub Releases: https://github.com/StefRush2099/Zorg_MemoryDB/releases
+- GHCR image: `ghcr.io/stefrush2099/zorg-memorydb`
+- Release/process docs: [`docs/release-process.md`](docs/release-process.md)
+
+Every meaningful structural/install/runtime update should be committed, tagged, released, and published as a GHCR container image.
+
 ## Install paths
 
 Choose one:
@@ -13,6 +21,7 @@ Choose one:
 1. **Standard Ubuntu install** — native OpenClaw + local PostgreSQL on latest Ubuntu.
 2. **Docker install** — one self-contained OpenClaw/Zorg container with embedded PostgreSQL, managed by Docker Compose.
 3. **Dockge install** — one Dockge-managed OpenClaw/Zorg container with embedded PostgreSQL for latest Ubuntu servers.
+4. **Docker run** — one-line install using the published GHCR image.
 
 ## 1. Standard Ubuntu install
 
@@ -53,6 +62,14 @@ cp .env.example .env
 ```
 
 Then import/start `/opt/stacks/Zorg_MemoryDB/docker-compose.yml` in Dockge.
+
+## 4. Docker run one-liner
+
+Docs: [`docs/docker-run.md`](docs/docker-run.md)
+
+```bash
+docker run -d --name zorg-memorydb --restart unless-stopped -p 18789:18789 -e OPENCLAW_GATEWAY_TOKEN=change-this-token -e DB_PASSWORD=change-this-password -v zorg_openclaw_home:/home/openclaw/.openclaw ghcr.io/stefrush2099/zorg-memorydb:latest
+```
 
 ## Sudo-heavy Ubuntu systems
 
@@ -111,7 +128,7 @@ Docs: [`docs/sanitized-template.md`](docs/sanitized-template.md)
 Included:
 
 - full OpenClaw latest install path
-- Dockerfile and Compose/Dockge stack
+- Dockerfile, Compose/Dockge stack, and GHCR package workflow
 - native Ubuntu install script
 - PostgreSQL schema, functions, indexes, materialized views, recall tooling, and bootstrap scripts
 - public markdown templates and operating rules
@@ -135,3 +152,13 @@ Use that only for migration/repair. New installs should use the standard Ubuntu,
 ## Core rule
 
 Zorg MemoryDB preserves original/source memory data and improves recall additively with schema, indexes, materialized views, summaries, concepts, and weighted associations. Do not prune or delete source memory for performance.
+
+
+## Project files
+
+- [`CHANGELOG.md`](CHANGELOG.md)
+- [`CONTRIBUTING.md`](CONTRIBUTING.md)
+- [`SECURITY.md`](SECURITY.md)
+- [`SUPPORT.md`](SUPPORT.md)
+- [`LICENSE`](LICENSE)
+

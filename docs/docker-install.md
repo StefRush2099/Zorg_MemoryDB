@@ -2,7 +2,9 @@
 
 Target OS: the latest Ubuntu release, currently **Ubuntu 26.04 LTS**.
 
-This is the recommended clean install path. Docker Compose starts **one self-contained OpenClaw/Zorg container**. PostgreSQL runs inside that same container, matching the Zorg memory structure instead of creating a separate Docker-managed PostgreSQL service.
+This is the recommended clean install path when you want to clone the repo and build locally. Docker Compose starts **one self-contained OpenClaw/Zorg container**. PostgreSQL runs inside that same container, matching the Zorg memory structure instead of creating a separate Docker-managed PostgreSQL service.
+
+If you prefer not to clone/build, use the packaged GHCR one-liner in [`docker-run.md`](docker-run.md).
 
 No separate OpenClaw container, separate PostgreSQL container, or manual database attachment is required.
 

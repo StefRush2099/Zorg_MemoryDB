@@ -1,0 +1,31 @@
+name: Feature request
+description: Suggest an additive improvement
+title: "[Feature]: "
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Feature requests should preserve source memory history and avoid destructive pruning/deletion designs.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / use case
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed additive change
+    validations:
+      required: true
+  - type: checkboxes
+    id: install_paths
+    attributes:
+      label: Affected install paths
+      options:
+        - label: Standard Ubuntu
+        - label: Docker Compose
+        - label: Dockge
+        - label: Docker run / GHCR
+        - label: Existing OpenClaw migration

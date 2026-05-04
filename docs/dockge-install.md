@@ -47,7 +47,7 @@ services:
       dockerfile: Dockerfile
       args:
         OPENCLAW_VERSION: latest
-    image: zorg-memorydb-openclaw:latest
+    image: ghcr.io/stefrush2099/zorg-memorydb:latest
     restart: unless-stopped
     environment:
       OPENCLAW_HOME: /home/openclaw/.openclaw

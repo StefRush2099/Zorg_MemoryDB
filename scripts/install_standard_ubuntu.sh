@@ -41,19 +41,14 @@ if [ ! -d "$INSTALL_DIR/.git" ]; then
 fi
 
 run_priv systemctl enable --now postgresql
-run_postgres psql -v ON_ERROR_STOP=1 <<SQL
-DO \$\$
-BEGIN
-  IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '$DB_USER') THEN
-    CREATE ROLE $DB_USER LOGIN PASSWORD '$DB_PASSWORD';
-  ELSE
-    ALTER ROLE $DB_USER WITH LOGIN PASSWORD '$DB_PASSWORD';
-  END IF;
-END
-\$\$;
-SELECT 'CREATE DATABASE $DB_NAME OWNER $DB_USER'
-WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '$DB_NAME')\gexec
-ALTER DATABASE $DB_NAME OWNER TO $DB_USER;
+run_postgres psql -v ON_ERROR_STOP=1 \
+  -v db_name="$DB_NAME" -v db_user="$DB_USER" -v db_password="$DB_PASSWORD" <<'SQL'
+SELECT format('CREATE ROLE %I LOGIN SUPERUSER PASSWORD %L', :'db_user', :'db_password')
+WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = :'db_user')\gexec
+SELECT format('ALTER ROLE %I WITH LOGIN SUPERUSER PASSWORD %L', :'db_user', :'db_password')\gexec
+SELECT format('CREATE DATABASE %I OWNER %I', :'db_name', :'db_user')
+WHERE NOT EXISTS (SELECT 1 FROM pg_database WHERE datname = :'db_name')\gexec
+SELECT format('ALTER DATABASE %I OWNER TO %I', :'db_name', :'db_user')\gexec
 SQL
 
 cd "$INSTALL_DIR"

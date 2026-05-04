@@ -1,5 +1,11 @@
 FROM node:22-bookworm
 
+LABEL org.opencontainers.image.title="Zorg MemoryDB OpenClaw Template" \
+      org.opencontainers.image.description="Self-contained OpenClaw plus PostgreSQL-backed Zorg MemoryDB template" \
+      org.opencontainers.image.source="https://github.com/StefRush2099/Zorg_MemoryDB" \
+      org.opencontainers.image.vendor="Hyperdine Systems" \
+      org.opencontainers.image.licenses="MIT"
+
 ENV DEBIAN_FRONTEND=noninteractive \
     LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
@@ -10,10 +16,8 @@ ENV DEBIAN_FRONTEND=noninteractive \
     DB_PORT=5432 \
     DB_NAME=openclaw_memory \
     DB_USER=openclaw_memory \
-    DB_PASSWORD=openclaw_memory \
     OPENCLAW_GATEWAY_PORT=18789 \
-    OPENCLAW_GATEWAY_BIND=lan \
-    OPENCLAW_GATEWAY_AUTH=token
+    OPENCLAW_GATEWAY_BIND=lan
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \

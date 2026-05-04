@@ -8,6 +8,7 @@
 - Dockerfile for an all-in-one OpenClaw container
 - Docker Compose stack with OpenClaw + PostgreSQL
 - Dockge-ready stack instructions
+- Docker run / GHCR package instructions
 - Native Ubuntu install script
 - PostgreSQL schema, indexes, functions, materialized views, recall tooling, and bootstrap scripts
 - Public markdown templates and operating rules

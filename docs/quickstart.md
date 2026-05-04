@@ -25,7 +25,15 @@ docker compose up -d --build
 
 Details: [`docker-install.md`](docker-install.md)
 
-## Option 3: Dockge install
+## Option 3: Docker run one-liner
+
+```bash
+docker run -d --name zorg-memorydb --restart unless-stopped -p 18789:18789 -e OPENCLAW_GATEWAY_TOKEN=change-this-token -e DB_PASSWORD=change-this-password -v zorg_openclaw_home:/home/openclaw/.openclaw ghcr.io/stefrush2099/zorg-memorydb:latest
+```
+
+Details: [`docker-run.md`](docker-run.md)
+
+## Option 4: Dockge install
 
 Clone the repo into the Dockge stacks folder and start `docker-compose.yml` from Dockge:
 

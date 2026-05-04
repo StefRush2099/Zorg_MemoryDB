@@ -1,15 +1,33 @@
 # Verification
 
-## Secret/private-data scan
+## All-in-one Docker smoke test
+
+From the repository root:
 
 ```bash
-grep -RInE 'password|token|secret|oauth|credential|cookie|BEGIN (RSA|OPENSSH|PRIVATE)|[0-9]{1,3}(\.[0-9]{1,3}){3}|@' . \
-  --exclude-dir=.git \
-  --exclude='README.md' \
-  --exclude='verification.md'
+cp .env.example .env
+docker compose config >/tmp/zorg-memorydb-compose.yml
+docker compose build openclaw
+docker compose up -d
+docker compose ps
+docker compose exec openclaw bash -lc 'cd /home/openclaw/.openclaw/workspace && .venv-sqlmem/bin/python scripts/memory_sql_tool.py tables'
+docker compose exec openclaw bash -lc 'cd /home/openclaw/.openclaw/workspace && .venv-sqlmem/bin/python scripts/memory_recall_router.py "database memory" --limit 5'
 ```
 
-Review every match before publishing.
+Expected:
+
+- `openclaw` and `postgres` services are running
+- PostgreSQL healthcheck is healthy
+- `memory_sql_tool.py tables` lists Zorg memory tables
+- `memory_recall_router.py` returns JSON using DB-backed recall
+- OpenClaw Gateway logs show startup after the DB bootstrap
+
+## Shell/static checks
+
+```bash
+bash -n scripts/*.sh docker/entrypoint.sh
+python3 -m py_compile scripts/*.py
+```
 
 ## Schema smoke test
 
@@ -18,7 +36,7 @@ createdb openclaw_memory_test
 psql postgresql://USER:PASSWORD@127.0.0.1:5432/openclaw_memory_test -v ON_ERROR_STOP=1 -f db/schema.sql
 ```
 
-## Tool smoke test
+## Tool smoke test outside Docker
 
 ```bash
 cp config/sql_memory_map.example.json sql_memory_map.json
@@ -29,7 +47,7 @@ python scripts/memory_recall_router.py "project runbook" --limit 5
 python scripts/memory_speed_test.py
 ```
 
-`memory_speed_test.py` now loads a benchmark corpus from `DB_BENCHMARK_QUERIES`, then `db_benchmark_queries.json` in the OpenClaw workspace, and finally `config/db_benchmark_queries.example.json`. The public example corpus intentionally includes both simple lookups and complex multi-condition recall prompts so DB-vs-flat-file checks catch regressions in deeper historical recall paths, not only easy keyword searches.
+`memory_speed_test.py` loads a benchmark corpus from `DB_BENCHMARK_QUERIES`, then `db_benchmark_queries.json` in the OpenClaw workspace, and finally `config/db_benchmark_queries.example.json`.
 
 Useful knobs:
 
@@ -48,4 +66,13 @@ OPENCLAW_WORKSPACE=/path/to/openclaw/workspace python scripts/enforce_db_memory_
 
 Expected result: JSON with `"ok": true`. If OpenClaw runtime files are present, the script reports them under `runtimeFiles` and patches default memory recall to route through PostgreSQL via `memory_recall_router.py`.
 
-This check is structural only; do not add live memory exports or database dumps to the repository.
+## Secret/private-data scan before publishing
+
+```bash
+grep -RInE 'BEGIN (RSA|OPENSSH|PRIVATE)|cookie|oauth|credential|private_key' . \
+  --exclude-dir=.git \
+  --exclude='README.md' \
+  --exclude='verification.md'
+```
+
+Review every match before publishing. Do not add live memory exports, database dumps, credentials, contacts, or private transcripts to this repository.

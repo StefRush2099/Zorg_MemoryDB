@@ -1508,24 +1508,6 @@ AS $function$
 $function$;
 
 
-CREATE MATERIALIZED VIEW IF NOT EXISTS public."zorg_memory_search_fast_mv" AS
- SELECT source_table,
-    source_id,
-    event_ts,
-    category,
-    priority,
-    content,
-    lower(content) AS content_lc,
-    to_tsvector('english'::regconfig, content) AS content_fts_en,
-    to_tsvector('simple'::regconfig, content) AS content_fts_simple,
-    CASE
-        WHEN (source_table = 'zorg_memory'::text) THEN 1
-        ELSE 0
-    END AS source_rank,
-    length(content) AS content_len
-   FROM zorg_memory_search_mv
-WITH NO DATA;
-
 CREATE MATERIALIZED VIEW IF NOT EXISTS public."zorg_master_context_mv" AS
  SELECT 'directive'::text AS source_type,
     d.id::text AS source_id,
@@ -1754,6 +1736,24 @@ UNION ALL
     zf.fact_value AS content
    FROM zorg_operational_facts zf
   WHERE COALESCE(zf.active, true) = true
+WITH NO DATA;
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS public."zorg_memory_search_fast_mv" AS
+ SELECT source_table,
+    source_id,
+    event_ts,
+    category,
+    priority,
+    content,
+    lower(content) AS content_lc,
+    to_tsvector('english'::regconfig, content) AS content_fts_en,
+    to_tsvector('simple'::regconfig, content) AS content_fts_simple,
+    CASE
+        WHEN (source_table = 'zorg_memory'::text) THEN 1
+        ELSE 0
+    END AS source_rank,
+    length(content) AS content_len
+   FROM zorg_memory_search_mv
 WITH NO DATA;
 
 ALTER TABLE public."app_activity_events" ADD CONSTRAINT "app_activity_events_pkey" PRIMARY KEY (id);

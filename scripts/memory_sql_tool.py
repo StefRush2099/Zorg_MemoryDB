@@ -53,6 +53,7 @@ def master(cur, limit:int=40):
 
 def refresh(cur):
     cur.execute("select refresh_zorg_memory_search_mv();")
+    cur.execute("select refresh_zorg_memory_search_fast_mv();")
     cur.execute("select refresh_zorg_master_context();")
 
 def main():

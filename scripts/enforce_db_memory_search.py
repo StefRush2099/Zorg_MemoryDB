@@ -46,6 +46,8 @@ function normalizeZorgDbMemoryRows(payload, maxResults) {
 	});
 }
 async function searchZorgDatabaseMemory(query, maxResults) {
+	const fs = await import("node:fs/promises");
+	const path = await import("node:path");
 	const workspaceDir = process.env.OPENCLAW_WORKSPACE || process.cwd();
 	const pythonPath = process.env.SQLMEM_PYTHON || path.join(workspaceDir, ".venv-sqlmem", "bin", "python");
 	let routerPath = process.env.MEMORY_RECALL_ROUTER || path.join(workspaceDir, "memory_recall_router.py");
@@ -163,12 +165,17 @@ def enforce_config() -> bool:
 def memory_core_paths() -> list[Path]:
     candidates: list[Path] = []
     npm_root = subprocess.run(['npm', 'root', '-g'], text=True, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+    roots: list[Path] = []
     if npm_root.returncode == 0 and npm_root.stdout.strip():
-        candidates.append(Path(npm_root.stdout.strip()) / 'openclaw' / 'dist' / 'extensions' / 'memory-core' / 'index.js')
-    candidates.append(Path('/home/openclaw/.npm-global/lib/node_modules/openclaw/dist/extensions/memory-core/index.js'))
+        roots.append(Path(npm_root.stdout.strip()) / 'openclaw' / 'dist')
+    roots.append(Path('/home/openclaw/.npm-global/lib/node_modules/openclaw/dist'))
+    roots.append(Path('/usr/local/lib/node_modules/openclaw/dist'))
     runtime_root = OPENCLAW_HOME / 'plugin-runtime-deps'
     if runtime_root.exists():
-        candidates.extend(runtime_root.glob('openclaw-*/dist/extensions/memory-core/index.js'))
+        roots.extend(path.parent.parent.parent for path in runtime_root.glob('openclaw-*/dist/extensions/memory-core/index.js'))
+    for root in roots:
+        candidates.append(root / 'extensions' / 'memory-core' / 'index.js')
+        candidates.extend(root.glob('tools-*.js'))
     found: list[Path] = []
     for candidate in candidates:
         try:
@@ -185,8 +192,11 @@ def enforce_runtime() -> bool:
     for runtime_file in memory_core_paths():
         text = runtime_file.read_text(encoding='utf-8')
         changed = False
+        marker = 'function createMemorySearchTool(options) {'
+        applicable = marker in text or OLD_EXEC in text or NEW_EXEC in text or 'function searchZorgDatabaseMemory(query, maxResults)' in text
+        if not applicable:
+            continue
         if 'function searchZorgDatabaseMemory(query, maxResults)' not in text:
-            marker = 'function createMemorySearchTool(options) {'
             if marker not in text:
                 raise RuntimeError(f'createMemorySearchTool marker not found in {runtime_file}')
             text = text.replace(marker, HELPER + '\n' + marker, 1)

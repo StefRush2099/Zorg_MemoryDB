@@ -120,6 +120,7 @@ with conn:
     with conn.cursor() as cur:
         cur.execute(schema)
         cur.execute('select refresh_zorg_memory_search_mv();')
+        cur.execute('select refresh_zorg_memory_search_fast_mv();')
         cur.execute('select refresh_zorg_master_context();')
 conn.close()
 PY

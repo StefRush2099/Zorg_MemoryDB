@@ -51,17 +51,17 @@ OpenClaw Gateway starts on port `18789` by default.
 
 Docs: [`docs/dockge-install.md`](docs/dockge-install.md)
 
-Recommended Dockge path:
+Recommended Dockge path — intentionally lowercase to match Dockge/Compose normalization and prevent a second lowercase duplicate folder:
 
 ```bash
 cd /opt/stacks
-sudo git clone https://github.com/StefRush2099/Zorg_MemoryDB.git
-sudo chown -R "$USER:$USER" /opt/stacks/Zorg_MemoryDB
-cd /opt/stacks/Zorg_MemoryDB
+sudo git clone https://github.com/StefRush2099/Zorg_MemoryDB.git zorg_memorydb
+sudo chown -R "$USER:$USER" /opt/stacks/zorg_memorydb
+cd /opt/stacks/zorg_memorydb
 cp .env.example .env
 ```
 
-Then import/start `/opt/stacks/Zorg_MemoryDB/docker-compose.yml` in Dockge.
+Then import/start `/opt/stacks/zorg_memorydb/docker-compose.yml` in Dockge with stack name `zorg_memorydb`.
 
 ## 4. Docker run one-liner
 
@@ -76,8 +76,8 @@ docker run -d --name zorg-memorydb --restart unless-stopped -p 18789:18789 -e OP
 Some systems require sudo for clone or Docker. Use:
 
 ```bash
-sudo git clone https://github.com/StefRush2099/Zorg_MemoryDB.git
-cd Zorg_MemoryDB
+sudo git clone https://github.com/StefRush2099/Zorg_MemoryDB.git zorg_memorydb
+cd zorg_memorydb
 sudo cp .env.example .env
 sudo docker compose up -d --build
 ```
@@ -85,7 +85,7 @@ sudo docker compose up -d --build
 If desired afterward:
 
 ```bash
-sudo chown -R "$USER:$USER" Zorg_MemoryDB
+sudo chown -R "$USER:$USER" zorg_memorydb
 ```
 
 ## What starts in Docker/Dockge

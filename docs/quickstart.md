@@ -35,13 +35,13 @@ Details: [`docker-run.md`](docker-run.md)
 
 ## Option 4: Dockge install
 
-Clone the repo into the Dockge stacks folder and start `docker-compose.yml` from Dockge:
+Clone the repo into the Dockge stacks folder using the lowercase target folder `zorg_memorydb`. Dockge/Compose normalize stack names to lowercase; using this folder up front prevents Dockge from creating a second lowercase duplicate beside `Zorg_MemoryDB`:
 
 ```bash
 cd /opt/stacks
-sudo git clone https://github.com/StefRush2099/Zorg_MemoryDB.git
-sudo chown -R "$USER:$USER" /opt/stacks/Zorg_MemoryDB
-cd /opt/stacks/Zorg_MemoryDB
+sudo git clone https://github.com/StefRush2099/Zorg_MemoryDB.git zorg_memorydb
+sudo chown -R "$USER:$USER" /opt/stacks/zorg_memorydb
+cd /opt/stacks/zorg_memorydb
 cp .env.example .env
 ```
 
@@ -52,8 +52,8 @@ Details: [`dockge-install.md`](dockge-install.md)
 If Docker or clone location requires sudo:
 
 ```bash
-sudo git clone https://github.com/StefRush2099/Zorg_MemoryDB.git
-cd Zorg_MemoryDB
+sudo git clone https://github.com/StefRush2099/Zorg_MemoryDB.git zorg_memorydb
+cd zorg_memorydb
 sudo cp .env.example .env
 sudo docker compose up -d --build
 ```

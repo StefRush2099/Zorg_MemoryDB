@@ -2,6 +2,19 @@
 
 All meaningful changes to this project are documented here and released with a GitHub Release plus GHCR container image.
 
+## [v1.1.1] - 2026-05-04
+
+### Fixed
+
+- Dockge install now uses the canonical lowercase folder/stack/project name `zorg_memorydb` to match Dockge and Docker Compose normalization.
+- Added `COMPOSE_PROJECT_NAME=zorg_memorydb` and top-level Compose `name` to prevent resource identity drift from uppercase source folders.
+- Dockge docs now explicitly warn that cloning/importing as `Zorg_MemoryDB` can cause Dockge to create a second lowercase folder, and provide a safe migration path.
+
+### Verification
+
+- Verified Compose config resolves project name as `zorg_memorydb`.
+- Verified a fresh lowercase `/tmp/.../zorg_memorydb` clone builds and starts with a single `openclaw` service/container, embedded PostgreSQL, memory tables, and `database-direct-structured` recall.
+
 ## [v1.1.0] - 2026-05-04
 
 ### Added

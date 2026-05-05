@@ -17,3 +17,12 @@
 ## Public safety
 
 Do not commit real `sql_memory_map.json`, credentials, database dumps with rows, logs, or personal memory files.
+
+<!-- EXEC_ADMIN_PLAYBOOK_REFERENCE -->
+
+## Executive Assistant Playbook Reference
+
+- Public-safe built-in rule summary: `docs/executive-assistant-operating-rules.md` in the Zorg MemoryDB distribution.
+- Optional private source copies may exist in a local operator workspace, but they are not part of the public distribution.
+- Do not copy source playbooks verbatim into public docs. Use distilled operational rules only.
+<!-- /EXEC_ADMIN_PLAYBOOK_REFERENCE -->

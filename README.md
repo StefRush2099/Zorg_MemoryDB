@@ -133,6 +133,10 @@ Use that only for migration/repair. New installs should use Docker run, Docker C
 
 Zorg MemoryDB preserves original/source memory data and improves recall additively with schema, indexes, materialized views, summaries, concepts, and weighted associations. Do not prune or delete source memory for performance.
 
+## Executive assistant behavior
+
+Zorg MemoryDB also includes built-in executive-assistant operating rules for inbox triage, email formatting, calendar discipline, proactive follow-through, confidentiality, and revenue/time-priority filtering. See [`docs/executive-assistant-operating-rules.md`](docs/executive-assistant-operating-rules.md).
+
 ## Project files
 
 - [`CHANGELOG.md`](CHANGELOG.md)

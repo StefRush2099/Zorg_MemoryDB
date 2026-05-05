@@ -2,6 +2,13 @@
 
 All meaningful changes to this project are documented here and released with a GitHub Release plus GHCR container image.
 
+## [Unreleased]
+
+### Added
+
+- Added public-safe executive-assistant operating rules distilled from the Dan Martell Exec Admin Playbook.
+- Integrated executive-assistant rules into root markdown, templates, docs, and existing-workspace migration append rules so new OpenClaw + Zorg MemoryDB installs inherit inbox, email, calendar, logistics, confidentiality, and revenue/time-priority behavior.
+
 ## [v1.1.2] - 2026-05-04
 
 ### Changed

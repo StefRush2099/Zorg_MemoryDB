@@ -8,7 +8,7 @@ Use the latest GitHub Release and the matching GHCR image tag for security-sensi
 
 Open a private/security report through GitHub if available, or contact the repository owner directly.
 
-Do not include private memory rows, credentials, tokens, cookies, OAuth material, SSH keys, chat logs, email contents, or other sensitive data in public issues.
+Do not include private memory rows, credentials, cookies, OAuth material, SSH keys, chat logs, email contents, or other sensitive data in public issues.
 
 ## Security model
 
@@ -23,7 +23,7 @@ The repository must never include:
 - `sql_memory_map.json` with real credentials
 - API keys, OAuth tokens, cookies, SSH keys, contact data, email content, transcripts, or private operator context
 
-Docker/Dockge installs run OpenClaw and PostgreSQL inside one self-contained container. Protect the OpenClaw Gateway token and do not expose the Gateway publicly without appropriate network controls.
+Docker/Dockge installs run OpenClaw and PostgreSQL inside one self-contained container. Do not expose the Gateway publicly without appropriate network controls.
 
 ## GitHub Actions
 

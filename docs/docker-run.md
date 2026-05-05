@@ -1,6 +1,6 @@
 # Docker Run One-Liner
 
-Use this path when you want the packaged GitHub Container Registry image without cloning the repo first.
+Use this path when you want the packaged OpenClaw/Zorg image without cloning the repo first.
 
 The image is published to:
 
@@ -8,20 +8,18 @@ The image is published to:
 ghcr.io/stefrush2099/zorg-memorydb
 ```
 
-## One-line install/start
+## One-line start
 
 ```bash
-docker run -d --name zorg-memorydb --restart unless-stopped -p 18789:18789 -e OPENCLAW_GATEWAY_TOKEN=change-this-token -e DB_PASSWORD=change-this-password -v zorg_openclaw_home:/home/openclaw/.openclaw ghcr.io/stefrush2099/zorg-memorydb:latest
+docker run -d --name zorg-memorydb --restart unless-stopped -p 18789:18789 -v zorg_openclaw_home:/home/openclaw/.openclaw ghcr.io/stefrush2099/zorg-memorydb:latest
 ```
 
-Then open the OpenClaw Gateway on port `18789` and use the token you set.
+Open OpenClaw on port `18789`.
 
 ## Version-pinned example
 
-Prefer a version tag for repeatable production installs:
-
 ```bash
-docker run -d --name zorg-memorydb --restart unless-stopped -p 18789:18789 -e OPENCLAW_GATEWAY_TOKEN=change-this-token -e DB_PASSWORD=change-this-password -v zorg_openclaw_home:/home/openclaw/.openclaw ghcr.io/stefrush2099/zorg-memorydb:1.1.0
+docker run -d --name zorg-memorydb --restart unless-stopped -p 18789:18789 -v zorg_openclaw_home:/home/openclaw/.openclaw ghcr.io/stefrush2099/zorg-memorydb:1.1.2
 ```
 
 ## Verify
@@ -40,7 +38,7 @@ Expected recall mode: `database-direct-structured`.
 docker pull ghcr.io/stefrush2099/zorg-memorydb:latest
 docker stop zorg-memorydb
 docker rm zorg-memorydb
-docker run -d --name zorg-memorydb --restart unless-stopped -p 18789:18789 -e OPENCLAW_GATEWAY_TOKEN=change-this-token -e DB_PASSWORD=change-this-password -v zorg_openclaw_home:/home/openclaw/.openclaw ghcr.io/stefrush2099/zorg-memorydb:latest
+docker run -d --name zorg-memorydb --restart unless-stopped -p 18789:18789 -v zorg_openclaw_home:/home/openclaw/.openclaw ghcr.io/stefrush2099/zorg-memorydb:latest
 ```
 
-Do not remove the `zorg_openclaw_home` volume unless you intentionally want to discard the local install state and embedded PostgreSQL data.
+Do not remove the `zorg_openclaw_home` volume unless you intentionally want to discard the local OpenClaw state and memory data.

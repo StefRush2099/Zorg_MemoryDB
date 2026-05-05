@@ -1,12 +1,12 @@
-# Docker Install: OpenClaw + Zorg MemoryDB
+# Docker Compose Install: Integrated OpenClaw + Zorg MemoryDB
 
-Target OS: the latest Ubuntu release, currently **Ubuntu 26.04 LTS**.
+This path starts OpenClaw from scratch with Zorg MemoryDB already integrated.
 
-This is the recommended clean install path when you want to clone the repo and build locally. Docker Compose starts **one self-contained OpenClaw/Zorg container**. PostgreSQL runs inside that same container, matching the Zorg memory structure instead of creating a separate Docker-managed PostgreSQL service.
+The database is not a separate user-facing install step. It starts internally inside the OpenClaw/Zorg container and stores its data under the same OpenClaw home volume:
 
-If you prefer not to clone/build, use the packaged GHCR one-liner in [`docker-run.md`](docker-run.md).
-
-No separate OpenClaw container, separate PostgreSQL container, or manual database attachment is required.
+```text
+/home/openclaw/.openclaw
+```
 
 ## Install Docker on Ubuntu
 
@@ -22,34 +22,26 @@ If your user is not in the Docker group, either use `sudo docker ...` or add you
 sudo usermod -aG docker "$USER"
 ```
 
-## Start the full single-container stack
+## Start OpenClaw
 
 ```bash
-git clone https://github.com/StefRush2099/Zorg_MemoryDB.git
-cd Zorg_MemoryDB
+git clone https://github.com/StefRush2099/Zorg_MemoryDB.git zorg_memorydb
+cd zorg_memorydb
 cp .env.example .env
-# edit .env and change OPENCLAW_GATEWAY_TOKEN and DB_PASSWORD before real use
 docker compose up -d --build
 ```
 
-If Docker requires sudo:
+Open OpenClaw on port `18789`.
 
-```bash
-sudo git clone https://github.com/StefRush2099/Zorg_MemoryDB.git
-cd Zorg_MemoryDB
-sudo cp .env.example .env
-sudo docker compose up -d --build
-```
+That is the complete start path. You should not need to manually configure a database or attach memory afterward.
 
 ## What the stack includes
 
-- one `openclaw` Compose service built from this repo's Dockerfile
+- one `openclaw` Compose service
 - full latest OpenClaw install
-- embedded PostgreSQL server running inside the same container
+- internal PostgreSQL running inside the same OpenClaw/Zorg container
 - Zorg MemoryDB schema, scripts, config, imports, materialized views, and DB-backed recall enforcement
-- one persistent `zorg_openclaw_home` volume containing OpenClaw state/workspace and embedded PostgreSQL data under `/home/openclaw/.openclaw/postgresql/data`
-
-This is intentionally not a two-container `openclaw` + `postgres` layout.
+- one persistent `zorg_openclaw_home` volume containing OpenClaw state/workspace and internal memory data under `/home/openclaw/.openclaw`
 
 ## Verify
 
@@ -71,4 +63,4 @@ git pull
 docker compose up -d --build
 ```
 
-The template remains sanitized. Database rows live only in the local Docker volume and are not committed to GitHub.
+The template remains sanitized. Runtime memory data lives only in the local OpenClaw volume and is not committed to GitHub.

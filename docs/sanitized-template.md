@@ -1,41 +1,31 @@
-# Sanitized Full Template Policy
+# Sanitized Template Policy
 
-`Zorg_MemoryDB` is the public, sanitized full install template for OpenClaw + Zorg DB memory.
+`Zorg_MemoryDB` is a public, sanitized OpenClaw build template.
 
-## Included
+It should contain only:
 
-- Full OpenClaw install path using `openclaw@latest`
-- Dockerfile for an all-in-one OpenClaw container
-- Docker Compose stack with OpenClaw + PostgreSQL
-- Dockge-ready stack instructions
-- Docker run / GHCR package instructions
-- Native Ubuntu install script
-- PostgreSQL schema, indexes, functions, materialized views, recall tooling, and bootstrap scripts
-- Public markdown templates and operating rules
+- OpenClaw/Zorg startup structure
+- Docker/Dockge/Ubuntu install scripts
+- DB-backed memory schema and recall tooling
+- public templates and runbooks
+- release/package automation
 
-## Not included
+It must not contain:
 
-Never commit any of the following:
+- live DB rows or dumps
+- private `MEMORY.md` content
+- private `memory/*.md` content
+- account data
+- cookies or OAuth material
+- API keys or SSH keys
+- contacts, emails, chats, transcripts, or private operator context
 
-- live database rows or dumps
-- private `MEMORY.md` contents
-- private `memory/*.md` files
-- `sql_memory_map.json` with real credentials
-- `.env` with real tokens/passwords
-- OpenClaw session transcripts
-- cookies, OAuth tokens, API keys, SSH keys, contact data, email content, chat logs, or private operator context
+The memory database is integrated into the OpenClaw runtime and stored under OpenClaw's own home/workspace layout during installation. It should not be presented to users as a separate database product they need to manually install or connect.
 
-## Database state
-
-Fresh installs start with an empty PostgreSQL database except for schema objects and public template/rule imports. Real memory accumulates only on the local installed system after startup.
-
-## Sanitization check before publishing
+## Sanity checks
 
 ```bash
 git status --short
-find . -maxdepth 4 -type f \
-  \( -name '*.dump' -o -name '*.backup' -o -name '*.sqlite' -o -name '*.db' -o -name 'sql_memory_map.json' \) -print
+git ls-files | grep -E '(^|/)\.env$|sql_memory_map\.json|memory/|\.dump$|\.sql\.gz$' && echo "unexpected private/runtime file tracked"
 grep -RInE 'BEGIN (RSA|OPENSSH|PRIVATE)|cookie|oauth|credential|private_key' . --exclude-dir=.git
 ```
-
-Review all matches before pushing.

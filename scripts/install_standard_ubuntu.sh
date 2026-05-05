@@ -8,11 +8,9 @@ REPO_URL="${REPO_URL:-https://github.com/StefRush2099/Zorg_MemoryDB.git}"
 INSTALL_DIR="${INSTALL_DIR:-$HOME/Zorg_MemoryDB}"
 DB_NAME="${DB_NAME:-openclaw_memory}"
 DB_USER="${DB_USER:-openclaw_memory}"
-DB_PASSWORD="${DB_PASSWORD:-}"
 OPENCLAW_GATEWAY_PORT="${OPENCLAW_GATEWAY_PORT:-18789}"
 OPENCLAW_GATEWAY_BIND="${OPENCLAW_GATEWAY_BIND:-lan}"
-OPENCLAW_GATEWAY_AUTH="${OPENCLAW_GATEWAY_AUTH:-token}"
-OPENCLAW_GATEWAY_TOKEN="${OPENCLAW_GATEWAY_TOKEN:-change-me-zorg-token}"
+OPENCLAW_GATEWAY_AUTH="${OPENCLAW_GATEWAY_AUTH:-trusted-proxy}"
 
 have(){ command -v "$1" >/dev/null 2>&1; }
 run_priv(){ if [ "$(id -u)" -eq 0 ]; then "$@"; else sudo "$@"; fi; }
@@ -27,13 +25,10 @@ if ! have sudo && [ "$(id -u)" -ne 0 ]; then
   exit 1
 fi
 
-if [ -z "$DB_PASSWORD" ]; then
-  DB_PASSWORD="$(openssl rand -base64 32 | tr -d '\n')"
-fi
-export DB_HOST=127.0.0.1 DB_PORT=5432 DB_NAME DB_USER DB_PASSWORD
+export DB_HOST=127.0.0.1 DB_PORT=5432 DB_NAME DB_USER
 
 run_priv apt-get update
-run_priv apt-get install -y ca-certificates curl git openssl nodejs npm python3 python3-pip python3-venv postgresql postgresql-contrib build-essential
+run_priv apt-get install -y ca-certificates curl git nodejs npm python3 python3-pip python3-venv postgresql postgresql-contrib build-essential
 run_priv npm install -g openclaw@latest
 
 if [ ! -d "$INSTALL_DIR/.git" ]; then
@@ -41,33 +36,63 @@ if [ ! -d "$INSTALL_DIR/.git" ]; then
 fi
 
 run_priv systemctl enable --now postgresql
+PG_HBA="$(run_postgres psql -Atc "show hba_file;")"
+if ! run_priv grep -q "zorg_memorydb_local_trust" "$PG_HBA"; then
+  tmp_hba="$(mktemp)"
+  {
+    echo "# zorg_memorydb_local_trust"
+    echo "host all $DB_USER 127.0.0.1/32 trust"
+    echo "host all $DB_USER ::1/128 trust"
+    cat "$PG_HBA"
+  } > "$tmp_hba"
+  run_priv cp "$tmp_hba" "$PG_HBA"
+  rm -f "$tmp_hba"
+  run_priv systemctl reload postgresql
+fi
 run_postgres psql -v ON_ERROR_STOP=1 \
-  -v db_name="$DB_NAME" -v db_user="$DB_USER" -v db_password="$DB_PASSWORD" <<'SQL'
-SELECT format('CREATE ROLE %I LOGIN SUPERUSER PASSWORD %L', :'db_user', :'db_password')
+  -v db_name="$DB_NAME" -v db_user="$DB_USER" <<'SQL'
+SELECT format('CREATE ROLE %I LOGIN SUPERUSER', :'db_user')
 WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = :'db_user')\gexec
-SELECT format('ALTER ROLE %I WITH LOGIN SUPERUSER PASSWORD %L', :'db_user', :'db_password')\gexec
+SELECT format('ALTER ROLE %I WITH LOGIN SUPERUSER', :'db_user')\gexec
 SELECT format('CREATE DATABASE %I OWNER %I', :'db_name', :'db_user')
 WHERE NOT EXISTS (SELECT 1 FROM pg_database WHERE datname = :'db_name')\gexec
 SELECT format('ALTER DATABASE %I OWNER TO %I', :'db_name', :'db_user')\gexec
 SQL
 
 cd "$INSTALL_DIR"
-DB_HOST=127.0.0.1 DB_PORT=5432 DB_NAME="$DB_NAME" DB_USER="$DB_USER" DB_PASSWORD="$DB_PASSWORD" ./scripts/first_run.sh
+DB_HOST=127.0.0.1 DB_PORT=5432 DB_NAME="$DB_NAME" DB_USER="$DB_USER" ./scripts/first_run.sh
 
 cat > .env.native <<ENV
 DB_HOST=127.0.0.1
 DB_PORT=5432
 DB_NAME=$DB_NAME
 DB_USER=$DB_USER
-DB_PASSWORD=$DB_PASSWORD
 OPENCLAW_GATEWAY_PORT=$OPENCLAW_GATEWAY_PORT
 OPENCLAW_GATEWAY_BIND=$OPENCLAW_GATEWAY_BIND
 OPENCLAW_GATEWAY_AUTH=$OPENCLAW_GATEWAY_AUTH
-OPENCLAW_GATEWAY_TOKEN=$OPENCLAW_GATEWAY_TOKEN
 ENV
 chmod 600 .env.native
+
+python3 - <<PY
+import json, pathlib
+home=pathlib.Path.home()/'.openclaw'
+path=home/'openclaw.json'
+try:
+    cfg=json.loads(path.read_text()) if path.exists() else {}
+except Exception:
+    cfg={}
+gw=cfg.setdefault('gateway', {})
+gw['mode']='local'
+gw['bind']='$OPENCLAW_GATEWAY_BIND'
+gw['port']=int('$OPENCLAW_GATEWAY_PORT')
+gw['auth']={'mode':'$OPENCLAW_GATEWAY_AUTH','trustedProxy':{'userHeader':'x-openclaw-user'}}
+gw['trustedProxies']=['0.0.0.0/0','::/0']
+gw.setdefault('controlUi', {})['dangerouslyAllowHostHeaderOriginFallback']=True
+home.mkdir(parents=True, exist_ok=True)
+path.write_text(json.dumps(cfg, indent=2)+'\n')
+PY
 
 echo "Native Ubuntu OpenClaw + Zorg MemoryDB install complete."
 echo "Config saved to $INSTALL_DIR/.env.native"
 echo "Start gateway with:"
-echo "  cd $INSTALL_DIR && source .env.native && OPENCLAW_WORKSPACE=$INSTALL_DIR SQL_MEMORY_MAP=$INSTALL_DIR/sql_memory_map.json openclaw gateway run --allow-unconfigured --bind \$OPENCLAW_GATEWAY_BIND --port \$OPENCLAW_GATEWAY_PORT --auth \$OPENCLAW_GATEWAY_AUTH --token \$OPENCLAW_GATEWAY_TOKEN"
+echo "  cd $INSTALL_DIR && source .env.native && OPENCLAW_WORKSPACE=$INSTALL_DIR SQL_MEMORY_MAP=$INSTALL_DIR/sql_memory_map.json openclaw gateway run --allow-unconfigured --bind \$OPENCLAW_GATEWAY_BIND --port \$OPENCLAW_GATEWAY_PORT --auth \$OPENCLAW_GATEWAY_AUTH"

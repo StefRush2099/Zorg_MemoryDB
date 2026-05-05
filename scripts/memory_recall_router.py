@@ -23,7 +23,6 @@ def db_connect():
         port=p['port'],
         dbname=p['database'],
         user=p['user'],
-        password=p.get('password', ''),
     )
 
 

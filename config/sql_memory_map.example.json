@@ -3,8 +3,7 @@
     "host": "127.0.0.1",
     "port": 5432,
     "database": "openclaw_memory",
-    "user": "openclaw_memory",
-    "password": "CHANGE_ME_OR_USE_PGPASSWORD"
+    "user": "openclaw_memory"
   },
   "table_map": {
     "MEMORY.md": "zorg_memory",

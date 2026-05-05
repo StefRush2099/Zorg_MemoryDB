@@ -40,4 +40,4 @@ else
 fi
 
 echo "Zorg OpenClaw is starting. Gateway port: ${OPENCLAW_GATEWAY_PORT:-18789}"
-echo "Default token is in .env; change OPENCLAW_GATEWAY_TOKEN for real use."
+echo "OpenClaw is ready on the configured port when the container health checks/logs show gateway ready."

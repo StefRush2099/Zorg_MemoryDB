@@ -1,24 +1,18 @@
-# Dockge Install: OpenClaw + Zorg MemoryDB
+# Dockge Install: Integrated OpenClaw + Zorg MemoryDB
 
-Target OS: the latest Ubuntu release, currently **Ubuntu 26.04 LTS**.
-
-Dockge should manage **one self-contained Zorg MemoryDB stack**. The stack starts one OpenClaw/Zorg container, and PostgreSQL runs inside that same container.
+Dockge should manage **one OpenClaw/Zorg stack**. The stack starts one OpenClaw/Zorg container. Zorg MemoryDB runs internally inside that same container and stores its data inside the normal OpenClaw home volume.
 
 ## Important: use the lowercase Dockge folder
 
-Dockge and Docker Compose normalize stack/project names to lowercase. If the repo is cloned as `/opt/stacks/Zorg_MemoryDB` and the stack is imported as `Zorg_MemoryDB`, Dockge may create a second lowercase folder such as `/opt/stacks/zorg_memorydb`.
+Dockge and Docker Compose normalize stack/project names to lowercase. If the repo is cloned as `/opt/stacks/Zorg_MemoryDB` and imported as `Zorg_MemoryDB`, Dockge may create a second lowercase folder such as `/opt/stacks/zorg_memorydb`.
 
-To keep the install confined to the same subfolder it starts in, use the lowercase folder and stack name from the beginning:
+To keep the install confined to the same subfolder it starts in, use this lowercase folder and stack name from the beginning:
 
 ```text
 /opt/stacks/zorg_memorydb
 ```
 
-The Compose project name is also fixed to lowercase through `COMPOSE_PROJECT_NAME=zorg_memorydb` so Docker resources stay under the same normalized project identity.
-
-Do not create a separate PostgreSQL stack/service and do not run `docker compose up` manually outside Dockge for the same folder, or Docker may leave duplicate unmanaged/inactive containers.
-
-## Recommended Dockge stack from cloned repo
+## Recommended Dockge start path
 
 On the Ubuntu Dockge host:
 
@@ -34,21 +28,13 @@ cd /opt/stacks/zorg_memorydb
 cp .env.example .env
 ```
 
-Edit `/opt/stacks/zorg_memorydb/.env` and change at least:
-
-```env
-COMPOSE_PROJECT_NAME=zorg_memorydb
-DB_PASSWORD=change-this-password
-OPENCLAW_GATEWAY_TOKEN=change-this-token
-```
-
 Then in Dockge:
 
 1. Create/import one stack named `zorg_memorydb`.
 2. Use `/opt/stacks/zorg_memorydb/docker-compose.yml` as the stack Compose file.
 3. Start/stop/update it only from Dockge.
 
-Dockge will build and manage the single OpenClaw/Zorg container. Runtime OpenClaw files and embedded PostgreSQL data stay in the stack's `zorg_openclaw_home` volume under the normalized `zorg_memorydb` Compose project.
+Open OpenClaw on port `18789`.
 
 ## If you already have duplicate folders
 
@@ -73,11 +59,6 @@ name: zorg_memorydb
 
 services:
   openclaw:
-    build:
-      context: https://github.com/StefRush2099/Zorg_MemoryDB.git#main
-      dockerfile: Dockerfile
-      args:
-        OPENCLAW_VERSION: latest
     image: ghcr.io/stefrush2099/zorg-memorydb:latest
     restart: unless-stopped
     environment:
@@ -88,11 +69,9 @@ services:
       DB_PORT: 5432
       DB_NAME: openclaw_memory
       DB_USER: openclaw_memory
-      DB_PASSWORD: change-this-password
       OPENCLAW_GATEWAY_PORT: 18789
       OPENCLAW_GATEWAY_BIND: lan
-      OPENCLAW_GATEWAY_AUTH: token
-      OPENCLAW_GATEWAY_TOKEN: change-this-token
+      OPENCLAW_GATEWAY_AUTH: trusted-proxy
     ports:
       - "18789:18789"
     volumes:
@@ -130,11 +109,10 @@ Remove only old duplicate/unmanaged containers after confirming Dockge is stoppe
 docker rm <old-container-name-or-id>
 ```
 
-Do not delete volumes unless you intentionally want to discard that install's local memory database.
+Do not delete volumes unless you intentionally want to discard that install's local OpenClaw state and memory data.
 
 ## Notes
 
 - Use lowercase `zorg_memorydb` for the Dockge folder, Dockge stack name, and Compose project name.
-- Do not paste real private memory rows or credentials into the GitHub repo.
-- The repo remains a sanitized template; Dockge only manages the runtime stack.
-- PostgreSQL is embedded inside the OpenClaw/Zorg container so the Docker/Dockge install does not deviate into a separate database-service topology.
+- Do not paste private memory rows or private operator context into the public repo.
+- The repo remains a sanitized OpenClaw build template.

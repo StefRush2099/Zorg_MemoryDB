@@ -38,4 +38,4 @@ When opening an issue, include:
 - exact error text
 - verification command output
 
-Do not include secrets, private memory data, email content, chat logs, tokens, cookies, or private database rows.
+Do not include secrets, private memory data, email content, chat logs, cookies, or private database rows.

@@ -74,9 +74,8 @@ def percentile(values, p):
 def main():
     queries = load_queries()
     cfg = load_cfg()
-    password = os.environ.get('PGPASSWORD', cfg.get('password', ''))
     results = {}
-    with psycopg2.connect(host=cfg['host'], port=cfg['port'], dbname=cfg['database'], user=cfg['user'], password=password) as conn:
+    with psycopg2.connect(host=cfg['host'], port=cfg['port'], dbname=cfg['database'], user=cfg['user']) as conn:
         conn.autocommit = True
         with conn.cursor() as cur:
             cur.execute('select public.refresh_zorg_memory_search_fast_mv()')

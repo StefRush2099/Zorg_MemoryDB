@@ -13,8 +13,7 @@ def load_cfg(path: Path = MAP_PATH):
 
 def connect(cfg):
     p = cfg["postgres"]
-    password = os.environ.get("PGPASSWORD", p.get("password", ""))
-    return psycopg2.connect(host=p["host"], port=p["port"], dbname=p["database"], user=p["user"], password=password)
+    return psycopg2.connect(host=p["host"], port=p["port"], dbname=p["database"], user=p["user"])
 
 def mapped_tables(cfg) -> List[str]: return sorted(set(cfg["table_map"].values()))
 

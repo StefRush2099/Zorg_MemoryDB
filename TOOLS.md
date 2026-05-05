@@ -12,7 +12,6 @@
 
 - `OPENCLAW_WORKSPACE` - workspace root; defaults to current directory
 - `SQL_MEMORY_MAP` - path to `sql_memory_map.json`
-- `PGPASSWORD` - optional password override so secrets do not have to be written into config
 - `DATABASE_URL` - used by the installer for `psql`
 
 ## Public safety

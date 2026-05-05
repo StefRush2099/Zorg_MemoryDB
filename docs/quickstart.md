@@ -1,41 +1,29 @@
-# Quickstart: OpenClaw + Zorg MemoryDB on Latest Ubuntu
+# Quickstart: OpenClaw + Zorg MemoryDB
 
-Target OS for all install paths: the latest Ubuntu release, currently **Ubuntu 26.04 LTS**.
+This repo starts OpenClaw with Zorg MemoryDB already integrated. The memory database is internal to the OpenClaw runtime and stored under OpenClaw's own home/workspace folders.
 
-This repo is the clean-install template. It starts or installs full OpenClaw with Zorg PostgreSQL memory already connected. In Docker/Dockge, OpenClaw and PostgreSQL run inside the same self-contained OpenClaw/Zorg container.
-
-## Option 1: Standard Ubuntu install
-
-Native install on Ubuntu, no Docker required:
+## Option 1: Docker run
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/StefRush2099/Zorg_MemoryDB/main/scripts/install_standard_ubuntu.sh | bash
+docker run -d --name zorg-memorydb --restart unless-stopped -p 18789:18789 -v zorg_openclaw_home:/home/openclaw/.openclaw ghcr.io/stefrush2099/zorg-memorydb:latest
 ```
 
-Details: [`standard-ubuntu-install.md`](standard-ubuntu-install.md)
+Open OpenClaw on port `18789`.
 
-## Option 2: Docker install
+## Option 2: Docker Compose
 
 ```bash
-git clone https://github.com/StefRush2099/Zorg_MemoryDB.git
-cd Zorg_MemoryDB
+git clone https://github.com/StefRush2099/Zorg_MemoryDB.git zorg_memorydb
+cd zorg_memorydb
 cp .env.example .env
 docker compose up -d --build
 ```
 
-Details: [`docker-install.md`](docker-install.md)
+Open OpenClaw on port `18789`.
 
-## Option 3: Docker run one-liner
+## Option 3: Dockge
 
-```bash
-docker run -d --name zorg-memorydb --restart unless-stopped -p 18789:18789 -e OPENCLAW_GATEWAY_TOKEN=change-this-token -e DB_PASSWORD=change-this-password -v zorg_openclaw_home:/home/openclaw/.openclaw ghcr.io/stefrush2099/zorg-memorydb:latest
-```
-
-Details: [`docker-run.md`](docker-run.md)
-
-## Option 4: Dockge install
-
-Clone the repo into the Dockge stacks folder using the lowercase target folder `zorg_memorydb`. Dockge/Compose normalize stack names to lowercase; using this folder up front prevents Dockge from creating a second lowercase duplicate beside `Zorg_MemoryDB`:
+Use the lowercase target folder `zorg_memorydb` so Dockge does not create a second normalized folder.
 
 ```bash
 cd /opt/stacks
@@ -45,17 +33,12 @@ cd /opt/stacks/zorg_memorydb
 cp .env.example .env
 ```
 
-Details: [`dockge-install.md`](dockge-install.md)
+Then import `/opt/stacks/zorg_memorydb/docker-compose.yml` in Dockge with stack name `zorg_memorydb`.
 
-## Sudo-heavy systems
-
-If Docker or clone location requires sudo:
+## Option 4: Standard Ubuntu
 
 ```bash
-sudo git clone https://github.com/StefRush2099/Zorg_MemoryDB.git zorg_memorydb
-cd zorg_memorydb
-sudo cp .env.example .env
-sudo docker compose up -d --build
+curl -fsSL https://raw.githubusercontent.com/StefRush2099/Zorg_MemoryDB/main/scripts/install_standard_ubuntu.sh | bash
 ```
 
 ## Verify
@@ -81,4 +64,4 @@ Expected recall mode: `database-direct-structured`.
 
 ## What you should not need to do
 
-You should not need to manually connect the database to OpenClaw. Each install path handles that during startup/bootstrap.
+You should not need to manually connect a database to OpenClaw. Each install path wires memory during startup/bootstrap.

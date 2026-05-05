@@ -114,7 +114,7 @@ jobs:
             echo "## Docker run one-liner"
             echo ""
             echo '```bash'
-            echo "docker run -d --name zorg-memorydb --restart unless-stopped -p 18789:18789 -e OPENCLAW_GATEWAY_TOKEN=change-this-token -e DB_PASSWORD=change-this-password -v zorg_openclaw_home:/home/openclaw/.openclaw ${IMAGE}:${TAG#v}"
+            echo "docker run -d --name zorg-memorydb --restart unless-stopped -p 18789:18789 -v zorg_openclaw_home:/home/openclaw/.openclaw ${IMAGE}:${TAG#v}"
             echo '```'
           } > "$extra"
           if [ -f "$notes" ]; then

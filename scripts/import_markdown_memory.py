@@ -6,8 +6,8 @@ import psycopg2
 BASE=Path(os.environ.get('OPENCLAW_WORKSPACE', Path.cwd()))
 MAP=Path(os.environ.get('SQL_MEMORY_MAP', BASE/'sql_memory_map.json'))
 cfg=json.loads(MAP.read_text())
-p=cfg['postgres']; password=os.environ.get('PGPASSWORD', p.get('password',''))
-conn=psycopg2.connect(host=p['host'],port=p['port'],dbname=p['database'],user=p['user'],password=password)
+p=cfg['postgres']
+conn=psycopg2.connect(host=p['host'],port=p['port'],dbname=p['database'],user=p['user'])
 md_tables={k:v for k,v in cfg['table_map'].items() if v.startswith('md_')}
 with conn, conn.cursor() as cur:
     for pattern, table in md_tables.items():

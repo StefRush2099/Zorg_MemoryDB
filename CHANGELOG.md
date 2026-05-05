@@ -2,6 +2,21 @@
 
 All meaningful changes to this project are documented here and released with a GitHub Release plus GHCR container image.
 
+## [v1.1.2] - 2026-05-04
+
+### Changed
+
+- Removed user-facing database credential setup from the integrated OpenClaw/Zorg build.
+- Removed Gateway shared-secret examples from install docs and startup examples.
+- Rewrote Docker, Dockge, Docker run, quickstart, and Ubuntu docs to present Zorg MemoryDB as integrated into OpenClaw startup rather than a separate database install.
+- `sql_memory_map.json` generation no longer writes a database credential field.
+- Docker/Dockge internal PostgreSQL initializes with local trust access inside the OpenClaw/Zorg container.
+
+### Verification
+
+- Shell, Python, and Compose config checks passed.
+- Fresh Docker Compose startup verified with internal PostgreSQL, memory table listing, and `database-direct-structured` recall.
+
 ## [v1.1.1] - 2026-05-04
 
 ### Fixed

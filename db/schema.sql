@@ -1756,67 +1756,311 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS public."zorg_memory_search_fast_mv" AS
    FROM zorg_memory_search_mv
 WITH NO DATA;
 
-ALTER TABLE public."app_activity_events" ADD CONSTRAINT "app_activity_events_pkey" PRIMARY KEY (id);
-ALTER TABLE public."app_query_log" ADD CONSTRAINT "app_query_log_pkey" PRIMARY KEY (id);
-ALTER TABLE public."app_query_rate_events" ADD CONSTRAINT "app_query_rate_events_pkey" PRIMARY KEY (id);
-ALTER TABLE public."app_write_counters" ADD CONSTRAINT "app_write_counters_pkey" PRIMARY KEY (counter_key);
-ALTER TABLE public."app_write_events" ADD CONSTRAINT "app_write_events_pkey" PRIMARY KEY (id);
-ALTER TABLE public."md_agents" ADD CONSTRAINT "md_agents_pkey" PRIMARY KEY (id);
-ALTER TABLE public."md_heartbeat" ADD CONSTRAINT "md_heartbeat_pkey" PRIMARY KEY (id);
-ALTER TABLE public."md_identity" ADD CONSTRAINT "md_identity_pkey" PRIMARY KEY (id);
-ALTER TABLE public."md_soul" ADD CONSTRAINT "md_soul_pkey" PRIMARY KEY (id);
-ALTER TABLE public."md_tools" ADD CONSTRAINT "md_tools_pkey" PRIMARY KEY (id);
-ALTER TABLE public."md_user" ADD CONSTRAINT "md_user_pkey" PRIMARY KEY (id);
-ALTER TABLE public."mem_log" ADD CONSTRAINT "mem_log_pkey" PRIMARY KEY (id);
-ALTER TABLE public."memory_action_logs" ADD CONSTRAINT "memory_action_logs_pkey" PRIMARY KEY (id);
-ALTER TABLE public."memory_categories" ADD CONSTRAINT "memory_categories_pkey" PRIMARY KEY (id);
-ALTER TABLE public."memory_code_change_logs" ADD CONSTRAINT "memory_code_change_logs_pkey" PRIMARY KEY (id);
-ALTER TABLE public."memory_code_links" ADD CONSTRAINT "memory_code_links_pkey" PRIMARY KEY (id);
-ALTER TABLE public."memory_code_units" ADD CONSTRAINT "memory_code_units_pkey" PRIMARY KEY (id);
-ALTER TABLE public."memory_context_notes" ADD CONSTRAINT "memory_context_notes_pkey" PRIMARY KEY (id);
-ALTER TABLE public."memory_directives" ADD CONSTRAINT "memory_directives_pkey" PRIMARY KEY (id);
-ALTER TABLE public."memory_hosts" ADD CONSTRAINT "memory_hosts_pkey" PRIMARY KEY (id);
-ALTER TABLE public."memory_project_aliases" ADD CONSTRAINT "memory_project_aliases_pkey" PRIMARY KEY (id);
-ALTER TABLE public."memory_project_facts" ADD CONSTRAINT "memory_project_facts_pkey" PRIMARY KEY (id);
-ALTER TABLE public."memory_projects" ADD CONSTRAINT "memory_projects_pkey" PRIMARY KEY (id);
-ALTER TABLE public."memory_relationships" ADD CONSTRAINT "memory_relationships_pkey" PRIMARY KEY (id);
-ALTER TABLE public."memory_request_category_map" ADD CONSTRAINT "memory_request_category_map_pkey" PRIMARY KEY (id);
-ALTER TABLE public."memory_request_intake" ADD CONSTRAINT "memory_request_intake_pkey" PRIMARY KEY (id);
-ALTER TABLE public."memory_runbooks" ADD CONSTRAINT "memory_runbooks_pkey" PRIMARY KEY (id);
-ALTER TABLE public."memory_services" ADD CONSTRAINT "memory_services_pkey" PRIMARY KEY (id);
-ALTER TABLE public."t1" ADD CONSTRAINT "t1_pkey" PRIMARY KEY (id);
-ALTER TABLE public."zorg_intent_category_map" ADD CONSTRAINT "zorg_intent_category_map_pkey" PRIMARY KEY (id);
-ALTER TABLE public."zorg_memory" ADD CONSTRAINT "zorg_memory_pkey" PRIMARY KEY (id);
-ALTER TABLE public."zorg_operational_facts" ADD CONSTRAINT "zorg_operational_facts_pkey" PRIMARY KEY (id);
-ALTER TABLE public."zorg_progress_heartbeat_log" ADD CONSTRAINT "zorg_progress_heartbeat_log_pkey" PRIMARY KEY (id);
-ALTER TABLE public."zorg_progress_tracker" ADD CONSTRAINT "zorg_progress_tracker_pkey" PRIMARY KEY (id);
-ALTER TABLE public."zorg_prompt_blueprint" ADD CONSTRAINT "zorg_prompt_blueprint_pkey" PRIMARY KEY (id);
-ALTER TABLE public."zorg_prompt_compiler_runs" ADD CONSTRAINT "zorg_prompt_compiler_runs_pkey" PRIMARY KEY (id);
-ALTER TABLE public."zorg_rule_catalog" ADD CONSTRAINT "zorg_rule_catalog_pkey" PRIMARY KEY (id);
-ALTER TABLE public."zorg_rules" ADD CONSTRAINT "zorg_rules_pkey" PRIMARY KEY (id);
-ALTER TABLE public."zorg_success_query_index" ADD CONSTRAINT "zorg_success_query_index_pkey" PRIMARY KEY (id);
-ALTER TABLE public."zorg_tool_catalog" ADD CONSTRAINT "zorg_tool_catalog_pkey" PRIMARY KEY (id);
-ALTER TABLE public."memory_action_logs" ADD CONSTRAINT "memory_action_logs_action_key_key" UNIQUE (action_key);
-ALTER TABLE public."memory_categories" ADD CONSTRAINT "memory_categories_category_key_key" UNIQUE (category_key);
-ALTER TABLE public."memory_code_change_logs" ADD CONSTRAINT "memory_code_change_logs_change_key_key" UNIQUE (change_key);
-ALTER TABLE public."memory_code_links" ADD CONSTRAINT "memory_code_links_unique" UNIQUE (code_unit_key, link_type, target_type, target_key);
-ALTER TABLE public."memory_code_units" ADD CONSTRAINT "memory_code_units_unit_key_key" UNIQUE (unit_key);
-ALTER TABLE public."memory_context_notes" ADD CONSTRAINT "memory_context_notes_note_key_key" UNIQUE (note_key);
-ALTER TABLE public."memory_hosts" ADD CONSTRAINT "memory_hosts_host_key_key" UNIQUE (host_key);
-ALTER TABLE public."memory_projects" ADD CONSTRAINT "memory_projects_project_key_key" UNIQUE (project_key);
-ALTER TABLE public."memory_runbooks" ADD CONSTRAINT "memory_runbooks_runbook_key_key" UNIQUE (runbook_key);
-ALTER TABLE public."memory_services" ADD CONSTRAINT "memory_services_service_key_key" UNIQUE (service_key);
-ALTER TABLE public."zorg_intent_category_map" ADD CONSTRAINT "zorg_intent_category_map_intent_key_key" UNIQUE (intent_key);
-ALTER TABLE public."zorg_operational_facts" ADD CONSTRAINT "zorg_operational_facts_fact_key_key" UNIQUE (fact_key);
-ALTER TABLE public."zorg_progress_tracker" ADD CONSTRAINT "zorg_progress_tracker_goal_key_key" UNIQUE (goal_key);
-ALTER TABLE public."zorg_prompt_blueprint" ADD CONSTRAINT "zorg_prompt_blueprint_blueprint_key_key" UNIQUE (blueprint_key);
-ALTER TABLE public."zorg_rule_catalog" ADD CONSTRAINT "zorg_rule_catalog_rule_key_key" UNIQUE (rule_key);
-ALTER TABLE public."zorg_rules" ADD CONSTRAINT "zorg_rules_rule_key_key" UNIQUE (rule_key);
-ALTER TABLE public."zorg_tool_catalog" ADD CONSTRAINT "zorg_tool_catalog_tool_key_key" UNIQUE (tool_key);
-ALTER TABLE public."zorg_progress_tracker" ADD CONSTRAINT "zorg_progress_tracker_horizon_check" CHECK ((horizon = ANY (ARRAY['short'::text, 'long'::text])));
-ALTER TABLE public."zorg_progress_tracker" ADD CONSTRAINT "zorg_progress_tracker_percent_complete_check" CHECK (((percent_complete >= (0)::numeric) AND (percent_complete <= (100)::numeric)));
-ALTER TABLE public."zorg_progress_tracker" ADD CONSTRAINT "zorg_progress_tracker_priority_check" CHECK (((priority >= 1) AND (priority <= 5)));
-ALTER TABLE public."zorg_progress_tracker" ADD CONSTRAINT "zorg_progress_tracker_status_check" CHECK ((status = ANY (ARRAY['active'::text, 'blocked'::text, 'done'::text, 'archived'::text])));
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'app_activity_events_pkey') THEN
+    ALTER TABLE public."app_activity_events" ADD CONSTRAINT "app_activity_events_pkey" PRIMARY KEY (id);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'app_query_log_pkey') THEN
+    ALTER TABLE public."app_query_log" ADD CONSTRAINT "app_query_log_pkey" PRIMARY KEY (id);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'app_query_rate_events_pkey') THEN
+    ALTER TABLE public."app_query_rate_events" ADD CONSTRAINT "app_query_rate_events_pkey" PRIMARY KEY (id);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'app_write_counters_pkey') THEN
+    ALTER TABLE public."app_write_counters" ADD CONSTRAINT "app_write_counters_pkey" PRIMARY KEY (counter_key);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'app_write_events_pkey') THEN
+    ALTER TABLE public."app_write_events" ADD CONSTRAINT "app_write_events_pkey" PRIMARY KEY (id);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'md_agents_pkey') THEN
+    ALTER TABLE public."md_agents" ADD CONSTRAINT "md_agents_pkey" PRIMARY KEY (id);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'md_heartbeat_pkey') THEN
+    ALTER TABLE public."md_heartbeat" ADD CONSTRAINT "md_heartbeat_pkey" PRIMARY KEY (id);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'md_identity_pkey') THEN
+    ALTER TABLE public."md_identity" ADD CONSTRAINT "md_identity_pkey" PRIMARY KEY (id);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'md_soul_pkey') THEN
+    ALTER TABLE public."md_soul" ADD CONSTRAINT "md_soul_pkey" PRIMARY KEY (id);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'md_tools_pkey') THEN
+    ALTER TABLE public."md_tools" ADD CONSTRAINT "md_tools_pkey" PRIMARY KEY (id);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'md_user_pkey') THEN
+    ALTER TABLE public."md_user" ADD CONSTRAINT "md_user_pkey" PRIMARY KEY (id);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'mem_log_pkey') THEN
+    ALTER TABLE public."mem_log" ADD CONSTRAINT "mem_log_pkey" PRIMARY KEY (id);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'memory_action_logs_pkey') THEN
+    ALTER TABLE public."memory_action_logs" ADD CONSTRAINT "memory_action_logs_pkey" PRIMARY KEY (id);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'memory_categories_pkey') THEN
+    ALTER TABLE public."memory_categories" ADD CONSTRAINT "memory_categories_pkey" PRIMARY KEY (id);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'memory_code_change_logs_pkey') THEN
+    ALTER TABLE public."memory_code_change_logs" ADD CONSTRAINT "memory_code_change_logs_pkey" PRIMARY KEY (id);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'memory_code_links_pkey') THEN
+    ALTER TABLE public."memory_code_links" ADD CONSTRAINT "memory_code_links_pkey" PRIMARY KEY (id);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'memory_code_units_pkey') THEN
+    ALTER TABLE public."memory_code_units" ADD CONSTRAINT "memory_code_units_pkey" PRIMARY KEY (id);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'memory_context_notes_pkey') THEN
+    ALTER TABLE public."memory_context_notes" ADD CONSTRAINT "memory_context_notes_pkey" PRIMARY KEY (id);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'memory_directives_pkey') THEN
+    ALTER TABLE public."memory_directives" ADD CONSTRAINT "memory_directives_pkey" PRIMARY KEY (id);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'memory_hosts_pkey') THEN
+    ALTER TABLE public."memory_hosts" ADD CONSTRAINT "memory_hosts_pkey" PRIMARY KEY (id);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'memory_project_aliases_pkey') THEN
+    ALTER TABLE public."memory_project_aliases" ADD CONSTRAINT "memory_project_aliases_pkey" PRIMARY KEY (id);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'memory_project_facts_pkey') THEN
+    ALTER TABLE public."memory_project_facts" ADD CONSTRAINT "memory_project_facts_pkey" PRIMARY KEY (id);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'memory_projects_pkey') THEN
+    ALTER TABLE public."memory_projects" ADD CONSTRAINT "memory_projects_pkey" PRIMARY KEY (id);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'memory_relationships_pkey') THEN
+    ALTER TABLE public."memory_relationships" ADD CONSTRAINT "memory_relationships_pkey" PRIMARY KEY (id);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'memory_request_category_map_pkey') THEN
+    ALTER TABLE public."memory_request_category_map" ADD CONSTRAINT "memory_request_category_map_pkey" PRIMARY KEY (id);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'memory_request_intake_pkey') THEN
+    ALTER TABLE public."memory_request_intake" ADD CONSTRAINT "memory_request_intake_pkey" PRIMARY KEY (id);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'memory_runbooks_pkey') THEN
+    ALTER TABLE public."memory_runbooks" ADD CONSTRAINT "memory_runbooks_pkey" PRIMARY KEY (id);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'memory_services_pkey') THEN
+    ALTER TABLE public."memory_services" ADD CONSTRAINT "memory_services_pkey" PRIMARY KEY (id);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 't1_pkey') THEN
+    ALTER TABLE public."t1" ADD CONSTRAINT "t1_pkey" PRIMARY KEY (id);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'zorg_intent_category_map_pkey') THEN
+    ALTER TABLE public."zorg_intent_category_map" ADD CONSTRAINT "zorg_intent_category_map_pkey" PRIMARY KEY (id);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'zorg_memory_pkey') THEN
+    ALTER TABLE public."zorg_memory" ADD CONSTRAINT "zorg_memory_pkey" PRIMARY KEY (id);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'zorg_operational_facts_pkey') THEN
+    ALTER TABLE public."zorg_operational_facts" ADD CONSTRAINT "zorg_operational_facts_pkey" PRIMARY KEY (id);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'zorg_progress_heartbeat_log_pkey') THEN
+    ALTER TABLE public."zorg_progress_heartbeat_log" ADD CONSTRAINT "zorg_progress_heartbeat_log_pkey" PRIMARY KEY (id);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'zorg_progress_tracker_pkey') THEN
+    ALTER TABLE public."zorg_progress_tracker" ADD CONSTRAINT "zorg_progress_tracker_pkey" PRIMARY KEY (id);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'zorg_prompt_blueprint_pkey') THEN
+    ALTER TABLE public."zorg_prompt_blueprint" ADD CONSTRAINT "zorg_prompt_blueprint_pkey" PRIMARY KEY (id);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'zorg_prompt_compiler_runs_pkey') THEN
+    ALTER TABLE public."zorg_prompt_compiler_runs" ADD CONSTRAINT "zorg_prompt_compiler_runs_pkey" PRIMARY KEY (id);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'zorg_rule_catalog_pkey') THEN
+    ALTER TABLE public."zorg_rule_catalog" ADD CONSTRAINT "zorg_rule_catalog_pkey" PRIMARY KEY (id);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'zorg_rules_pkey') THEN
+    ALTER TABLE public."zorg_rules" ADD CONSTRAINT "zorg_rules_pkey" PRIMARY KEY (id);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'zorg_success_query_index_pkey') THEN
+    ALTER TABLE public."zorg_success_query_index" ADD CONSTRAINT "zorg_success_query_index_pkey" PRIMARY KEY (id);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'zorg_tool_catalog_pkey') THEN
+    ALTER TABLE public."zorg_tool_catalog" ADD CONSTRAINT "zorg_tool_catalog_pkey" PRIMARY KEY (id);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'memory_action_logs_action_key_key') THEN
+    ALTER TABLE public."memory_action_logs" ADD CONSTRAINT "memory_action_logs_action_key_key" UNIQUE (action_key);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'memory_categories_category_key_key') THEN
+    ALTER TABLE public."memory_categories" ADD CONSTRAINT "memory_categories_category_key_key" UNIQUE (category_key);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'memory_code_change_logs_change_key_key') THEN
+    ALTER TABLE public."memory_code_change_logs" ADD CONSTRAINT "memory_code_change_logs_change_key_key" UNIQUE (change_key);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'memory_code_links_unique') THEN
+    ALTER TABLE public."memory_code_links" ADD CONSTRAINT "memory_code_links_unique" UNIQUE (code_unit_key, link_type, target_type, target_key);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'memory_code_units_unit_key_key') THEN
+    ALTER TABLE public."memory_code_units" ADD CONSTRAINT "memory_code_units_unit_key_key" UNIQUE (unit_key);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'memory_context_notes_note_key_key') THEN
+    ALTER TABLE public."memory_context_notes" ADD CONSTRAINT "memory_context_notes_note_key_key" UNIQUE (note_key);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'memory_hosts_host_key_key') THEN
+    ALTER TABLE public."memory_hosts" ADD CONSTRAINT "memory_hosts_host_key_key" UNIQUE (host_key);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'memory_projects_project_key_key') THEN
+    ALTER TABLE public."memory_projects" ADD CONSTRAINT "memory_projects_project_key_key" UNIQUE (project_key);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'memory_runbooks_runbook_key_key') THEN
+    ALTER TABLE public."memory_runbooks" ADD CONSTRAINT "memory_runbooks_runbook_key_key" UNIQUE (runbook_key);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'memory_services_service_key_key') THEN
+    ALTER TABLE public."memory_services" ADD CONSTRAINT "memory_services_service_key_key" UNIQUE (service_key);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'zorg_intent_category_map_intent_key_key') THEN
+    ALTER TABLE public."zorg_intent_category_map" ADD CONSTRAINT "zorg_intent_category_map_intent_key_key" UNIQUE (intent_key);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'zorg_operational_facts_fact_key_key') THEN
+    ALTER TABLE public."zorg_operational_facts" ADD CONSTRAINT "zorg_operational_facts_fact_key_key" UNIQUE (fact_key);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'zorg_progress_tracker_goal_key_key') THEN
+    ALTER TABLE public."zorg_progress_tracker" ADD CONSTRAINT "zorg_progress_tracker_goal_key_key" UNIQUE (goal_key);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'zorg_prompt_blueprint_blueprint_key_key') THEN
+    ALTER TABLE public."zorg_prompt_blueprint" ADD CONSTRAINT "zorg_prompt_blueprint_blueprint_key_key" UNIQUE (blueprint_key);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'zorg_rule_catalog_rule_key_key') THEN
+    ALTER TABLE public."zorg_rule_catalog" ADD CONSTRAINT "zorg_rule_catalog_rule_key_key" UNIQUE (rule_key);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'zorg_rules_rule_key_key') THEN
+    ALTER TABLE public."zorg_rules" ADD CONSTRAINT "zorg_rules_rule_key_key" UNIQUE (rule_key);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'zorg_tool_catalog_tool_key_key') THEN
+    ALTER TABLE public."zorg_tool_catalog" ADD CONSTRAINT "zorg_tool_catalog_tool_key_key" UNIQUE (tool_key);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'zorg_progress_tracker_horizon_check') THEN
+    ALTER TABLE public."zorg_progress_tracker" ADD CONSTRAINT "zorg_progress_tracker_horizon_check" CHECK ((horizon = ANY (ARRAY['short'::text, 'long'::text])));
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'zorg_progress_tracker_percent_complete_check') THEN
+    ALTER TABLE public."zorg_progress_tracker" ADD CONSTRAINT "zorg_progress_tracker_percent_complete_check" CHECK (((percent_complete >= (0)::numeric) AND (percent_complete <= (100)::numeric)));
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'zorg_progress_tracker_priority_check') THEN
+    ALTER TABLE public."zorg_progress_tracker" ADD CONSTRAINT "zorg_progress_tracker_priority_check" CHECK (((priority >= 1) AND (priority <= 5)));
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'zorg_progress_tracker_status_check') THEN
+    ALTER TABLE public."zorg_progress_tracker" ADD CONSTRAINT "zorg_progress_tracker_status_check" CHECK ((status = ANY (ARRAY['active'::text, 'blocked'::text, 'done'::text, 'archived'::text])));
+  END IF;
+END $$;
 
 CREATE INDEX IF NOT EXISTS idx_app_activity_events_created_at ON public.app_activity_events USING btree (created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_app_query_log_logged_at ON public.app_query_log USING btree (logged_at DESC);

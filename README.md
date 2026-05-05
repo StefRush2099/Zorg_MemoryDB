@@ -1,10 +1,10 @@
-# Zorg MemoryDB OpenClaw Template
+# Zorg MemoryDB OpenClaw Build
 
-Zorg MemoryDB is a sanitized, all-in-one OpenClaw install template for the latest Ubuntu release, currently **Ubuntu 26.04 LTS**.
+Zorg MemoryDB is a clean OpenClaw build with DB-backed memory integrated into the normal OpenClaw home and workspace layout.
 
-It installs and runs the full latest OpenClaw package (`openclaw@latest`) with PostgreSQL-backed Zorg DB memory already installed, configured, connected, imported, refreshed, and enforced. This repository is not just a database add-on.
+It installs and runs the latest OpenClaw package (`openclaw@latest`) with Zorg MemoryDB already sewn into startup. A fresh install should feel like starting OpenClaw from scratch: clone, start, open OpenClaw. The database is an internal implementation detail, stored inside OpenClaw's own folders, and should not require separate setup or user-facing credentials.
 
-Fresh installs include schema and public templates only. They do **not** include live database rows, private memory, credentials, transcripts, contact data, or operator context.
+The public repository is sanitized. It includes structure, scripts, schema, docs, and templates only — no private rows, transcripts, account data, or operator context.
 
 ## Packages and releases
 
@@ -12,46 +12,43 @@ Fresh installs include schema and public templates only. They do **not** include
 - GHCR image: `ghcr.io/stefrush2099/zorg-memorydb`
 - Release/process docs: [`docs/release-process.md`](docs/release-process.md)
 
-Every meaningful structural/install/runtime update should be committed, tagged, released, and published as a GHCR container image.
+Every meaningful structural/install/runtime update is committed, tagged, released, and published as a GHCR container image.
 
 ## Install paths
 
 Choose one:
 
-1. **Standard Ubuntu install** — native OpenClaw + local PostgreSQL on latest Ubuntu.
-2. **Docker install** — one self-contained OpenClaw/Zorg container with embedded PostgreSQL, managed by Docker Compose.
-3. **Dockge install** — one Dockge-managed OpenClaw/Zorg container with embedded PostgreSQL for latest Ubuntu servers.
-4. **Docker run** — one-line install using the published GHCR image.
+1. **Docker run** — simplest packaged OpenClaw start.
+2. **Docker Compose** — clone the repo and start the integrated OpenClaw build.
+3. **Dockge** — Dockge-managed stack using the lowercase `zorg_memorydb` folder.
+4. **Standard Ubuntu** — native OpenClaw + local integrated memory runtime.
 
-## 1. Standard Ubuntu install
-
-Docs: [`docs/standard-ubuntu-install.md`](docs/standard-ubuntu-install.md)
+## 1. Docker run
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/StefRush2099/Zorg_MemoryDB/main/scripts/install_standard_ubuntu.sh | bash
+docker run -d --name zorg-memorydb --restart unless-stopped -p 18789:18789 -v zorg_openclaw_home:/home/openclaw/.openclaw ghcr.io/stefrush2099/zorg-memorydb:latest
 ```
 
-This installs Ubuntu packages, `openclaw@latest`, local PostgreSQL, the Zorg MemoryDB schema/tools, and DB-backed OpenClaw memory routing.
+Open OpenClaw on port `18789`.
 
-## 2. Docker install
+Docs: [`docs/docker-run.md`](docs/docker-run.md)
 
-Docs: [`docs/docker-install.md`](docs/docker-install.md)
+## 2. Docker Compose
 
 ```bash
-git clone https://github.com/StefRush2099/Zorg_MemoryDB.git
-cd Zorg_MemoryDB
+git clone https://github.com/StefRush2099/Zorg_MemoryDB.git zorg_memorydb
+cd zorg_memorydb
 cp .env.example .env
-# edit OPENCLAW_GATEWAY_TOKEN and DB_PASSWORD in .env before real use
 docker compose up -d --build
 ```
 
-OpenClaw Gateway starts on port `18789` by default.
+Open OpenClaw on port `18789`.
 
-## 3. Dockge install
+Docs: [`docs/docker-install.md`](docs/docker-install.md)
 
-Docs: [`docs/dockge-install.md`](docs/dockge-install.md)
+## 3. Dockge
 
-Recommended Dockge path — intentionally lowercase to match Dockge/Compose normalization and prevent a second lowercase duplicate folder:
+Use the lowercase folder from the beginning. Dockge and Compose normalize stack names to lowercase, so this avoids duplicate uppercase/lowercase folders.
 
 ```bash
 cd /opt/stacks
@@ -63,52 +60,37 @@ cp .env.example .env
 
 Then import/start `/opt/stacks/zorg_memorydb/docker-compose.yml` in Dockge with stack name `zorg_memorydb`.
 
-## 4. Docker run one-liner
+Docs: [`docs/dockge-install.md`](docs/dockge-install.md)
 
-Docs: [`docs/docker-run.md`](docs/docker-run.md)
-
-```bash
-docker run -d --name zorg-memorydb --restart unless-stopped -p 18789:18789 -e OPENCLAW_GATEWAY_TOKEN=change-this-token -e DB_PASSWORD=change-this-password -v zorg_openclaw_home:/home/openclaw/.openclaw ghcr.io/stefrush2099/zorg-memorydb:latest
-```
-
-## Sudo-heavy Ubuntu systems
-
-Some systems require sudo for clone or Docker. Use:
+## 4. Standard Ubuntu
 
 ```bash
-sudo git clone https://github.com/StefRush2099/Zorg_MemoryDB.git zorg_memorydb
-cd zorg_memorydb
-sudo cp .env.example .env
-sudo docker compose up -d --build
+curl -fsSL https://raw.githubusercontent.com/StefRush2099/Zorg_MemoryDB/main/scripts/install_standard_ubuntu.sh | bash
 ```
 
-If desired afterward:
-
-```bash
-sudo chown -R "$USER:$USER" zorg_memorydb
-```
+Docs: [`docs/standard-ubuntu-install.md`](docs/standard-ubuntu-install.md)
 
 ## What starts in Docker/Dockge
 
-- one `openclaw` service/container: full latest OpenClaw CLI/Gateway install with Zorg DB memory enabled
-- embedded PostgreSQL server running inside that same container on `127.0.0.1`
-- one persistent Docker volume for OpenClaw state/workspace and embedded PostgreSQL data
-- first-run bootstrap that wires OpenClaw memory recall to the embedded PostgreSQL server before Gateway startup
+- one OpenClaw/Zorg container
+- latest OpenClaw CLI/Gateway installed in the image
+- internal PostgreSQL running only inside the same container
+- OpenClaw state, workspace, and memory data under `/home/openclaw/.openclaw`
+- first-run bootstrap that wires memory recall before OpenClaw Gateway starts
 
 ## First-run behavior
 
-When the `openclaw` container starts, `docker/entrypoint.sh` runs the complete setup:
+When the container starts, `docker/entrypoint.sh`:
 
-1. uses the full latest OpenClaw CLI installed in the image
-2. seeds `/home/openclaw/.openclaw/workspace` from this sanitized template repository if needed
+1. starts internal PostgreSQL inside the OpenClaw/Zorg container
+2. seeds `/home/openclaw/.openclaw/workspace` from this sanitized template if needed
 3. creates `.venv-sqlmem`
-4. writes `sql_memory_map.json`
-5. starts/uses embedded PostgreSQL inside the same container
-6. applies `db/schema.sql`
-7. imports public/template markdown memory rules into PostgreSQL
-8. refreshes recall/search materialized views
-9. enforces OpenClaw built-in `memory_search` routing through Zorg DB memory
-10. starts `openclaw gateway run`
+4. writes `sql_memory_map.json` into the OpenClaw workspace
+5. applies `db/schema.sql`
+6. imports public template/rule markdown
+7. refreshes recall/search surfaces
+8. enforces OpenClaw built-in `memory_search` routing through Zorg MemoryDB
+9. starts `openclaw gateway run`
 
 ## Verify
 
@@ -123,11 +105,9 @@ Expected recall mode: `database-direct-structured`.
 
 ## Sanitized full template
 
-Docs: [`docs/sanitized-template.md`](docs/sanitized-template.md)
-
 Included:
 
-- full OpenClaw latest install path
+- full OpenClaw latest install/start path
 - Dockerfile, Compose/Dockge stack, and GHCR package workflow
 - native Ubuntu install script
 - PostgreSQL schema, functions, indexes, materialized views, recall tooling, and bootstrap scripts
@@ -137,22 +117,21 @@ Not included:
 
 - live DB rows/dumps
 - private `MEMORY.md` or `memory/*.md`
-- credentials, `.env`, `sql_memory_map.json`, cookies, OAuth tokens, API keys, SSH keys, contacts, emails, transcripts, or private operator context
+- account data, cookies, OAuth material, API keys, SSH keys, contacts, emails, transcripts, or private operator context
 
 ## Existing OpenClaw installs
 
-The primary path is now a clean all-in-one install. If you intentionally need to attach Zorg MemoryDB to an already-installed OpenClaw workspace, the migration helper remains available:
+The primary path is a clean integrated OpenClaw build. If you intentionally need to attach Zorg MemoryDB to an already-installed OpenClaw workspace, the migration helper remains available:
 
 ```bash
 OPENCLAW_WORKSPACE=/path/to/existing/openclaw/workspace ./scripts/upgrade_existing_openclaw.sh
 ```
 
-Use that only for migration/repair. New installs should use the standard Ubuntu, Docker, or Dockge paths above.
+Use that only for migration/repair. New installs should use Docker run, Docker Compose, Dockge, or standard Ubuntu.
 
 ## Core rule
 
 Zorg MemoryDB preserves original/source memory data and improves recall additively with schema, indexes, materialized views, summaries, concepts, and weighted associations. Do not prune or delete source memory for performance.
-
 
 ## Project files
 
@@ -161,4 +140,3 @@ Zorg MemoryDB preserves original/source memory data and improves recall additive
 - [`SECURITY.md`](SECURITY.md)
 - [`SUPPORT.md`](SUPPORT.md)
 - [`LICENSE`](LICENSE)
-

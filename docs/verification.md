@@ -1,6 +1,6 @@
 # Verification
 
-## All-in-one Docker smoke test
+## Integrated Docker smoke test
 
 From the repository root:
 
@@ -10,37 +10,38 @@ docker compose config >/tmp/zorg-memorydb-compose.yml
 docker compose build openclaw
 docker compose up -d
 docker compose ps
+docker compose exec openclaw bash -lc 'pg_isready -h 127.0.0.1 -p 5432'
 docker compose exec openclaw bash -lc 'cd /home/openclaw/.openclaw/workspace && .venv-sqlmem/bin/python scripts/memory_sql_tool.py tables'
 docker compose exec openclaw bash -lc 'cd /home/openclaw/.openclaw/workspace && .venv-sqlmem/bin/python scripts/memory_recall_router.py "database memory" --limit 5'
 ```
 
 Expected:
 
-- `openclaw` and `postgres` services are running
-- PostgreSQL healthcheck is healthy
+- one `openclaw` service/container is running
+- internal PostgreSQL accepts local connections inside the same container
 - `memory_sql_tool.py tables` lists Zorg memory tables
 - `memory_recall_router.py` returns JSON using DB-backed recall
-- OpenClaw Gateway logs show startup after the DB bootstrap
+- OpenClaw Gateway logs show startup after memory bootstrap
 
 ## Shell/static checks
 
 ```bash
 bash -n scripts/*.sh docker/entrypoint.sh
 python3 -m py_compile scripts/*.py
+docker compose config >/tmp/zorg-memorydb-compose.yml
 ```
 
 ## Schema smoke test
 
 ```bash
 createdb openclaw_memory_test
-psql postgresql://USER:PASSWORD@127.0.0.1:5432/openclaw_memory_test -v ON_ERROR_STOP=1 -f db/schema.sql
+psql -d openclaw_memory_test -v ON_ERROR_STOP=1 -f db/schema.sql
 ```
 
 ## Tool smoke test outside Docker
 
 ```bash
 cp config/sql_memory_map.example.json sql_memory_map.json
-# edit connection fields
 python scripts/memory_sql_tool.py tables
 python scripts/memory_sql_tool.py refresh
 python scripts/memory_recall_router.py "project runbook" --limit 5
@@ -64,9 +65,9 @@ Run this from an OpenClaw workspace after setup or after an OpenClaw update:
 OPENCLAW_WORKSPACE=/path/to/openclaw/workspace python scripts/enforce_db_memory_search.py
 ```
 
-Expected result: JSON with `"ok": true`. If OpenClaw runtime files are present, the script reports them under `runtimeFiles` and patches default memory recall to route through PostgreSQL via `memory_recall_router.py`.
+Expected result: JSON with `"ok": true`. If OpenClaw runtime files are present, the script reports them under `runtimeFiles` and patches default memory recall to route through Zorg MemoryDB via `memory_recall_router.py`.
 
-## Secret/private-data scan before publishing
+## Private-data scan before publishing
 
 ```bash
 grep -RInE 'BEGIN (RSA|OPENSSH|PRIVATE)|cookie|oauth|credential|private_key' . \
@@ -75,4 +76,4 @@ grep -RInE 'BEGIN (RSA|OPENSSH|PRIVATE)|cookie|oauth|credential|private_key' . \
   --exclude='verification.md'
 ```
 
-Review every match before publishing. Do not add live memory exports, database dumps, credentials, contacts, or private transcripts to this repository.
+Review every match before publishing. Do not add live memory exports, database dumps, account data, contacts, or private transcripts to this repository.

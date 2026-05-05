@@ -8,8 +8,7 @@ DB_HOST="${DB_HOST:-127.0.0.1}"
 DB_PORT="${DB_PORT:-5432}"
 DB_NAME="${DB_NAME:-openclaw_memory}"
 DB_USER="${DB_USER:-openclaw_memory}"
-DB_PASSWORD="${DB_PASSWORD:-openclaw_memory}"
-export DB_HOST DB_PORT DB_NAME DB_USER DB_PASSWORD
+export DB_HOST DB_PORT DB_NAME DB_USER
 
 log(){ printf '[Zorg MemoryDB] %s\n' "$*"; }
 
@@ -55,8 +54,7 @@ cfg={
     "host": os.environ["DB_HOST"],
     "port": int(os.environ["DB_PORT"]),
     "database": os.environ["DB_NAME"],
-    "user": os.environ["DB_USER"],
-    "password": os.environ["DB_PASSWORD"]
+    "user": os.environ["DB_USER"]
   },
   "table_map": {
     "MEMORY.md": "zorg_memory",
@@ -78,7 +76,7 @@ can_connect_db(){
   "$PYTHON" - <<'PY' >/dev/null 2>&1
 import json, psycopg2
 cfg=json.load(open('sql_memory_map.json'))['postgres']
-conn=psycopg2.connect(host=cfg['host'],port=cfg['port'],dbname=cfg['database'],user=cfg['user'],password=cfg.get('password',''))
+conn=psycopg2.connect(host=cfg['host'],port=cfg['port'],dbname=cfg['database'],user=cfg['user'])
 conn.close()
 PY
 }
@@ -115,7 +113,7 @@ apply_schema(){
 import json, pathlib, psycopg2
 cfg=json.load(open('sql_memory_map.json'))['postgres']
 schema=pathlib.Path('db/schema.sql').read_text(encoding='utf-8')
-conn=psycopg2.connect(host=cfg['host'],port=cfg['port'],dbname=cfg['database'],user=cfg['user'],password=cfg.get('password',''))
+conn=psycopg2.connect(host=cfg['host'],port=cfg['port'],dbname=cfg['database'],user=cfg['user'])
 with conn:
     with conn.cursor() as cur:
         cur.execute(schema)

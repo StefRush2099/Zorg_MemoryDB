@@ -2,6 +2,12 @@
 
 All meaningful changes to this project are documented here and released with a GitHub Release plus GHCR container image.
 
+## [Unreleased]
+
+### Added
+
+- Added the Executive Assistant Privacy / Communication Filter rule to docs, templates, and migration append rules. Outward communication is shaped by safe public facts, relationship context, and private operator handling instructions without exposing private strategy.
+
 ## [v1.1.3] - 2026-05-05
 
 ### Added

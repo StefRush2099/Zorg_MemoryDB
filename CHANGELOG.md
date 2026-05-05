@@ -2,7 +2,7 @@
 
 All meaningful changes to this project are documented here and released with a GitHub Release plus GHCR container image.
 
-## [Unreleased]
+## [v1.1.3] - 2026-05-05
 
 ### Added
 

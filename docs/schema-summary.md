@@ -30,3 +30,18 @@ These objects are derived/additive. They may be rebuilt, but source memory rows 
 ## Fast recall surface
 
 `zorg_memory_search_fast_mv` is an additive derived materialized view over `zorg_memory_search_mv`. It precomputes lowercase content, English/simple tsvectors, source rank, and content length so recall queries avoid repeated per-row text normalization/vectorization. It is refreshable/rebuildable derived data and must not replace or prune source memory.
+
+## Contacts CRM / Google Contacts Memory
+
+Zorg MemoryDB includes an additive private contacts/CRM layer for installs that have authorized Google People/Contacts access. The structure is designed to preserve contact data if a mail provider account is lost and to make contact facts available to the same DB recall path as other memory.
+
+Tables/views/functions:
+
+- `zorg_contacts_crm` — one row per external contact record. Stores normalized fields such as display name, company, job title, primary email/phone, notes, JSONB arrays for People API fields, and the full raw person JSON for durable recovery.
+- `zorg_contact_points_crm` — normalized email/phone/url points linked to contacts for lookup and dedupe.
+- `zorg_contact_sync_runs` — append-only sync run history and counts.
+- `zorg_contacts_crm_recall_v` — crawler/recall-safe contact text projection.
+- `zorg_refresh_memory_search()` — refreshes memory search materialized views after contact sync/import.
+- `zorg_memory_search_mv` / `zorg_memory_search_fast_mv` include contact rows as source type `contact`, so contact data participates in the normal DB-backed recall path.
+
+Privacy boundary: live contact rows, phone numbers, email addresses, raw People API JSON, credentials, and sync outputs are private operator data and must not be published in public docs, examples, issues, or release notes. Public repos may include only schema, scripts, and sanitized operational guidance.

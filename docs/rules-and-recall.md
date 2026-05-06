@@ -43,3 +43,9 @@ Superseded or bad process records are marked as superseded/deprecated with addit
 ## Fast-path optimization rule
 
 Recall fast paths may use additive derived materialized views such as `zorg_memory_search_fast_mv` for precomputed lowercase text, tsvectors, ranking helpers, and indexes. These surfaces are rebuildable caches only; they must not be treated as replacements for source memory and must never justify source-data pruning.
+
+## Contact/CRM Recall Rule
+
+When an install has authorized Google Contacts access, sync contacts into the private `zorg_contacts_crm` tables using `scripts/sync_google_contacts_to_memory_db.py`. Contact sync is additive and recovery-oriented: keep the provider raw JSON, normalized lookup fields, sync run history, and indexed recall text. Do not prune original contact source data for performance.
+
+Contact data is sensitive. Use it for private recall, CRM-style continuity, correct addressing, timezone/timing judgment, and relationship-aware communication, but never publish live contact contents or credentials. If a contact import changes memory schema, update public structure/docs only; do not publish rows.

@@ -81,3 +81,14 @@ Review every match before publishing. Do not add live memory exports, database d
 ## Database recovery verification
 
 For DB corruption or inaccessible recall, follow [`docs/database-recovery.md`](database-recovery.md): safe repair first, backup recovery if repair fails, then health/recall tests. Do not claim recovery until PostgreSQL reachability, table listing, materialized-view refresh, and recall-router checks pass.
+
+## Contacts CRM Verification
+
+For installs with authorized Google People/Contacts OAuth scope:
+
+```bash
+python scripts/sync_google_contacts_to_memory_db.py
+python scripts/memory_sql_tool.py search "contact email" --table all --limit 5
+```
+
+Expected result: the sync script prints counts only, `zorg_contact_sync_runs` records an `ok` run, `zorg_contacts_crm` contains contact rows, and DB-backed recall can return source type `contact`. Do not paste live contact output into public tickets or docs.

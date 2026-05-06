@@ -19,6 +19,17 @@ All meaningful changes to this project are documented here and released with a G
 - Added the Executive Assistant Privacy / Communication Filter rule to docs, templates, and migration append rules. Outward communication is shaped by safe public facts, relationship context, and private operator handling instructions without exposing private strategy.
 - Clarified that operator-provided information is private by default, uncertain disclosure requires clarification, and recipients should not be told they are being filtered through private context.
 
+### Changed
+
+- Improved `zorg_search_memory()` recall behavior for natural-language multi-term queries: exact full-text and phrase matches still rank first, with an indexed token-level fallback for queries where no single row contains every term together.
+- Refreshed PostgreSQL planner statistics on `sql_memory_map`-backed memory tables and core recall materialized views after index review.
+
+### Verification
+
+- Ran `EXPLAIN ANALYZE` samples for `memory_sql_tool.py` recall, recent, master, direct `zorg_memory`, and mapped markdown-table searches.
+- Verified difficult multi-term recall such as email/bounce/Pizza Parlor now returns context instead of an empty result while recent/master indexed paths remain sub-millisecond.
+- Verified `memory_speed_test.py` still reports DB-backed lookup faster than flat-file lookup across benchmark terms.
+
 ## [v1.1.3] - 2026-05-05
 
 ### Added

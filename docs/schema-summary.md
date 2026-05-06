@@ -31,6 +31,8 @@ These objects are derived/additive. They may be rebuilt, but source memory rows 
 
 `zorg_memory_search_fast_mv` is an additive derived materialized view over `zorg_memory_search_mv`. It precomputes lowercase content, English/simple tsvectors, source rank, and content length so recall queries avoid repeated per-row text normalization/vectorization. It is refreshable/rebuildable derived data and must not replace or prune source memory.
 
+`zorg_search_memory(query, limit)` ranks exact full-text and exact phrase matches first. If those do not fill the requested limit, it now falls back to token-level OR matching against the same precomputed indexed tsvector columns. This improves natural-language recall when a query contains several useful terms that may be split across different memory rows, while preserving the faster exact-match path for focused queries.
+
 ## Contacts CRM / Google Contacts Memory
 
 Zorg MemoryDB includes an additive private contacts/CRM layer for installs that have authorized Google People/Contacts access. The structure is designed to preserve contact data if a mail provider account is lost and to make contact facts available to the same DB recall path as other memory.

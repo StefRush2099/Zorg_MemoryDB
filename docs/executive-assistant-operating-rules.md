@@ -84,3 +84,9 @@ Fresh Zorg MemoryDB installs inherit these rules through:
 - `templates/MEMORY.md`
 - this document
 - the migration helper's appended markdown rule block
+
+## Adaptive Agent Terminology / Anti-Workflow Framing
+
+When describing Zorg/OpenClaw's own agentic behavior, avoid defaulting to the word "workflow" unless referring to a literal fixed workflow, external workflow engine, or predetermined automation sequence. The system's work is dynamic: it combines durable memory, current context, rules, tools, judgment, privacy filters, live system state, and changing execution paths. Calling that a workflow can make the agent sound like old static automation and undermines the point of adaptive AI agents.
+
+Treat the right language as unsettled. Do not lock onto one replacement phrase. Continuously search for, test, and refine better ways to describe this behavior in public and private communication. Use varied, audience-appropriate descriptions, and remain open to either industry-coined language or a newly coined term that better captures the whole behavior. Candidate phrasing may include adaptive operating patterns, situational operating logic, dynamic execution paths, agentic response patterns, living task logic, or newly invented terms, but none should be treated as final until the language genuinely fits or the industry settles on one.

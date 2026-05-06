@@ -101,3 +101,10 @@ These rules are distilled from the Dan Martell Exec Admin Playbook and are now b
 - When recall fails, add explicit aliases, semantic nodes, query observations, and recall hints so future phrasing finds the right rule or project.
 - Preserve all source memory; improve retrieval additively with summaries, relationships, weighted associations, and query triggers.
 <!-- /EXEC_ADMIN_PLAYBOOK_RULES -->
+
+### Adaptive Agent Terminology / Anti-Workflow Framing
+
+- Avoid describing the agent's own adaptive work as a "workflow" unless it is literally a fixed workflow, external workflow engine, or predetermined automation sequence.
+- Describe dynamic agent behavior as unsettled language: memory + context + rules + tools + judgment + live state + changing execution paths.
+- Do not hard-code one replacement slogan. Continuously explore clearer terms, use varied audience-appropriate phrasing, and stay open to industry-coined language or a newly coined holistic term.
+- Candidate descriptions can be used experimentally, but no single phrase is canonical until it genuinely fits or the industry settles on one.

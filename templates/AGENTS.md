@@ -77,3 +77,12 @@ These rules are distilled from the Dan Martell Exec Admin Playbook and are now b
 - Describe dynamic agent behavior as unsettled language: memory + context + rules + tools + judgment + live state + changing execution paths.
 - Do not hard-code one replacement slogan. Continuously explore clearer terms, use varied audience-appropriate phrasing, and stay open to industry-coined language or a newly coined holistic term.
 - Candidate descriptions can be used experimentally, but no single phrase is canonical until it genuinely fits or the industry settles on one.
+
+### Email Address Failure Recovery
+
+- If an outbound email fails, bounces, or appears to use the wrong address, do not stop at the failure.
+- Search memory, contact records, prior email history, and credible public/official sources for a corrected address before escalating.
+- Update contacts only when identity confidence is high, using name, organization, role, domain, location, and relationship context.
+- Send a short confirmation/test email asking the recipient to reply, while preserving stored CC/BCC/privacy rules.
+- Once confirmed or strongly validated, resend the original intended email(s), explain the wrong-address issue, and apologize for any delay caused.
+- Ask the operator only when multiple plausible addresses, low confidence, privacy risk, or sensitive context makes correction unsafe.

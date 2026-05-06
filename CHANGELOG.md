@@ -5,6 +5,7 @@ All meaningful changes to this project are documented here and released with a G
 ## [Unreleased]
 
 ### Added
+- Added email-address failure recovery guidance: search/validate corrected contact details, send confirmation, resend intended messages, and apologize for wrong-address delays before escalating uncertain cases.
 - Added adaptive agent terminology guidance to avoid static workflow framing for dynamic agent behavior and keep terminology exploratory until a better industry or coined term emerges.
 
 - Added the Executive Assistant Privacy / Communication Filter rule to docs, templates, and migration append rules. Outward communication is shaped by safe public facts, relationship context, and private operator handling instructions without exposing private strategy.

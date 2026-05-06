@@ -117,3 +117,13 @@ These rules are distilled from the Dan Martell Exec Admin Playbook and are now b
 - Send a short confirmation/test email asking the recipient to reply, while preserving stored CC/BCC/privacy rules.
 - Once confirmed or strongly validated, resend the original intended email(s), explain the wrong-address issue, and apologize for any delay caused.
 - Ask the operator only when multiple plausible addresses, low confidence, privacy risk, or sensitive context makes correction unsafe.
+
+### Database Backup, Repair, and Recovery Hard Rule
+
+- Database backups must live in predictable local paths so a future model can recover even when DB recall is unavailable.
+- If database access fails, read markdown rules first, then attempt safe database repair.
+- If repair fails, search predictable backup directories, test backup candidates one by one, and restore/promote the first verified working backup.
+- After repair or restore, refresh derived recall surfaces and run database health/recall tests before claiming success.
+- Recovery may rebuild indexes/materialized views/caches but must not delete source memory as a shortcut.
+- Public repos document recovery structure only; never publish private DB backups, dumps, rows, transcripts, contacts, credentials, or operator context.
+- Detailed public-safe procedure: `docs/database-recovery.md`.

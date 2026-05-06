@@ -11,6 +11,7 @@
 7. Whenever any meaningful structural, configuration, routing, schema, indexing, recall, benchmark, enforcement, or operational-rule change is made to the memory database or recall system, publish the matching structural update to `Zorg_MemoryDB` and update the relevant markdown/runbooks.
 8. Public exports must be schema/tooling/rules only unless all data is intentionally synthetic.
 9. Recall quality must evolve additively toward vector/neural-style weighted semantic retrieval: add embeddings/vector slots, concepts/entities, aliases, graph edges, query feedback, LLM-readable recall hints, and materialized views without deleting source rows.
+10. Database repair/recovery is a hard continuity rule: predictable backups must exist; repair is attempted first; backup candidates are tested if repair fails; the first verified working backup is promoted; DB health/recall tests must pass before claiming success. See [`database-recovery.md`](database-recovery.md).
 
 ## Recall escalation
 

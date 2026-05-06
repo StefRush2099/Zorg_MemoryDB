@@ -135,6 +135,10 @@ OPENCLAW_WORKSPACE=/path/to/existing/openclaw/workspace ./scripts/upgrade_existi
 
 Use that only for migration/repair. New installs should use Docker run, Docker Compose, Dockge, or standard Ubuntu.
 
+## Database recovery
+
+Zorg MemoryDB includes a hard database backup/repair/recovery rule: backups should live in predictable local locations, safe repair is attempted first, backup candidates are tested if repair fails, and recovery is not complete until DB health/recall tests pass. See [`docs/database-recovery.md`](docs/database-recovery.md).
+
 ## Core rule
 
 Zorg MemoryDB preserves original/source memory data and improves recall additively with schema, indexes, materialized views, summaries, concepts, and weighted associations. Do not prune or delete source memory for performance.

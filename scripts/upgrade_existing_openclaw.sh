@@ -169,6 +169,7 @@ append_rules(){
 - Apply private communication filters silently: assume operator-provided information is private by default unless explicitly marked public/shareable, combine public facts, relationship context, and private handling instructions to shape outward messages, ask before disclosing uncertain private details, and never expose private strategy.
 - Avoid static workflow framing for agent-owned dynamic behavior unless describing literal fixed automation; continuously explore better language for adaptive memory/context/rule/tool/judgment-driven execution without locking onto one term too early.
 - Recover from email-address failures proactively: search memory/contacts/history/public sources, confirm corrected recipient, resend intended messages with a wrong-address/delay apology, and escalate only uncertain or risky cases.
+- Treat markdown as the emergency map for DB failure: attempt safe repair first; if repair fails, search predictable backup paths, test backups until one verifies, promote it, refresh recall, and run DB health/recall tests before claiming recovery.
 <!-- /ZORG_MEMORYDB_RULES -->
 '
   for file in AGENTS.md SOUL.md TOOLS.md MEMORY.md; do

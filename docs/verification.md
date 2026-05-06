@@ -77,3 +77,7 @@ grep -RInE 'BEGIN (RSA|OPENSSH|PRIVATE)|cookie|oauth|credential|private_key' . \
 ```
 
 Review every match before publishing. Do not add live memory exports, database dumps, account data, contacts, or private transcripts to this repository.
+
+## Database recovery verification
+
+For DB corruption or inaccessible recall, follow [`docs/database-recovery.md`](database-recovery.md): safe repair first, backup recovery if repair fails, then health/recall tests. Do not claim recovery until PostgreSQL reachability, table listing, materialized-view refresh, and recall-router checks pass.

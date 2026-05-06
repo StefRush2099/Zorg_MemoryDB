@@ -6,6 +6,12 @@ It installs and runs the latest OpenClaw package (`openclaw@latest`) with Zorg M
 
 The public repository is sanitized. It includes structure, scripts, schema, docs, and templates only — no private rows, transcripts, account data, or operator context.
 
+## Why Zorg MemoryDB?
+
+Zorg MemoryDB is the OpenClaw base with a durable PostgreSQL-backed memory spine, executive-assistant operating rules, privacy-aware communication filters, adaptive recovery patterns, and public-safe templates. It is designed as a clean add-on layer so you can keep the upside of upstream OpenClaw while gaining operational continuity.
+
+- Why install Zorg MemoryDB over plain OpenClaw? [`docs/why-zorg-memorydb.md`](docs/why-zorg-memorydb.md)
+
 ## Packages and releases
 
 - GitHub Releases: https://github.com/StefRush2099/Zorg_MemoryDB/releases

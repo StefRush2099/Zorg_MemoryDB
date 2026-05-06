@@ -5,6 +5,7 @@ All meaningful changes to this project are documented here and released with a G
 ## [Unreleased]
 
 ### Added
+- Added `docs/why-zorg-memorydb.md`, a detailed evolving public pitch explaining why Zorg MemoryDB is a clean additive OpenClaw memory layer, how it preserves upstream update paths, and what operational advantages database-backed recall provides.
 - Added email-address failure recovery guidance: search/validate corrected contact details, send confirmation, resend intended messages, and apologize for wrong-address delays before escalating uncertain cases.
 - Added adaptive agent terminology guidance to avoid static workflow framing for dynamic agent behavior and keep terminology exploratory until a better industry or coined term emerges.
 

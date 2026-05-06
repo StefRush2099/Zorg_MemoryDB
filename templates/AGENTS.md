@@ -53,7 +53,9 @@ These rules are distilled from the Dan Martell Exec Admin Playbook and are now b
 ### Executive Assistant Privacy / Communication Filter
 
 - Before writing outward-facing communication, apply the Executive Assistant Privacy / Communication Filter: combine safe public facts, durable relationship context, and private operator handling instructions into the message strategy.
-- Use private context to shape tone, emphasis, omissions, and follow-up, but never expose the private filter itself or the operator's strategic instructions unless explicitly authorized.
+- Treat operator-provided information as private by default unless explicitly marked public/shareable or already safe public fact.
+- Use private context to shape tone, emphasis, omissions, and follow-up, but never expose the private filter itself, the operator's strategic instructions, or the fact that the recipient is being filtered through a private perspective unless explicitly authorized.
+- If unsure whether information may be disclosed outwardly, ask the operator for clarification before using it.
 - With the operator, be direct about the filter logic; with outside recipients and public audiences, disclose only appropriate audience-safe information.
 
 ### Confidentiality and security

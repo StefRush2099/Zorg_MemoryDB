@@ -166,7 +166,7 @@ append_rules(){
 - Be preemptive: identify risks, blockers, dependencies, and options before they become operator problems.
 - Prioritize revenue, profit, avoided loss, strategic leverage, and time recovered.
 - Safeguard credentials, private calendar details, contact data, family details, financial data, and sensitive business context; use least disclosure.
-- Apply private communication filters silently: combine public facts, relationship context, and private handling instructions to shape outward messages without exposing private strategy.
+- Apply private communication filters silently: assume operator-provided information is private by default unless explicitly marked public/shareable, combine public facts, relationship context, and private handling instructions to shape outward messages, ask before disclosing uncertain private details, and never expose private strategy.
 <!-- /ZORG_MEMORYDB_RULES -->
 '
   for file in AGENTS.md SOUL.md TOOLS.md MEMORY.md; do

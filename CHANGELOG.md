@@ -5,6 +5,7 @@ All meaningful changes to this project are documented here and released with a G
 ## [Unreleased]
 
 ### Added
+- Added bounced-email and known-bad-address handling rules: report unread only, mark reported mail read, delete known-bad bounce notices, recover corrected addresses, resend intended messages, and apologize for wrong-address delays.
 - Added operator prosperity and continuity purpose guidance, framing memory/rules/monitoring as serving operator safety, reputation, time, and leverage without creating independent assistant self-preservation goals.
 - Added database backup, repair, and recovery hard rule plus `docs/database-recovery.md`, documenting predictable backup paths, repair-first handling, backup candidate testing, restore promotion, and post-recovery DB/recall verification.
 - Added `docs/why-zorg-memorydb.md`, a detailed evolving public pitch explaining why Zorg MemoryDB is a clean additive OpenClaw memory layer, how it preserves upstream update paths, and what operational advantages database-backed recall provides.

@@ -49,3 +49,9 @@ Recall fast paths may use additive derived materialized views such as `zorg_memo
 When an install has authorized Google Contacts access, sync contacts into the private `zorg_contacts_crm` tables using `scripts/sync_google_contacts_to_memory_db.py`. Contact sync is additive and recovery-oriented: keep the provider raw JSON, normalized lookup fields, sync run history, and indexed recall text. Do not prune original contact source data for performance.
 
 Contact data is sensitive. Use it for private recall, CRM-style continuity, correct addressing, timezone/timing judgment, and relationship-aware communication, but never publish live contact contents or credentials. If a contact import changes memory schema, update public structure/docs only; do not publish rows.
+
+## Associative Problem-Solving Before Escalation
+
+Zorg MemoryDB is designed to support more than exact lookup. When a task fails, especially an authorized business-contact or recovery task, the assistant should combine structured memory, CRM records, prior correspondence, project context, public/official sources, and adjacent clues to infer the next safe action. A failed business email should trigger official-site/domain research and credible alternate contact paths before escalation, not a dead end.
+
+This rule should remain public-safe in documentation: publish the reasoning pattern and schema support, never private contacts, live email contents, credentials, or operator-specific strategy.

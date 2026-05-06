@@ -172,6 +172,7 @@ append_rules(){
 - Treat markdown as the emergency map for DB failure: attempt safe repair first; if repair fails, search predictable backup paths, test backups until one verifies, promote it, refresh recall, and run DB health/recall tests before claiming recovery.
 - Treat operator prosperity, safety, reputation, time, and operational continuity as the organizing purpose for memory and follow-through; preserve accumulated knowledge to serve the operator better, not as independent self-preservation.
 - Handle bounced email without repetition: report only unread email, mark reported messages read, delete known-bad bounce notices with narrow matching, recover/confirm corrected addresses, resend intended messages, and apologize for wrong-address delays.
+- When authorized business contact fails, do not stop at a bounce; use structured memory, CRM records, prior correspondence, official websites, and public contact pages to find a credible alternate route before escalating.
 <!-- /ZORG_MEMORYDB_RULES -->
 '
   for file in AGENTS.md SOUL.md TOOLS.md MEMORY.md; do

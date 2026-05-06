@@ -157,3 +157,8 @@ This is an example of structured-memory reasoning: use accumulated evidence and 
 ### Contact CRM Deduplication
 
 Contact memory should be distilled for recall but source data must be preserved. Use canonical CRM contacts for normal recall. Automatically dedupe only with strong evidence such as shared email, phone, or provider identifiers. Treat name-only collisions as review flags, not as permission to delete or merge raw contacts.
+
+
+### Recursive Logic / Proactive Precaution Rules
+
+Turn explicit instructions, examples, observed mistakes, and public-safe executive-assistant principles into durable operating logic. Do not wait for exact repeat instructions when the implication is clear. For new databases, lists, imports, CRM/contact structures, memory features, or automations, proactively check duplicates, canonicalization, counts, source preservation, privacy boundaries, recall integration, representative queries, and performance before reporting completion.

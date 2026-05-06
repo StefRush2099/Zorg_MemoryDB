@@ -106,3 +106,15 @@ select source_table, count(*) from zorg_memory_search_mv where source_table = 'c
 ```
 
 Expected: raw contacts are preserved, canonical contacts are fewer than or equal to raw contacts, review flags capture ambiguous/name-only collisions, and memory search rows use the canonical contact count. Do not paste live contact names, emails, or phones into public verification logs.
+
+
+## Recursive Logic Verification
+
+After applying recursive-logic schema, verify structure and recall without exposing private context:
+
+```sql
+select count(*) from zorg_logic_rules where active;
+select * from zorg_get_logic_context('duplicate', 5);
+```
+
+Expected: active logic rules exist, logic recall can return proactive quality-control rules, and public documentation contains only sanitized rule summaries.

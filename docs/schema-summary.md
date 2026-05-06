@@ -59,3 +59,17 @@ Additional structures:
 - `zorg_distill_contacts_crm()` — rebuilds canonical groups and review flags, then refreshes the memory search materialized views.
 
 Recall uses `zorg_contacts_crm_recall_v`, which points at canonical/distilled contacts. This keeps the number of recallable contacts deduplicated while preserving every raw source row for recovery and later review.
+
+## Recursive Logic Rules / Proactive Quality Control
+
+Zorg MemoryDB includes an additive logic-rule layer for turning operator instructions, examples, public-safe executive-assistant principles, and observed mistakes into reusable decision structures.
+
+Tables/views/functions:
+
+- `zorg_logic_rules` — durable operating logic, priority, privacy scope, applicable categories, standard checks, and tuning notes.
+- `zorg_logic_rule_sources` — source summaries for why a rule exists. Public docs should include only sanitized source summaries.
+- `zorg_logic_rule_applications` — optional audit trail when a rule/check is applied to a task.
+- `zorg_logic_rules_recall_v` — recall projection for logic rules.
+- `zorg_get_logic_context(query, limit)` — logic-specific recall path.
+
+The CRM dedupe miss is the model lesson: when a new database/list/import/CRM/memory feature is built, duplicate detection, canonicalization, count reconciliation, source preservation, recall integration, privacy checks, representative searches, and performance checks are standard final checks before declaring completion.

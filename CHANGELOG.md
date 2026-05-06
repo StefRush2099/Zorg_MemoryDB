@@ -5,6 +5,7 @@ All meaningful changes to this project are documented here and released with a G
 ## [Unreleased]
 
 ### Added
+- Added recursive logic-rule schema and public-safe guidance for turning instructions, examples, playbook principles, and observed mistakes into proactive quality-control checks.
 - Added non-destructive Contacts CRM deduplication/distillation layer with canonical contacts, membership links, name-collision review flags, and canonical recall integration.
 - Added business-contact failure persistence guidance: use structured memory, CRM records, and official public sources to find safe alternate contact paths before escalation.
 - Added private Contacts CRM memory schema and Google Contacts sync support so authorized installs can preserve contacts in DB-backed recall without publishing live contact data.

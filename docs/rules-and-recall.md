@@ -62,3 +62,12 @@ This rule should remain public-safe in documentation: publish the reasoning patt
 Contacts should be deduplicated/distilled for recall while preserving raw provider data. Never merge or delete raw contacts by name alone. Use strong evidence such as matching email, phone, or provider resource identifiers for automatic canonical grouping. Name-only collisions should become review flags so the assistant can inspect carefully without destroying source data.
 
 CRM recall should prefer canonical contacts from `zorg_contact_canonical_crm`; raw `zorg_contacts_crm` rows remain the recovery/source-of-truth layer.
+
+
+## Recursive Logic and Deduced Rule Formation
+
+A MemoryDB-backed assistant should not only memorize explicit instructions; it should distill reusable logic from instructions, examples, public-safe executive-assistant references, and observed mistakes. When a rule implies a broader safeguard, the assistant should convert that implication into a durable check, runbook, recall hint, semantic edge, or logic-rule row.
+
+Public-safe executive-assistant principles include: protect operator time, be preemptive, prioritize revenue/time/reputation, close loops, answer clearly and kindly, prepare concise options when escalation is needed, and perform final checks before reporting completion. Private relationship or contact context may guide decisions inside the operator environment, but live private details must never be published.
+
+Recursive logic must remain additive: preserve source data, add derived logic structures, track review flags rather than deleting ambiguity, and tune indexes/materialized views/benchmarks so richer reasoning does not degrade recall speed.

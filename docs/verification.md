@@ -92,3 +92,17 @@ python scripts/memory_sql_tool.py search "contact email" --table all --limit 5
 ```
 
 Expected result: the sync script prints counts only, `zorg_contact_sync_runs` records an `ok` run, `zorg_contacts_crm` contains contact rows, and DB-backed recall can return source type `contact`. Do not paste live contact output into public tickets or docs.
+
+
+## Contacts CRM Dedupe Verification
+
+After a contacts sync, verify counts only:
+
+```sql
+select count(*) from zorg_contacts_crm where active;
+select count(*) from zorg_contact_canonical_crm where active;
+select count(*) from zorg_contact_dedupe_flags where review_status = 'open';
+select source_table, count(*) from zorg_memory_search_mv where source_table = 'contact' group by source_table;
+```
+
+Expected: raw contacts are preserved, canonical contacts are fewer than or equal to raw contacts, review flags capture ambiguous/name-only collisions, and memory search rows use the canonical contact count. Do not paste live contact names, emails, or phones into public verification logs.

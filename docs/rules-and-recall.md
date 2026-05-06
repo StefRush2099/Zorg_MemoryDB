@@ -55,3 +55,10 @@ Contact data is sensitive. Use it for private recall, CRM-style continuity, corr
 Zorg MemoryDB is designed to support more than exact lookup. When a task fails, especially an authorized business-contact or recovery task, the assistant should combine structured memory, CRM records, prior correspondence, project context, public/official sources, and adjacent clues to infer the next safe action. A failed business email should trigger official-site/domain research and credible alternate contact paths before escalation, not a dead end.
 
 This rule should remain public-safe in documentation: publish the reasoning pattern and schema support, never private contacts, live email contents, credentials, or operator-specific strategy.
+
+
+## Contact Deduplication Rule
+
+Contacts should be deduplicated/distilled for recall while preserving raw provider data. Never merge or delete raw contacts by name alone. Use strong evidence such as matching email, phone, or provider resource identifiers for automatic canonical grouping. Name-only collisions should become review flags so the assistant can inspect carefully without destroying source data.
+
+CRM recall should prefer canonical contacts from `zorg_contact_canonical_crm`; raw `zorg_contacts_crm` rows remain the recovery/source-of-truth layer.

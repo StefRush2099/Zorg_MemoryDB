@@ -220,12 +220,19 @@ def upsert_people(conn, people):
                       metadata=excluded.metadata, updated_at=now()
                 """, (row[0], row[1], row[2], row[3], row[4], row[5], psycopg2.extras.Json(json.loads(row[6]))))
                 points += 1
-        cur.execute("select public.zorg_refresh_memory_search()")
+        # Rebuild the non-destructive canonical CRM/distilled contact layer when available.
+        try:
+            cur.execute("select * from public.zorg_distill_contacts_crm()")
+            distilled = cur.fetchone()
+        except Exception:
+            distilled = None
+            cur.execute("select public.zorg_refresh_memory_search()")
+        metadata = {"distilled": list(distilled) if distilled else None}
         cur.execute("""
             update public.zorg_contact_sync_runs
-            set status='ok', finished_at=now(), contacts_seen=%s, contacts_upserted=%s, contact_points_upserted=%s
+            set status='ok', finished_at=now(), contacts_seen=%s, contacts_upserted=%s, contact_points_upserted=%s, metadata=metadata || %s::jsonb
             where id=%s
-        """, (seen, upserted, points, run_id))
+        """, (seen, upserted, points, json.dumps(metadata), run_id))
     except Exception as e:
         cur.execute("update public.zorg_contact_sync_runs set status='error', finished_at=now(), error_text=%s, contacts_seen=%s, contacts_upserted=%s, contact_points_upserted=%s where id=%s", (str(e), seen, upserted, points, run_id))
         raise

@@ -45,3 +45,17 @@ Tables/views/functions:
 - `zorg_memory_search_mv` / `zorg_memory_search_fast_mv` include contact rows as source type `contact`, so contact data participates in the normal DB-backed recall path.
 
 Privacy boundary: live contact rows, phone numbers, email addresses, raw People API JSON, credentials, and sync outputs are private operator data and must not be published in public docs, examples, issues, or release notes. Public repos may include only schema, scripts, and sanitized operational guidance.
+
+## Contacts CRM Deduplication / Distillation
+
+The contacts layer is intentionally non-destructive. Provider rows remain in `zorg_contacts_crm`, while distilled recall should use canonical contacts.
+
+Additional structures:
+
+- `zorg_contact_canonical_crm` — canonical/distilled contacts used by recall. Strong dedupe uses email, phone, or provider-resource evidence; the table stores source contact IDs and source counts.
+- `zorg_contact_canonical_members` — membership links from canonical contacts back to preserved raw provider contacts.
+- `zorg_contact_dedupe_flags` — review flags for name-only collisions and ambiguous matches. Name-only matches are flagged, not automatically destroyed.
+- `zorg_contact_duplicates_review_v` — safe review surface that exposes counts/evidence metadata without requiring raw contact deletion.
+- `zorg_distill_contacts_crm()` — rebuilds canonical groups and review flags, then refreshes the memory search materialized views.
+
+Recall uses `zorg_contacts_crm_recall_v`, which points at canonical/distilled contacts. This keeps the number of recallable contacts deduplicated while preserving every raw source row for recovery and later review.

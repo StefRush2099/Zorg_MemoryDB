@@ -121,3 +121,8 @@ When an authorized business contact attempt fails, do not stop at the bounce or 
 For business-domain failures, search the official website for usable addresses such as `info@`, `contact@`, `support@`, `sales@`, department-specific addresses, or other clearly published business inboxes. Use the most credible official path to request the intended person or corrected address, while preserving required CC/BCC/customer rules. Escalate only when identity is uncertain, multiple plausible options are risky, the contact is sensitive, or credible self-service paths are exhausted.
 
 This is an example of structured-memory reasoning: use accumulated evidence and adjacent knowledge to build a logical next step before asking the operator for help.
+
+
+### Contact CRM Deduplication
+
+Contact memory should be distilled for recall but source data must be preserved. Use canonical CRM contacts for normal recall. Automatically dedupe only with strong evidence such as shared email, phone, or provider identifiers. Treat name-only collisions as review flags, not as permission to delete or merge raw contacts.

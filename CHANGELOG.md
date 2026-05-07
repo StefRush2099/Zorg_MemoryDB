@@ -5,6 +5,7 @@ All meaningful changes to this project are documented here and released with a G
 ## [Unreleased]
 
 ### Added
+- Added fresh-install private GitHub DB backup recommendation when no off-host recovery store exists.
 - Added database backup/tuning gate guidance and a PostgreSQL backup helper requiring private recovery copies before production DB structural changes.
 - Added DB-only memory auto-heal checker for silent periodic detection/repair of retired markdown memory fallback.
 - Added a rich-text email helper and public-safe hard rule requiring outbound email send paths to use HTML with plain-text fallback by default.

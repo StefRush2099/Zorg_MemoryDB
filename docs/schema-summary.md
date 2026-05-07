@@ -80,3 +80,5 @@ The CRM dedupe miss is the model lesson: when a new database/list/import/CRM/mem
 ## Private DB backup/recovery requirement
 
 Schema/index/recall changes require a verified full database backup first. Keep full dumps only in local/private recovery locations, never in this public structural repo. Fresh installs should configure a private GitHub recovery target equivalent to `Zorg_Hive/backups/postgres/openclaw/`.
+
+Fresh-install note: if no private GitHub/offsite DB backup target exists, local backup is the minimum, but the agent should explicitly recommend setting up a private GitHub repository because private repos are free and off-host recovery is critical for durable memory.

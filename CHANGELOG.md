@@ -5,37 +5,34 @@ All meaningful changes to this project are documented here and released with a G
 ## [Unreleased]
 
 ### Added
-- Added fresh-install private GitHub DB backup recommendation when no off-host recovery store exists.
-- Added database backup/tuning gate guidance and a PostgreSQL backup helper requiring private recovery copies before production DB structural changes.
-- Added DB-only memory auto-heal checker for silent periodic detection/repair of retired markdown memory fallback.
-- Added a rich-text email helper and public-safe hard rule requiring outbound email send paths to use HTML with plain-text fallback by default.
-- Added DB-only memory migration support: `zorg_memory_file_archive`, archive indexes, and `scripts/archive_retired_memory_dir.py` to import retired workspace `memory/` files into PostgreSQL before removing the filesystem directory.
-- Added recursive logic-rule schema and public-safe guidance for turning instructions, examples, playbook principles, and observed mistakes into proactive quality-control checks.
-- Added non-destructive Contacts CRM deduplication/distillation layer with canonical contacts, membership links, name-collision review flags, and canonical recall integration.
-- Added business-contact failure persistence guidance: use structured memory, CRM records, and official public sources to find safe alternate contact paths before escalation.
-- Added private Contacts CRM memory schema and Google Contacts sync support so authorized installs can preserve contacts in DB-backed recall without publishing live contact data.
-- Added bounced-email and known-bad-address handling rules: report unread only, mark reported mail read, delete known-bad bounce notices, recover corrected addresses, resend intended messages, and apologize for wrong-address delays.
-- Added operator prosperity and continuity purpose guidance, framing memory/rules/monitoring as serving operator safety, reputation, time, and leverage without creating independent assistant self-preservation goals.
-- Added database backup, repair, and recovery hard rule plus `docs/database-recovery.md`, documenting predictable backup paths, repair-first handling, backup candidate testing, restore promotion, and post-recovery DB/recall verification.
-- Added `docs/why-zorg-memorydb.md`, a detailed evolving public pitch explaining why Zorg MemoryDB is a clean additive OpenClaw memory layer, how it preserves upstream update paths, and what operational advantages database-backed recall provides.
-- Added email-address failure recovery guidance: search/validate corrected contact details, send confirmation, resend intended messages, and apologize for wrong-address delays before escalating uncertain cases.
-- Added adaptive agent terminology guidance to avoid static workflow framing for dynamic agent behavior and keep terminology exploratory until a better industry or coined term emerges.
 
-- Added the Executive Assistant Privacy / Communication Filter rule to docs, templates, and migration append rules. Outward communication is shaped by safe public facts, relationship context, and private operator handling instructions without exposing private strategy.
-- Clarified that operator-provided information is private by default, uncertain disclosure requires clarification, and recipients should not be told they are being filtered through private context.
+- Pending future public-safe changes.
+
+## [v1.2.0] - 2026-05-07
+
+### Added
+
+- Added DB-only memory migration/auto-heal support for retiring active `memory/` markdown fallback and archiving legacy files into PostgreSQL.
+- Added structured logic-rule recall so operating rules can be stored and searched as first-class DB rows.
+- Added rich-text email helper and public-safe communication rule requiring HTML with plain-text fallback by default.
+- Added mandatory local + private/off-host database backup guidance before production DB structural/index/tuning changes.
+- Added production tuning gate: DB/index/schema changes should happen only after real recall failures; otherwise tuning work remains sandbox/benchmark/design only.
+- Added fresh-install recommendation to create a private GitHub recovery store when none exists because private repos are free and off-host DB recovery matters.
+- Added documentation/release maintenance guidance to keep public docs and releases aligned with current MemoryDB design.
 
 ### Changed
 
-- Removed `memory/*.md` from generated SQL memory maps and migration rules; retired flat-file memory fallback in favor of DB repair/restore.
-- Fixed `zorg_search_memory()` token fallback query construction to avoid invalid tsquery/type handling while preserving exact-match-first ranking.
-- Improved `zorg_search_memory()` recall behavior for natural-language multi-term queries: exact full-text and phrase matches still rank first, with an indexed token-level fallback for queries where no single row contains every term together.
-- Refreshed PostgreSQL planner statistics on `sql_memory_map`-backed memory tables and core recall materialized views after index review.
+- Removed active `memory/*.md` mapping from generated SQL memory maps and migration rules.
+- Updated public positioning docs explaining why Zorg MemoryDB is more than plain OpenClaw: durable DB recall, structured rules, recovery discipline, auto-heal, and additive semantic evolution.
+- Updated schema, rules, templates, and install/upgrade docs to reflect DB-only memory and recovery-first operation.
 
 ### Verification
 
-- Ran `EXPLAIN ANALYZE` samples for `memory_sql_tool.py` recall, recent, master, direct `zorg_memory`, and mapped markdown-table searches.
-- Verified difficult multi-term recall such as email/bounce/Pizza Parlor now returns context instead of an empty result while recent/master indexed paths remain sub-millisecond.
-- Verified `memory_speed_test.py` still reports DB-backed lookup faster than flat-file lookup across benchmark terms.
+- Python and shell syntax checks passed for MemoryDB scripts.
+- Schema application verified in temporary PostgreSQL databases during development.
+- DB recall verified for structured logic rules and key operating-rule searches.
+- DB backup path verified locally and with private GitHub recovery in the maintainer environment.
+- Legacy `memory/` fallback auto-heal verified by archive/import/removal behavior.
 
 ## [v1.1.3] - 2026-05-05
 

@@ -8,9 +8,10 @@ The public repository is sanitized. It includes structure, scripts, schema, docs
 
 ## Why Zorg MemoryDB?
 
-Zorg MemoryDB is the OpenClaw base with a durable PostgreSQL-backed memory spine, executive-assistant operating rules, privacy-aware communication filters, adaptive recovery patterns, and public-safe templates. It is designed as a clean add-on layer so you can keep the upside of upstream OpenClaw while gaining operational continuity.
+Zorg MemoryDB is the OpenClaw base with a durable PostgreSQL-backed memory spine, structured operating rules, privacy-aware communication filters, adaptive recovery patterns, automatic DB-only recall repair, private/off-host backup guidance, and public-safe templates. It is designed as a clean add-on layer so you can keep the upside of upstream OpenClaw while gaining operational continuity.
 
 - Why install Zorg MemoryDB over plain OpenClaw? [`docs/why-zorg-memorydb.md`](docs/why-zorg-memorydb.md)
+- How docs/releases stay current: [`docs/documentation-maintenance.md`](docs/documentation-maintenance.md)
 
 ## Packages and releases
 
@@ -18,7 +19,7 @@ Zorg MemoryDB is the OpenClaw base with a durable PostgreSQL-backed memory spine
 - GHCR image: `ghcr.io/stefrush2099/zorg-memorydb`
 - Release/process docs: [`docs/release-process.md`](docs/release-process.md)
 
-Every meaningful structural/install/runtime update is committed, tagged, released, and published as a GHCR container image.
+Every meaningful structural/install/runtime update should be documented, committed, tagged, released, and published as a GHCR container image so users can see what changed.
 
 ## Install paths
 
@@ -117,7 +118,7 @@ Included:
 - full OpenClaw latest install/start path
 - Dockerfile, Compose/Dockge stack, and GHCR package workflow
 - native Ubuntu install script
-- PostgreSQL schema, functions, indexes, materialized views, recall tooling, and bootstrap scripts
+- PostgreSQL schema, functions, indexes, materialized views, structured logic rules, recall tooling, backup/auto-heal helpers, and bootstrap scripts
 - public markdown templates and operating rules
 
 Not included:

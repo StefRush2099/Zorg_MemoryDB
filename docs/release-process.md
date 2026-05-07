@@ -13,7 +13,7 @@ Every meaningful structural, install, Docker/Dockge, schema, recall, routing, wo
 5. GHCR container image build/publish
 6. release notes describing changes and verification
 
-Patch-only typo/docs clarifications may be grouped, but any install/runtime behavior change must receive a new release.
+Patch-only typo/docs clarifications may be grouped, but any install/runtime/schema/recall/rule/recovery behavior change must receive a new release promptly. Releases should not lag behind meaningful changes; users need to see what changed.
 
 ## Versioning
 
@@ -101,3 +101,7 @@ docker compose -p zorg_release_verify exec openclaw bash -lc 'cd /home/openclaw/
 docker compose -p zorg_release_verify exec openclaw bash -lc 'cd /home/openclaw/.openclaw/workspace && .venv-sqlmem/bin/python scripts/memory_recall_router.py "database memory" --limit 5'
 docker compose -p zorg_release_verify down -v
 ```
+
+## Documentation freshness
+
+Release work includes updating the docs that explain why Zorg MemoryDB exists and how the current design works. In particular, keep `docs/why-zorg-memorydb.md`, recovery docs, rule/recall docs, and release notes aligned with the latest public-safe MemoryDB capabilities.

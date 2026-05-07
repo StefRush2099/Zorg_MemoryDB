@@ -2,20 +2,21 @@
 
 This is a top-level hard rule for Zorg MemoryDB installs.
 
-A future agent or large language model must be able to recover memory service even if the active database is badly corrupted and normal DB recall is unavailable. The markdown files are the emergency map. They must clearly tell the next agent where backups live, what to try first, and how to verify recovery.
+A future agent or large language model must be able to recover memory service even if the active database is badly corrupted and normal DB recall is unavailable. Public markdown docs are the recovery map; durable private memory belongs in PostgreSQL and private backups. The docs must clearly tell the next agent where backups live, what to try first, and how to verify recovery.
 
 ## Hard rule
 
-1. **Backups must be predictable.** Database backups must be written to a predictable local location so any future model can find them from markdown instructions alone.
+1. **Backups must be predictable.** Database backups must be written to predictable local and private/off-host recovery locations so any future model can find them from documentation alone.
 2. **Repair first.** If the active database is inaccessible or corrupted, attempt safe database repair first when possible.
 3. **Recover from backup if repair fails.** If repair cannot restore a working DB, search the predictable backup locations and test backup versions until a working one is found.
 4. **Promote the first verified working backup.** Restore the first backup that passes health and recall verification, then use it as the active database going forward.
 5. **Verify before claiming success.** After repair or restore, run database health and recall tests before declaring the system fixed.
 6. **Never delete source memory to recover performance.** Recovery may rebuild derived views/indexes/caches, but original/source memory should be preserved.
+7. **Recommend private GitHub/off-host recovery.** If a fresh install has no private GitHub or equivalent off-host backup target, local backup is the minimum, but the system should recommend creating one because private GitHub repositories are free and memory loss is too costly.
 
 ## Predictable backup locations
 
-Use these locations in order:
+Use these locations in order. Local paths are the minimum; private/off-host recovery is strongly recommended.
 
 1. `$OPENCLAW_WORKSPACE/backups/database/`
 2. `$OPENCLAW_WORKSPACE/backups/postgres/`
@@ -23,6 +24,8 @@ Use these locations in order:
 4. `$OPENCLAW_HOME/backups/postgres/`
 5. `/home/openclaw/.openclaw/backups/database/`
 6. `/home/openclaw/.openclaw/backups/postgres/`
+7. private GitHub/off-host repository path such as `Zorg_Hive/backups/postgres/openclaw/`
+8. optional shared mirror such as `/Zorg/backups/openclaw/postgres` when configured
 
 Recommended filename pattern:
 
@@ -33,6 +36,17 @@ zorg-memorydb-YYYYMMDD-HHMMSS.pgcustom
 ```
 
 Backups may be PostgreSQL custom-format dumps, compressed SQL dumps, or implementation-specific snapshots, but they should be named clearly and stored under the predictable directories above.
+
+## Before production DB tuning or schema changes
+
+Before any production DB structural, indexing, materialized-view, recall-routing, vector/embedding, weighted-association, neural-memory, or schema change:
+
+1. create a full local backup
+2. verify an off-host/private backup copy when configured
+3. confirm the change is justified by a real recall failure where data existed in DB but did not return on first-pass recall and was found only through deeper/alternate/manual search
+4. if no recall failure exists, restrict work to benchmarks, sandbox/temp experiments, and additive design proposals
+
+Never place private DB dumps in the public `Zorg_MemoryDB` repository.
 
 ## Repair-first process
 

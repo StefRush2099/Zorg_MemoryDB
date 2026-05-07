@@ -67,24 +67,28 @@ Zorg MemoryDB treats memory as infrastructure: searchable, structured, indexed, 
 
 ## What the database adds
 
-Zorg MemoryDB uses PostgreSQL-backed memory surfaces instead of relying only on flat markdown lookup. The public repo includes schema, scripts, indexes, materialized views, template memory files, and recall tooling that route memory searches through a structured database path.
+Zorg MemoryDB uses PostgreSQL-backed memory surfaces instead of relying on flat markdown memory lookup. Current design is DB-only for durable memory: legacy `memory/` files are archived/imported into PostgreSQL and removed from the active filesystem surface. The public repo includes schema, scripts, indexes, materialized views, template rules, structured logic tables, auto-heal helpers, backup helpers, and recall tooling that route memory searches through a structured database path.
 
 Core attributes include:
 
-- **Database-backed semantic recall** — recall is routed through SQL-backed structures instead of only ad hoc file scanning.
+- **DB-only durable recall** — recall is routed through PostgreSQL-backed structures, not active markdown memory fallback.
 - **Durable source preservation** — original memory content is preserved; performance improvements are additive.
 - **Materialized search views** — recall surfaces can be refreshed and tuned without deleting source data.
 - **Structured table mapping** — markdown sources such as agent rules, soul/persona, tools notes, identity, heartbeat context, and long-term memory can be mapped into database-backed recall surfaces.
-- **Rule-aware recall** — operating rules become retrievable context, not just forgotten documentation.
+- **Structured rule-aware recall** — operating rules become rows in `zorg_logic_rules`, so rules can rank ahead of broad memory text.
 - **Operational memory** — decisions, paths, scripts, cron IDs, contact rules, verification requirements, and recovery actions are stored for future reuse.
 - **Weighted/associative direction** — the structure is designed to grow toward richer relationships, summaries, concepts, query observations, and weighted associations over time.
 - **Public-safe templates** — the repo teaches the structure without leaking private rows or live operator context.
 - **Install portability** — Docker, Compose, Dockge, and standard Ubuntu paths make the system easier to try.
-- **Verification hooks** — scripts and docs exist to confirm PostgreSQL health, table visibility, recall mode, import behavior, and OpenClaw startup wiring.
+- **Verification hooks** — scripts and docs exist to confirm PostgreSQL health, table visibility, recall mode, import behavior, backup behavior, auto-heal behavior, and OpenClaw startup wiring.
+- **Automatic DB-only recall repair** — if retired markdown memory files reappear, auto-heal imports/archives them into DB, removes the files, refreshes recall, and stays silent unless blocked.
+- **Recovery-first database handling** — production DB/index/schema changes require verified local and private/off-host backups first.
+- **Recall-failure tuning gate** — production tuning changes happen after real recall misses, not because a cron blindly mutates the database. Without a recall failure, tuning jobs should benchmark and test additive structures in sandbox/temp contexts.
+- **Professional communication defaults** — public-safe templates include rich-text email defaults with plain-text fallback.
 
 ## Why this is superior to plain memory notes
 
-Flat files are valuable. Zorg still uses markdown as durable source material. But flat files alone do not scale into a strong operational recall system.
+Flat files are useful for public templates, docs, and human-readable operating principles. But flat files should not be the active durable memory backend for serious operational recall.
 
 A database layer makes memory more useful because it can:
 
@@ -97,9 +101,9 @@ A database layer makes memory more useful because it can:
 - support repeatable install/migration behavior
 - create a foundation for concept maps and weighted associations
 
-The point is not to throw markdown away. The point is to stop treating markdown as the entire brain.
+The point is not to throw documentation away. The point is to stop treating markdown as the agent's durable brain.
 
-Zorg MemoryDB keeps markdown as durable source memory and adds database machinery around it.
+Zorg MemoryDB keeps public markdown for templates and docs while moving durable operational memory into PostgreSQL.
 
 ## What it feels like in practice
 
@@ -142,6 +146,15 @@ The same memory system that remembers useful context also remembers what must no
 ### 9. Better language for agent behavior
 
 Zorg MemoryDB includes a rule to avoid reducing dynamic agent behavior to old static terms like "workflow" unless describing literal fixed automation. The language is intentionally allowed to evolve as the industry finds better words for memory-shaped, context-sensitive agent execution.
+
+
+### 10. Memory recovery as a first-class feature
+
+The database is treated as valuable operational infrastructure. Local backups are the minimum. If no private GitHub/off-host recovery store exists, the system should recommend creating one because private GitHub repositories are free and memory loss is too damaging. Private DB dumps belong in private recovery locations, never in the public sanitized repo.
+
+### 11. Documentation and releases that keep up
+
+Zorg MemoryDB should explain its current design publicly. Meaningful changes to memory, recall, schema, backup, rules, installation, or runtime behavior should update docs and releases so users can understand what changed and why it matters.
 
 ## Why people should try this branch first
 

@@ -1,6 +1,6 @@
 # Recommended Base Setup for a Useful OpenClaw + Zorg MemoryDB Install
 
-Zorg MemoryDB is most useful when it is not only installed as a local agent, but connected to the communication, backup, and publishing surfaces that let an assistant actually operate for you.
+Zorg MemoryDB is most useful when it is not only installed as a local agent, but connected to the communication, backup, and publishing surfaces that let an assistant actually operate for you. Before installation, gather the provider keys and account tokens in [`before-you-get-started.md`](before-you-get-started.md).
 
 Plain OpenClaw can run with very little connected. That is useful for testing. A working executive-assistant style agent needs a fuller base setup:
 

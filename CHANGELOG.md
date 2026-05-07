@@ -8,6 +8,18 @@ All meaningful changes to this project are documented here and released with a G
 
 - Pending future public-safe changes.
 
+## [v1.2.4] - 2026-05-07
+
+### Added
+
+- Added `docs/before-you-get-started.md` to explain pre-install account, hosting, API key, OAuth, GitHub, backup, Cloudflare, Docker, and Dockge preparation.
+- Added README guidance and `.env.example` placeholders for OpenRouter, OpenAI, messaging, email OAuth, GitHub backup, and Cloudflare setup.
+
+### Clarified
+
+- Documented OpenRouter as a practical minimum model-provider path and OpenAI API as the recommended entry-level production baseline.
+- Clarified that email and GitHub access require provider-specific authorization tokens that must remain private.
+
 ## [v1.2.3] - 2026-05-07
 
 ### Added

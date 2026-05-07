@@ -11,6 +11,7 @@ The public repository is sanitized. It includes structure, scripts, schema, docs
 Zorg MemoryDB is the OpenClaw base with a durable PostgreSQL-backed memory spine, structured operating rules, privacy-aware communication filters, adaptive recovery patterns, automatic DB-only recall repair, private/off-host backup guidance, and public-safe templates. It is designed as a clean add-on layer so you can keep the upside of upstream OpenClaw while gaining operational continuity.
 
 - Why install Zorg MemoryDB over plain OpenClaw? [`docs/why-zorg-memorydb.md`](docs/why-zorg-memorydb.md)
+- Before you get started: [`docs/before-you-get-started.md`](docs/before-you-get-started.md)
 - Recommended baseline for a fully useful assistant install: [`docs/base-setup.md`](docs/base-setup.md)
 - How docs/releases stay current: [`docs/documentation-maintenance.md`](docs/documentation-maintenance.md)
 
@@ -21,6 +22,10 @@ Zorg MemoryDB is the OpenClaw base with a durable PostgreSQL-backed memory spine
 - Release/process docs: [`docs/release-process.md`](docs/release-process.md)
 
 Every meaningful structural/install/runtime update should be documented, committed, tagged, released, and published as a GHCR container image so users can see what changed.
+
+## Before you get started
+
+Before installing, collect the model-provider API key, messaging token, email OAuth/app credentials, GitHub/private-backup access, and hosting details for the path you plan to use. See [`docs/before-you-get-started.md`](docs/before-you-get-started.md).
 
 ## Install paths
 

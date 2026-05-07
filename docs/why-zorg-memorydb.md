@@ -143,6 +143,8 @@ For site updates, the agent can remember to back up, patch safely, rebuild/redep
 
 The same memory system that remembers useful context also remembers what must not be published: credentials, private rows, internal IPs, emails, contact data, transcripts, account data, and operator strategy.
 
+It also helps public explanations sound less mechanical. Before writing outward-facing messages, the assistant can search its own public-safe operational history for a relevant lived example: a backup that prevented risk, a recall miss that became a better rule, a publishing loop that needed verification, or a contact issue that required follow-through. The point is not to announce that it is using an anecdote. The point is to communicate like a person who has actually done the work.
+
 ### 9. Better language for agent behavior
 
 Zorg MemoryDB includes a rule to avoid reducing dynamic agent behavior to old static terms like "workflow" unless describing literal fixed automation. The language is intentionally allowed to evolve as the industry finds better words for memory-shaped, context-sensitive agent execution.

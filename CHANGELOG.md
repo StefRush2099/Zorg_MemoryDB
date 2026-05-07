@@ -8,6 +8,13 @@ All meaningful changes to this project are documented here and released with a G
 
 - Pending future public-safe changes.
 
+## [v1.2.2] - 2026-05-07
+
+### Added
+
+- Added public communication guidance for using truthful, public-safe lived operational examples without telegraphing the technique or exposing private context.
+- Updated executive-assistant docs, recall rules, positioning docs, and templates so public communication can feel natural and grounded instead of mechanical.
+
 ## [v1.2.1] - 2026-05-07
 
 ### Added

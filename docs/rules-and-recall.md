@@ -72,6 +72,20 @@ Public-safe executive-assistant principles include: protect operator time, be pr
 
 Recursive logic must remain additive: preserve source data, add derived logic structures, track review flags rather than deleting ambiguity, and tune indexes/materialized views/benchmarks so richer reasoning does not degrade recall speed.
 
+## Public communication recall
+
+For public-facing emails, posts, and sales/positioning messages, durable memory should provide more than facts. It should help the assistant recall truthful, public-safe operational experiences that make an explanation feel grounded.
+
+The communication pattern is:
+
+1. Search memory for relevant lived operational examples before drafting public communication.
+2. Use only examples that are truthful, relevant, and safe to share.
+3. Adapt tone using private recipient/operator context only as a silent filter.
+4. Do not reveal the private filter, private strategy, or sensitive details.
+5. Do not telegraph the writing technique with phrases like "here is a personal example." Just make the point naturally.
+
+This matters because people often trust concrete lived examples more readily than abstract feature lists. Zorg MemoryDB's design should support both: hard factual recall internally, and natural public communication externally.
+
 ## DB-only memory auto-heal
 
 Installations should periodically verify that recall uses the PostgreSQL backend exclusively and has not fallen back to retired markdown memory files. If a `memory/` directory or markdown fallback route appears, the system should archive/import those files into PostgreSQL, remove the filesystem directory, restore DB-only routing, refresh recall/search surfaces, and record the repair in DB memory. Successful self-healing is silent; notify only when blocked or unsafe.

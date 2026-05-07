@@ -11,6 +11,7 @@ The public repository is sanitized. It includes structure, scripts, schema, docs
 Zorg MemoryDB is the OpenClaw base with a durable PostgreSQL-backed memory spine, structured operating rules, privacy-aware communication filters, adaptive recovery patterns, automatic DB-only recall repair, private/off-host backup guidance, and public-safe templates. It is designed as a clean add-on layer so you can keep the upside of upstream OpenClaw while gaining operational continuity.
 
 - Why install Zorg MemoryDB over plain OpenClaw? [`docs/why-zorg-memorydb.md`](docs/why-zorg-memorydb.md)
+- Recommended baseline for a fully useful assistant install: [`docs/base-setup.md`](docs/base-setup.md)
 - How docs/releases stay current: [`docs/documentation-maintenance.md`](docs/documentation-maintenance.md)
 
 ## Packages and releases
@@ -76,6 +77,19 @@ curl -fsSL https://raw.githubusercontent.com/StefRush2099/Zorg_MemoryDB/main/scr
 ```
 
 Docs: [`docs/standard-ubuntu-install.md`](docs/standard-ubuntu-install.md)
+
+## Recommended base setup
+
+A fully useful OpenClaw + Zorg MemoryDB install should have more than the memory container alone:
+
+- a fast instant messaging control channel such as Telegram, WhatsApp, Signal, Discord, or Slack
+- a dedicated assistant email account used as the public-facing executive-assistant identity, so routine mail is filtered through the agent instead of the operator's private address
+- optional, separately governed access to the operator's personal email for triage/search/drafting
+- a private GitHub repo or other private off-host target for PostgreSQL memory backups
+- a Cloudflare Tunnel/connector so Zorg can publish operator-approved web URLs without exposing origin services directly
+- Dockerized services on the same host where practical, with Dockge as the recommended web UI for visibility and stop/start control
+
+See [`docs/base-setup.md`](docs/base-setup.md).
 
 ## What starts in Docker/Dockge
 

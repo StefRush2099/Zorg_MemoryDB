@@ -8,6 +8,12 @@ All meaningful changes to this project are documented here and released with a G
 
 - Pending future public-safe changes.
 
+## [v1.2.1] - 2026-05-07
+
+### Added
+
+- Added recommended base setup documentation for useful OpenClaw + Zorg MemoryDB installs: instant messaging, dedicated assistant email identity, governed personal-email access, private database-backup repo, Cloudflare Tunnel connector, Dockerized services, and Dockge visibility.
+
 ## [v1.2.0] - 2026-05-07
 
 ### Added

@@ -111,6 +111,16 @@ docker rm <old-container-name-or-id>
 
 Do not delete volumes unless you intentionally want to discard that install's local OpenClaw state and memory data.
 
+## Recommended companion stacks
+
+For a fully useful assistant install, Dockge should also make the surrounding assistant infrastructure visible. Consider adding companion stacks or services for:
+
+- `cloudflared` for Cloudflare Tunnel publishing/access routes
+- a website/report publishing service if Zorg will publish pages
+- any local support services the assistant needs
+
+Keep secrets in private `.env` files or secret stores, not in the public repo. See [`base-setup.md`](base-setup.md) for the recommended baseline.
+
 ## Notes
 
 - Use lowercase `zorg_memorydb` for the Dockge folder, Dockge stack name, and Compose project name.

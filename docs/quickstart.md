@@ -41,6 +41,17 @@ Then import `/opt/stacks/zorg_memorydb/docker-compose.yml` in Dockge with stack 
 curl -fsSL https://raw.githubusercontent.com/StefRush2099/Zorg_MemoryDB/main/scripts/install_standard_ubuntu.sh | bash
 ```
 
+## Recommended next connections
+
+After the container is running, make the assistant practically useful by connecting the baseline surfaces described in [`base-setup.md`](base-setup.md):
+
+1. Connect a direct instant messaging channel for fast operator control.
+2. Create a dedicated assistant email account as the public-facing executive-assistant identity.
+3. Optionally grant carefully governed personal-email access for triage/search/drafting.
+4. Configure private/off-host PostgreSQL backup storage, such as a private GitHub repo.
+5. Add a Cloudflare Tunnel connector in Docker/Dockge for operator-approved remote URLs.
+6. Keep the services visible in Dockge where possible.
+
 ## Verify
 
 Docker/Dockge:

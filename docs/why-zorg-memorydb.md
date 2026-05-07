@@ -206,6 +206,19 @@ The goal is not hype. The goal is evidence.
 
 Every new durable capability should become another public-safe example of why a database-backed, rule-aware OpenClaw build is more useful than an agent that starts over every session.
 
+## The base setup that makes it really useful
+
+Zorg MemoryDB is strongest when the memory layer is connected to the surfaces an executive assistant actually needs:
+
+- instant messaging for fast operator control
+- a dedicated assistant email address that becomes the public-facing executive-assistant identity
+- optional governed personal-email access for triage/search/drafting
+- private/off-host database backups
+- Cloudflare Tunnel or an equivalent connector for safe remote web URLs
+- Dockerized services visible in Dockge or a similar operations UI
+
+Without those pieces, you still have a better memory substrate. With them, the agent can receive work, communicate professionally, preserve its memory, publish useful web surfaces, and stay operable by a human. See [`base-setup.md`](base-setup.md).
+
 ## Bottom line
 
 Plain OpenClaw is the excellent base.

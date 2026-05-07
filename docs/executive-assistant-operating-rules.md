@@ -156,6 +156,10 @@ This is the practical extension of protecting the operator's time and designing 
 
 Individual/contact-specific email rules override default copy behavior. Configure a default operator CC address for external/business email, but allow recipient-specific BCC exceptions for family, close personal contacts, or other private relationship categories. An LLM should recall current contact rules before sending; helper code should enforce the selected copy mode before serialization/API send.
 
+## LLM-governed contact creation
+
+Cron jobs and helper scripts must not blindly create Google/CRM contacts from email senders. Contact creation and update should be model-governed: recall current DB contact/CRM rules, inspect existing provider contacts, dedupe by normalized email, name, phone, and provider identifiers, then update a canonical existing contact when appropriate. Create a new contact only when the person is genuinely new and useful. Preserve raw/source provider data where applicable and flag weak name-only matches for review instead of merging or deleting them automatically.
+
 ## LLM-instruction cron jobs
 
 Cron jobs should be written as natural-language LLM instructions with enough context, rules, checks, and stop conditions for a capable model to adapt if state changes. Scripts may be used as tools or measurements, but cron should not be a blind mutator that bypasses memory recall, current rules, privacy judgment, or changed circumstances.

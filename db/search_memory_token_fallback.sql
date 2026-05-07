@@ -69,7 +69,7 @@ BEGIN
   )
   SELECT r.source_table, r.source_id, r.event_ts, r.category, r.priority, r.snippet
   FROM ranked r
-  ORDER BY r.match_rank, coalesce(r.token_hits, 0) DESC, r.event_ts DESC
+  ORDER BY r.match_rank, CASE WHEN r.source_table = 'logic_rule' THEN 0 WHEN r.priority = 'critical' THEN 1 ELSE 2 END, coalesce(r.token_hits, 0) DESC, r.event_ts DESC
   LIMIT v_limit;
 END;
 $function$;

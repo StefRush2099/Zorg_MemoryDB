@@ -59,7 +59,7 @@ def main() -> None:
                     (key, title, text, typ, priority, 'private', 'core_markdown_structured_sync', applies,
                      ['Recall this structured rule before acting when relevant', 'Prefer structured DB rule over stale flat-file habits']),
                 )
-            for proc in ['refresh_zorg_memory_search_fast_mv', 'refresh_zorg_master_context']:
+            for proc in ['refresh_zorg_memory_search_mv', 'refresh_zorg_memory_search_fast_mv', 'refresh_zorg_master_context']:
                 cur.execute('select to_regprocedure(%s)', (f'public.{proc}()',))
                 if cur.fetchone()[0]:
                     cur.execute(f'select public.{proc}()')

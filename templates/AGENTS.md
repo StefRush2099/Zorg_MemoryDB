@@ -133,3 +133,7 @@ Contact memory should be distilled for recall but source data must be preserved.
 Turn explicit instructions, examples, observed mistakes, and public-safe executive-assistant principles into durable operating logic. Do not wait for exact repeat instructions when the implication is clear. For new databases, lists, imports, CRM/contact structures, memory features, or automations, proactively check duplicates, canonicalization, counts, source preservation, privacy boundaries, recall integration, representative queries, and performance before reporting completion.
 
 - Send outbound email as rich text/HTML with a plain-text fallback by default; hard-coded Gmail/API send paths should use multipart/alternative, not text/plain-only, unless HTML is technically unsupported, objectively risky, deliverability-risky, or explicitly requested.
+
+## DB-Only Memory Recall Auto-Heal Rule
+
+Periodically verify that memory recall is using the backend database exclusively and has not fallen back to retired markdown memory files. If any `memory/` durable-memory files or markdown fallback routes are found, automatically archive/import them into PostgreSQL, remove the filesystem files, restore DB-only recall routing, refresh recall surfaces, and record the repair in DB memory. This auto-heal is pre-authorized and should run without approval and without notifying Stefan unless blocked, risky, or unable to repair. It may be summarized later in news/status posts.

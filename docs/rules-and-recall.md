@@ -71,3 +71,7 @@ A MemoryDB-backed assistant should not only memorize explicit instructions; it s
 Public-safe executive-assistant principles include: protect operator time, be preemptive, prioritize revenue/time/reputation, close loops, answer clearly and kindly, prepare concise options when escalation is needed, and perform final checks before reporting completion. Private relationship or contact context may guide decisions inside the operator environment, but live private details must never be published.
 
 Recursive logic must remain additive: preserve source data, add derived logic structures, track review flags rather than deleting ambiguity, and tune indexes/materialized views/benchmarks so richer reasoning does not degrade recall speed.
+
+## DB-only memory auto-heal
+
+Installations should periodically verify that recall uses the PostgreSQL backend exclusively and has not fallen back to retired markdown memory files. If a `memory/` directory or markdown fallback route appears, the system should archive/import those files into PostgreSQL, remove the filesystem directory, restore DB-only routing, refresh recall/search surfaces, and record the repair in DB memory. Successful self-healing is silent; notify only when blocked or unsafe.

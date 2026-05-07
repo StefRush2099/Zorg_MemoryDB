@@ -61,11 +61,12 @@ copy_files(){
   cp "$REPO_ROOT/scripts/memory_speed_test.py" "$TARGET_WORKSPACE/memory_speed_test.py"
   cp "$REPO_ROOT/scripts/enforce_db_memory_search.py" "$TARGET_WORKSPACE/scripts/enforce_db_memory_search.py"
   cp "$REPO_ROOT/scripts/import_markdown_memory.py" "$TARGET_WORKSPACE/scripts/import_markdown_memory.py"
-  cp "$REPO_ROOT/scripts/archive_retired_memory_dir.py" "$TARGET_WORKSPACE/scripts/archive_retired_memory_dir.py" "$TARGET_WORKSPACE/scripts/db_only_memory_autoheal.py"
+  cp "$REPO_ROOT/scripts/archive_retired_memory_dir.py" "$TARGET_WORKSPACE/scripts/archive_retired_memory_dir.py"
   cp "$REPO_ROOT/scripts/db_only_memory_autoheal.py" "$TARGET_WORKSPACE/scripts/db_only_memory_autoheal.py"
+  cp "$REPO_ROOT/scripts/postgres_memory_backup.sh" "$TARGET_WORKSPACE/scripts/postgres_memory_backup.sh"
   cp "$REPO_ROOT/db/schema.sql" "$TARGET_WORKSPACE/db/schema.sql"
   cp "$REPO_ROOT/db/memory_file_archive_schema.sql" "$TARGET_WORKSPACE/db/memory_file_archive_schema.sql"
-  chmod +x "$TARGET_WORKSPACE/memory_sql_tool.py" "$TARGET_WORKSPACE/memory_recall_router.py" "$TARGET_WORKSPACE/memory_speed_test.py" "$TARGET_WORKSPACE/scripts/enforce_db_memory_search.py" "$TARGET_WORKSPACE/scripts/import_markdown_memory.py" "$TARGET_WORKSPACE/scripts/archive_retired_memory_dir.py" "$TARGET_WORKSPACE/scripts/db_only_memory_autoheal.py"
+  chmod +x "$TARGET_WORKSPACE/memory_sql_tool.py" "$TARGET_WORKSPACE/memory_recall_router.py" "$TARGET_WORKSPACE/memory_speed_test.py" "$TARGET_WORKSPACE/scripts/enforce_db_memory_search.py" "$TARGET_WORKSPACE/scripts/import_markdown_memory.py" "$TARGET_WORKSPACE/scripts/archive_retired_memory_dir.py" "$TARGET_WORKSPACE/scripts/db_only_memory_autoheal.py" "$TARGET_WORKSPACE/scripts/postgres_memory_backup.sh"
 }
 
 write_config(){

@@ -76,3 +76,7 @@ Tables/views/functions:
 - `zorg_get_logic_context(query, limit)` — logic-specific recall path.
 
 The CRM dedupe miss is the model lesson: when a new database/list/import/CRM/memory feature is built, duplicate detection, canonicalization, count reconciliation, source preservation, recall integration, privacy checks, representative searches, and performance checks are standard final checks before declaring completion.
+
+## Private DB backup/recovery requirement
+
+Schema/index/recall changes require a verified full database backup first. Keep full dumps only in local/private recovery locations, never in this public structural repo. Fresh installs should configure a private GitHub recovery target equivalent to `Zorg_Hive/backups/postgres/openclaw/`.

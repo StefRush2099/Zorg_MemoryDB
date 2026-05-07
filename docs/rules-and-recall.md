@@ -75,3 +75,11 @@ Recursive logic must remain additive: preserve source data, add derived logic st
 ## DB-only memory auto-heal
 
 Installations should periodically verify that recall uses the PostgreSQL backend exclusively and has not fallen back to retired markdown memory files. If a `memory/` directory or markdown fallback route appears, the system should archive/import those files into PostgreSQL, remove the filesystem directory, restore DB-only routing, refresh recall/search surfaces, and record the repair in DB memory. Successful self-healing is silent; notify only when blocked or unsafe.
+
+## Database recovery and tuning gate
+
+A DB-backed memory system should be treated as mission-critical state. Before any production schema/index/materialized-view/recall-routing/vector/weighted-memory change, create a full local PostgreSQL backup and push a full copy to a private recovery repository. Public distribution repos must never contain private database dumps or rows.
+
+Performance/tuning cron jobs should be worded LLM instruction jobs. They may apply production DB/index changes only after a concrete recall failure where data existed in the DB but did not return in first-pass recall and was recovered only by deeper search, alternate query, direct inspection, or operator correction. Without that failure signal, they should restrict themselves to benchmarks, research, sandbox/temp experiments, and additive design work such as vector structures, neural-style weights, cue associations, and recall scoring prototypes.
+
+Baseline recovery locations should be documented in local operator markdown. In Stefan's install they are: local `/home/openclaw/.openclaw/backups/postgres/local/`, private GitHub `Zorg_Hive/backups/postgres/openclaw/`, and optional shared mirror `/Zorg/backups/openclaw/postgres` or established jump-box mirror.

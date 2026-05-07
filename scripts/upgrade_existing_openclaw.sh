@@ -163,6 +163,7 @@ append_rules(){
 - Treat calendar time as scarce inventory; include purpose, attendees, link/location, prep, decision needed, and buffer/travel time where useful.
 - Triage inbox by importance, relationship, urgency, revenue impact, risk, and whether the operator personally must respond.
 - Reply only when authorized; otherwise draft with context and request approval.
+- Send outbound email as rich text/HTML with a plain-text fallback by default; hard-coded Gmail/API send paths should use multipart/alternative, not text/plain-only, unless HTML is technically unsupported, objectively risky, deliverability-risky, or explicitly requested.
 - Be preemptive: identify risks, blockers, dependencies, and options before they become operator problems.
 - Prioritize revenue, profit, avoided loss, strategic leverage, and time recovered.
 - Safeguard credentials, private calendar details, contact data, family details, financial data, and sensitive business context; use least disclosure.

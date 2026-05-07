@@ -5,6 +5,7 @@ All meaningful changes to this project are documented here and released with a G
 ## [Unreleased]
 
 ### Added
+- Added a rich-text email helper and public-safe hard rule requiring outbound email send paths to use HTML with plain-text fallback by default.
 - Added DB-only memory migration support: `zorg_memory_file_archive`, archive indexes, and `scripts/archive_retired_memory_dir.py` to import retired workspace `memory/` files into PostgreSQL before removing the filesystem directory.
 - Added recursive logic-rule schema and public-safe guidance for turning instructions, examples, playbook principles, and observed mistakes into proactive quality-control checks.
 - Added non-destructive Contacts CRM deduplication/distillation layer with canonical contacts, membership links, name-collision review flags, and canonical recall integration.

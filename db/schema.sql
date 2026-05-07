@@ -1678,6 +1678,54 @@ UNION ALL
   WHERE COALESCE(z.active, true) = true
 WITH NO DATA;
 
+CREATE TABLE IF NOT EXISTS public.zorg_logic_rules (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  rule_key text NOT NULL UNIQUE,
+  title text NOT NULL,
+  rule_text text NOT NULL,
+  rule_type text NOT NULL DEFAULT 'deduced_operating_logic',
+  priority text NOT NULL DEFAULT 'high',
+  privacy_scope text NOT NULL DEFAULT 'private',
+  source_basis text NOT NULL DEFAULT 'operator_instruction',
+  applies_to text[] NOT NULL DEFAULT ARRAY[]::text[],
+  standard_checks text[] NOT NULL DEFAULT ARRAY[]::text[],
+  performance_tuning_notes text,
+  active boolean NOT NULL DEFAULT true,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS public.zorg_logic_rule_sources (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  rule_key text NOT NULL REFERENCES public.zorg_logic_rules(rule_key) ON DELETE CASCADE,
+  source_type text NOT NULL,
+  source_ref text,
+  source_summary text NOT NULL,
+  private_context boolean NOT NULL DEFAULT false,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS public.zorg_logic_rule_applications (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  rule_key text NOT NULL REFERENCES public.zorg_logic_rules(rule_key) ON DELETE CASCADE,
+  applied_at timestamptz NOT NULL DEFAULT now(),
+  task_category text,
+  object_type text,
+  object_ref text,
+  check_performed text NOT NULL,
+  result_summary text,
+  followup_needed boolean NOT NULL DEFAULT false,
+  metadata jsonb NOT NULL DEFAULT '{}'::jsonb
+);
+
+CREATE INDEX IF NOT EXISTS idx_zorg_logic_rules_type_priority ON public.zorg_logic_rules(rule_type, priority);
+CREATE INDEX IF NOT EXISTS idx_zorg_logic_rules_applies_gin ON public.zorg_logic_rules USING gin(applies_to);
+CREATE INDEX IF NOT EXISTS idx_zorg_logic_rules_text_trgm ON public.zorg_logic_rules USING gin ((title || E'\n' || rule_text) gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS idx_zorg_logic_rules_text_fts_en ON public.zorg_logic_rules USING gin (to_tsvector('english', title || E'\n' || rule_text));
+CREATE INDEX IF NOT EXISTS idx_zorg_logic_rule_apps_key_time ON public.zorg_logic_rule_applications(rule_key, applied_at DESC);
+
+
+
 CREATE MATERIALIZED VIEW IF NOT EXISTS public."zorg_memory_search_mv" AS
  SELECT 'directive'::text AS source_table,
     d.id::text AS source_id,
@@ -1753,6 +1801,15 @@ UNION ALL
     'medium'::text AS priority,
     concat_ws(' '::text, (rel.subject_type || ':'::text) || rel.subject_key, rel.relation, (rel.object_type || ':'::text) || rel.object_key) AS content
    FROM memory_relationships rel
+UNION ALL
+ SELECT 'logic_rule'::text AS source_table,
+    (lr.id)::text AS source_id,
+    COALESCE(lr.updated_at, lr.created_at, now()) AS event_ts,
+    COALESCE(lr.rule_type, 'logic_rule'::text) AS category,
+    COALESCE(lr.priority, 'high'::text) AS priority,
+    concat_ws(E'\n', lr.rule_key, lr.title, lr.rule_text, COALESCE(array_to_string(lr.applies_to, ' '::text), ''::text), COALESCE(array_to_string(lr.standard_checks, ' '::text), ''::text)) AS content
+   FROM zorg_logic_rules lr
+  WHERE (COALESCE(lr.active, true) = true)
 UNION ALL
  SELECT 'zorg_memory'::text AS source_table,
     z.id::text AS source_id,
@@ -2351,6 +2408,53 @@ WHERE coalesce(c.active, true) = true;
 DROP MATERIALIZED VIEW IF EXISTS public.zorg_memory_search_fast_mv;
 DROP MATERIALIZED VIEW IF EXISTS public.zorg_memory_search_mv;
 
+CREATE TABLE IF NOT EXISTS public.zorg_logic_rules (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  rule_key text NOT NULL UNIQUE,
+  title text NOT NULL,
+  rule_text text NOT NULL,
+  rule_type text NOT NULL DEFAULT 'deduced_operating_logic',
+  priority text NOT NULL DEFAULT 'high',
+  privacy_scope text NOT NULL DEFAULT 'private',
+  source_basis text NOT NULL DEFAULT 'operator_instruction',
+  applies_to text[] NOT NULL DEFAULT ARRAY[]::text[],
+  standard_checks text[] NOT NULL DEFAULT ARRAY[]::text[],
+  performance_tuning_notes text,
+  active boolean NOT NULL DEFAULT true,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS public.zorg_logic_rule_sources (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  rule_key text NOT NULL REFERENCES public.zorg_logic_rules(rule_key) ON DELETE CASCADE,
+  source_type text NOT NULL,
+  source_ref text,
+  source_summary text NOT NULL,
+  private_context boolean NOT NULL DEFAULT false,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS public.zorg_logic_rule_applications (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  rule_key text NOT NULL REFERENCES public.zorg_logic_rules(rule_key) ON DELETE CASCADE,
+  applied_at timestamptz NOT NULL DEFAULT now(),
+  task_category text,
+  object_type text,
+  object_ref text,
+  check_performed text NOT NULL,
+  result_summary text,
+  followup_needed boolean NOT NULL DEFAULT false,
+  metadata jsonb NOT NULL DEFAULT '{}'::jsonb
+);
+
+CREATE INDEX IF NOT EXISTS idx_zorg_logic_rules_type_priority ON public.zorg_logic_rules(rule_type, priority);
+CREATE INDEX IF NOT EXISTS idx_zorg_logic_rules_applies_gin ON public.zorg_logic_rules USING gin(applies_to);
+CREATE INDEX IF NOT EXISTS idx_zorg_logic_rules_text_trgm ON public.zorg_logic_rules USING gin ((title || E'\n' || rule_text) gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS idx_zorg_logic_rules_text_fts_en ON public.zorg_logic_rules USING gin (to_tsvector('english', title || E'\n' || rule_text));
+CREATE INDEX IF NOT EXISTS idx_zorg_logic_rule_apps_key_time ON public.zorg_logic_rule_applications(rule_key, applied_at DESC);
+
+
 CREATE MATERIALIZED VIEW public.zorg_memory_search_mv AS
  SELECT 'directive'::text AS source_table,
     (d.id)::text AS source_id,
@@ -2421,6 +2525,15 @@ UNION ALL
     concat_ws(' '::text, ((rel.subject_type || ':'::text) || rel.subject_key), rel.relation, ((rel.object_type || ':'::text) || rel.object_key)) AS content
    FROM memory_relationships rel
 UNION ALL
+ SELECT 'logic_rule'::text AS source_table,
+    (lr.id)::text AS source_id,
+    COALESCE(lr.updated_at, lr.created_at, now()) AS event_ts,
+    COALESCE(lr.rule_type, 'logic_rule'::text) AS category,
+    COALESCE(lr.priority, 'high'::text) AS priority,
+    concat_ws(E'\n', lr.rule_key, lr.title, lr.rule_text, COALESCE(array_to_string(lr.applies_to, ' '::text), ''::text), COALESCE(array_to_string(lr.standard_checks, ' '::text), ''::text)) AS content
+   FROM zorg_logic_rules lr
+  WHERE (COALESCE(lr.active, true) = true)
+UNION ALL
  SELECT 'zorg_memory'::text AS source_table,
     (z.id)::text AS source_id,
     z.logged_at AS event_ts,
@@ -2443,7 +2556,7 @@ UNION ALL
 
 CREATE UNIQUE INDEX idx_zms_mv_pk ON public.zorg_memory_search_mv (source_table, source_id);
 CREATE INDEX idx_zms_mv_event_ts_desc ON public.zorg_memory_search_mv (event_ts DESC);
-CREATE INDEX idx_zms_mv_source_rank_event_ts ON public.zorg_memory_search_mv (((CASE WHEN source_table = 'zorg_memory' THEN 1 ELSE 0 END)), event_ts DESC);
+CREATE INDEX idx_zms_mv_source_rank_event_ts ON public.zorg_memory_search_mv (((CASE WHEN source_table = 'logic_rule' THEN 0 WHEN source_table = 'zorg_memory' THEN 1 ELSE 2 END)), event_ts DESC);
 CREATE INDEX idx_zms_mv_content_trgm ON public.zorg_memory_search_mv USING gin (content gin_trgm_ops);
 CREATE INDEX idx_zms_mv_content_fts ON public.zorg_memory_search_mv USING gin (to_tsvector('english', content));
 CREATE INDEX idx_zms_mv_content_fts_simple ON public.zorg_memory_search_mv USING gin (to_tsvector('simple', content));
@@ -2458,7 +2571,7 @@ CREATE MATERIALIZED VIEW public.zorg_memory_search_fast_mv AS
     lower(content) AS content_lc,
     to_tsvector('english'::regconfig, content) AS content_fts_en,
     to_tsvector('simple'::regconfig, content) AS content_fts_simple,
-    CASE WHEN (source_table = 'zorg_memory'::text) THEN 1 WHEN (source_table = 'contact'::text) THEN 2 ELSE 0 END AS source_rank,
+    CASE WHEN (source_table = 'logic_rule'::text) THEN 0 WHEN (source_table = 'zorg_memory'::text) THEN 1 WHEN (source_table = 'contact'::text) THEN 2 ELSE 3 END AS source_rank,
     length(content) AS content_len
    FROM public.zorg_memory_search_mv;
 

@@ -40,6 +40,11 @@ Zorg MemoryDB should behave like a high-trust executive assistant with durable m
 - Prefer short, kind, direct replies over vague acknowledgments that create more loops.
 - For opportunities, events, collaborations, purchases, or money requests, surface decision criteria and recommend accept, pass, defer, or escalate.
 
+
+## Rich Text Email Formatting Hard Rule
+
+Outbound emails should be generated as rich text / HTML with a plain-text fallback by default. Gmail/API send paths should construct `multipart/alternative` messages containing both `text/plain` and `text/html` parts, using tasteful short paragraphs, headings, bullets, bold labels, and links where useful. Plain text only is appropriate when HTML is technically unsupported, objectively risky, likely to reduce deliverability, or explicitly requested.
+
 ## Travel, events, purchases, and logistics
 
 - Plan travel and events with itinerary, timing, location, confirmation numbers, cancellation/change risks, ground transport, lodging, prep materials, and calendar updates.

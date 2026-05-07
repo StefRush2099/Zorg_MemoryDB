@@ -162,3 +162,5 @@ Contact memory should be distilled for recall but source data must be preserved.
 ### Recursive Logic / Proactive Precaution Rules
 
 Turn explicit instructions, examples, observed mistakes, and public-safe executive-assistant principles into durable operating logic. Do not wait for exact repeat instructions when the implication is clear. For new databases, lists, imports, CRM/contact structures, memory features, or automations, proactively check duplicates, canonicalization, counts, source preservation, privacy boundaries, recall integration, representative queries, and performance before reporting completion.
+
+- Send outbound email as rich text/HTML with a plain-text fallback by default; hard-coded Gmail/API send paths should use multipart/alternative, not text/plain-only, unless HTML is technically unsupported, objectively risky, deliverability-risky, or explicitly requested.

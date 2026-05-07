@@ -93,10 +93,11 @@ When the container starts, `docker/entrypoint.sh`:
 3. creates `.venv-sqlmem`
 4. writes `sql_memory_map.json` into the OpenClaw workspace
 5. applies `db/schema.sql`
-6. imports public template/rule markdown
-7. refreshes recall/search surfaces
-8. enforces OpenClaw built-in `memory_search` routing through Zorg MemoryDB
-9. starts `openclaw gateway run`
+6. archives any legacy retired `memory/` directory into DB if present
+7. imports public template/rule markdown
+8. refreshes recall/search surfaces
+9. enforces OpenClaw built-in `memory_search` routing through Zorg MemoryDB
+10. starts `openclaw gateway run`
 
 ## Verify
 
@@ -122,7 +123,7 @@ Included:
 Not included:
 
 - live DB rows/dumps
-- private `MEMORY.md` or `memory/*.md`
+- private `MEMORY.md` content or private legacy `memory/*.md` contents
 - account data, cookies, OAuth material, API keys, SSH keys, contacts, emails, transcripts, or private operator context
 
 ## Existing OpenClaw installs

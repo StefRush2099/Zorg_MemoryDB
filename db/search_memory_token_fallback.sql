@@ -1,6 +1,3 @@
--- Add token-level fallback to the core memory search function.
--- This preserves exact full-text and exact-phrase matching first, then uses indexed token OR full-text fallback when a natural-language query is too specific to match all terms together.
--- Safe to re-run.
 CREATE OR REPLACE FUNCTION public.zorg_search_memory(p_query text, p_limit integer DEFAULT 10)
  RETURNS TABLE(source_table text, source_id text, event_ts timestamp with time zone, category text, priority text, snippet text)
  LANGUAGE plpgsql
@@ -13,17 +10,22 @@ DECLARE
   v_ts_any_en tsquery;
   v_ts_any_simple tsquery;
 BEGIN
-  WITH query_tokens AS (
-    SELECT DISTINCT token
-    FROM regexp_split_to_table(v_query_lc, '[^a-z0-9]+') AS token
-    WHERE length(token) >= 3
+  WITH raw_tokens AS (
+    SELECT DISTINCT t.token
+    FROM regexp_split_to_table(v_query_lc, '[^a-z0-9]+') AS t(token)
+    WHERE length(t.token) >= 3
     LIMIT 12
+  ), token_queries AS (
+    SELECT
+      NULLIF((plainto_tsquery('english', token))::text, '') AS q_en,
+      NULLIF((plainto_tsquery('simple', token))::text, '') AS q_simple
+    FROM raw_tokens
   )
   SELECT
-    NULLIF(string_agg((plainto_tsquery('english', token))::text, ' | '), '')::tsquery,
-    NULLIF(string_agg((plainto_tsquery('simple', token))::text, ' | '), '')::tsquery
+    NULLIF(string_agg(q_en, ' | ') FILTER (WHERE q_en IS NOT NULL), '')::tsquery,
+    NULLIF(string_agg(q_simple, ' | ') FILTER (WHERE q_simple IS NOT NULL), '')::tsquery
   INTO v_ts_any_en, v_ts_any_simple
-  FROM query_tokens;
+  FROM token_queries;
 
   RETURN QUERY
   WITH fts_matches AS (

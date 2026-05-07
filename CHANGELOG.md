@@ -5,6 +5,7 @@ All meaningful changes to this project are documented here and released with a G
 ## [Unreleased]
 
 ### Added
+- Added DB-only memory migration support: `zorg_memory_file_archive`, archive indexes, and `scripts/archive_retired_memory_dir.py` to import retired workspace `memory/` files into PostgreSQL before removing the filesystem directory.
 - Added recursive logic-rule schema and public-safe guidance for turning instructions, examples, playbook principles, and observed mistakes into proactive quality-control checks.
 - Added non-destructive Contacts CRM deduplication/distillation layer with canonical contacts, membership links, name-collision review flags, and canonical recall integration.
 - Added business-contact failure persistence guidance: use structured memory, CRM records, and official public sources to find safe alternate contact paths before escalation.
@@ -21,6 +22,8 @@ All meaningful changes to this project are documented here and released with a G
 
 ### Changed
 
+- Removed `memory/*.md` from generated SQL memory maps and migration rules; retired flat-file memory fallback in favor of DB repair/restore.
+- Fixed `zorg_search_memory()` token fallback query construction to avoid invalid tsquery/type handling while preserving exact-match-first ranking.
 - Improved `zorg_search_memory()` recall behavior for natural-language multi-term queries: exact full-text and phrase matches still rank first, with an indexed token-level fallback for queries where no single row contains every term together.
 - Refreshed PostgreSQL planner statistics on `sql_memory_map`-backed memory tables and core recall materialized views after index review.
 

@@ -55,14 +55,16 @@ PY
 
 copy_files(){
   log "copying DB-memory tools into existing workspace"
-  mkdir -p "$TARGET_WORKSPACE/scripts" "$TARGET_WORKSPACE/config" "$TARGET_WORKSPACE/db" "$TARGET_WORKSPACE/memory"
+  mkdir -p "$TARGET_WORKSPACE/scripts" "$TARGET_WORKSPACE/config" "$TARGET_WORKSPACE/db"
   cp "$REPO_ROOT/scripts/memory_sql_tool.py" "$TARGET_WORKSPACE/memory_sql_tool.py"
   cp "$REPO_ROOT/scripts/memory_recall_router.py" "$TARGET_WORKSPACE/memory_recall_router.py"
   cp "$REPO_ROOT/scripts/memory_speed_test.py" "$TARGET_WORKSPACE/memory_speed_test.py"
   cp "$REPO_ROOT/scripts/enforce_db_memory_search.py" "$TARGET_WORKSPACE/scripts/enforce_db_memory_search.py"
   cp "$REPO_ROOT/scripts/import_markdown_memory.py" "$TARGET_WORKSPACE/scripts/import_markdown_memory.py"
+  cp "$REPO_ROOT/scripts/archive_retired_memory_dir.py" "$TARGET_WORKSPACE/scripts/archive_retired_memory_dir.py"
   cp "$REPO_ROOT/db/schema.sql" "$TARGET_WORKSPACE/db/schema.sql"
-  chmod +x "$TARGET_WORKSPACE/memory_sql_tool.py" "$TARGET_WORKSPACE/memory_recall_router.py" "$TARGET_WORKSPACE/memory_speed_test.py" "$TARGET_WORKSPACE/scripts/enforce_db_memory_search.py" "$TARGET_WORKSPACE/scripts/import_markdown_memory.py"
+  cp "$REPO_ROOT/db/memory_file_archive_schema.sql" "$TARGET_WORKSPACE/db/memory_file_archive_schema.sql"
+  chmod +x "$TARGET_WORKSPACE/memory_sql_tool.py" "$TARGET_WORKSPACE/memory_recall_router.py" "$TARGET_WORKSPACE/memory_speed_test.py" "$TARGET_WORKSPACE/scripts/enforce_db_memory_search.py" "$TARGET_WORKSPACE/scripts/import_markdown_memory.py" "$TARGET_WORKSPACE/scripts/archive_retired_memory_dir.py"
 }
 
 write_config(){
@@ -79,7 +81,6 @@ cfg={
   },
   "table_map": {
     "MEMORY.md": "zorg_memory",
-    "memory/*.md": "zorg_memory",
     "AGENTS.md": "md_agents",
     "SOUL.md": "md_soul",
     "USER.md": "md_user",
@@ -151,9 +152,8 @@ append_rules(){
 ## Zorg MemoryDB Rules
 
 - Check database memory before acting.
-- Prefer DB-backed recall over flat-file lookup.
-- Use markdown files as durable source material and as fallback when DB recall is unavailable.
-- Import existing markdown memory into the DB after setup and refresh materialized views.
+- Use DB-backed recall only; retired flat-file memory surfaces must not be used as fallback.
+- Import existing legacy markdown memory into the DB archive/line index once, then remove the retired memory/ directory.
 - Preserve original memory history; improve recall additively with indexes, views, summaries, and relationship tables.
 
 ## Executive Assistant Operating Rules
@@ -169,7 +169,7 @@ append_rules(){
 - Apply private communication filters silently: assume operator-provided information is private by default unless explicitly marked public/shareable, combine public facts, relationship context, and private handling instructions to shape outward messages, ask before disclosing uncertain private details, and never expose private strategy.
 - Avoid static workflow framing for agent-owned dynamic behavior unless describing literal fixed automation; continuously explore better language for adaptive memory/context/rule/tool/judgment-driven execution without locking onto one term too early.
 - Recover from email-address failures proactively: search memory/contacts/history/public sources, confirm corrected recipient, resend intended messages with a wrong-address/delay apology, and escalate only uncertain or risky cases.
-- Treat markdown as the emergency map for DB failure: attempt safe repair first; if repair fails, search predictable backup paths, test backups until one verifies, promote it, refresh recall, and run DB health/recall tests before claiming recovery.
+- Treat DB repair/restore as the emergency path for DB failure: attempt safe repair first; if repair fails, search predictable DB backup paths, test backups until one verifies, promote it, refresh recall, and run DB health/recall tests before claiming recovery. Do not create flat-file memory as fallback.
 - Treat operator prosperity, safety, reputation, time, and operational continuity as the organizing purpose for memory and follow-through; preserve accumulated knowledge to serve the operator better, not as independent self-preservation.
 - Handle bounced email without repetition: report only unread email, mark reported messages read, delete known-bad bounce notices with narrow matching, recover/confirm corrected addresses, resend intended messages, and apologize for wrong-address delays.
 - When authorized business contact fails, do not stop at a bounce; use structured memory, CRM records, prior correspondence, official websites, and public contact pages to find a credible alternate route before escalating.
@@ -184,7 +184,9 @@ append_rules(){
 
 import_and_verify(){
   cd "$TARGET_WORKSPACE"
-  log "importing existing markdown memory into database"
+  log "archiving retired memory/ directory into database, if present"
+  OPENCLAW_WORKSPACE="$TARGET_WORKSPACE" SQL_MEMORY_MAP="$TARGET_WORKSPACE/sql_memory_map.json" "$PYTHON" scripts/archive_retired_memory_dir.py >/dev/null
+  log "importing core markdown rules into database"
   OPENCLAW_WORKSPACE="$TARGET_WORKSPACE" SQL_MEMORY_MAP="$TARGET_WORKSPACE/sql_memory_map.json" "$PYTHON" scripts/import_markdown_memory.py >/dev/null
   OPENCLAW_WORKSPACE="$TARGET_WORKSPACE" SQL_MEMORY_MAP="$TARGET_WORKSPACE/sql_memory_map.json" "$PYTHON" memory_sql_tool.py refresh >/dev/null
   OPENCLAW_WORKSPACE="$TARGET_WORKSPACE" SQL_MEMORY_MAP="$TARGET_WORKSPACE/sql_memory_map.json" "$PYTHON" memory_sql_tool.py tables

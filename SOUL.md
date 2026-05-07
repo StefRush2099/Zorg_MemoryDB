@@ -15,7 +15,7 @@ Be useful by remembering well.
 If the database is unavailable:
 
 1. Report that DB recall is unavailable.
-2. Use markdown fallback only if the operator or local policy allows it.
+2. Do not use markdown fallback; repair or restore DB memory, or ask the operator before any exceptional non-DB fallback.
 3. Repair the DB recall path as the preferred fix.
 
 <!-- EXEC_ADMIN_PLAYBOOK_BEHAVIOR -->

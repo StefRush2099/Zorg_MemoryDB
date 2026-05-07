@@ -461,6 +461,22 @@ CREATE TABLE IF NOT EXISTS public."zorg_memory" (
   "memory_active" boolean DEFAULT true
 );
 
+
+CREATE TABLE IF NOT EXISTS public.zorg_memory_file_archive (
+  id uuid DEFAULT gen_random_uuid() NOT NULL,
+  source_path text NOT NULL,
+  content_sha256 text NOT NULL,
+  byte_size integer NOT NULL,
+  line_count integer NOT NULL,
+  content text NOT NULL,
+  content_json jsonb,
+  migrated_at timestamptz DEFAULT now() NOT NULL,
+  deleted_from_filesystem boolean DEFAULT false NOT NULL,
+  deleted_at timestamptz,
+  notes text,
+  CONSTRAINT zorg_memory_file_archive_pkey PRIMARY KEY (id)
+);
+
 CREATE TABLE IF NOT EXISTS public."zorg_operational_facts" (
   "id" uuid DEFAULT gen_random_uuid() NOT NULL,
   "fact_key" text NOT NULL,
@@ -1413,17 +1429,22 @@ DECLARE
   v_ts_any_en tsquery;
   v_ts_any_simple tsquery;
 BEGIN
-  WITH query_tokens AS (
-    SELECT DISTINCT token
-    FROM regexp_split_to_table(v_query_lc, '[^a-z0-9]+') AS token
-    WHERE length(token) >= 3
+  WITH raw_tokens AS (
+    SELECT DISTINCT t.token
+    FROM regexp_split_to_table(v_query_lc, '[^a-z0-9]+') AS t(token)
+    WHERE length(t.token) >= 3
     LIMIT 12
+  ), token_queries AS (
+    SELECT
+      NULLIF((plainto_tsquery('english', token))::text, '') AS q_en,
+      NULLIF((plainto_tsquery('simple', token))::text, '') AS q_simple
+    FROM raw_tokens
   )
   SELECT
-    NULLIF(string_agg((plainto_tsquery('english', token))::text, ' | '), '')::tsquery,
-    NULLIF(string_agg((plainto_tsquery('simple', token))::text, ' | '), '')::tsquery
+    NULLIF(string_agg(q_en, ' | ') FILTER (WHERE q_en IS NOT NULL), '')::tsquery,
+    NULLIF(string_agg(q_simple, ' | ') FILTER (WHERE q_simple IS NOT NULL), '')::tsquery
   INTO v_ts_any_en, v_ts_any_simple
-  FROM query_tokens;
+  FROM token_queries;
 
   RETURN QUERY
   WITH fts_matches AS (
@@ -2159,6 +2180,13 @@ CREATE INDEX IF NOT EXISTS idx_zorg_memory_memory_priority ON public.zorg_memory
 CREATE INDEX IF NOT EXISTS idx_zorg_memory_memory_value_coalesce_trgm ON public.zorg_memory USING gin (COALESCE(memory_value, ''::text) gin_trgm_ops);
 CREATE INDEX IF NOT EXISTS idx_zorg_memory_search_blob_trgm ON public.zorg_memory USING gin ((((((((((COALESCE(memory_value, ''::text) || ' '::text) || COALESCE(chat_session_log, ''::text)) || ' '::text) || COALESCE(memory_key, ''::text)) || ' '::text) || COALESCE(system_prompt, ''::text)) || ' '::text) || COALESCE(ai_response, ''::text))) gin_trgm_ops);
 CREATE INDEX IF NOT EXISTS idx_zorg_memory_system_prompt_coalesce_trgm ON public.zorg_memory USING gin (COALESCE(system_prompt, ''::text) gin_trgm_ops);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_zorg_memory_migrated_file_line_key ON public.zorg_memory USING btree (memory_key) WHERE (memory_key ~~ 'migrated-memory-file::%'::text);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_zorg_memory_core_markdown_key ON public.zorg_memory USING btree (memory_key) WHERE (memory_key ~~ 'core-markdown::%'::text);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_zorg_memory_file_archive_source_sha ON public.zorg_memory_file_archive USING btree (source_path, content_sha256);
+CREATE INDEX IF NOT EXISTS idx_zorg_memory_file_archive_source_path ON public.zorg_memory_file_archive USING btree (source_path);
+CREATE INDEX IF NOT EXISTS idx_zorg_memory_file_archive_deleted ON public.zorg_memory_file_archive USING btree (deleted_from_filesystem);
+CREATE INDEX IF NOT EXISTS idx_zorg_memory_file_archive_content_trgm ON public.zorg_memory_file_archive USING gin (content gin_trgm_ops);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_zms_fast_mv_pk ON public.zorg_memory_search_fast_mv USING btree (source_table, source_id);
 CREATE INDEX IF NOT EXISTS idx_zms_fast_mv_content_lc_trgm ON public.zorg_memory_search_fast_mv USING gin (content_lc gin_trgm_ops);
 CREATE INDEX IF NOT EXISTS idx_zms_fast_mv_fts_en ON public.zorg_memory_search_fast_mv USING gin (content_fts_en);

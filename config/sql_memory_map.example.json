@@ -7,7 +7,6 @@
   },
   "table_map": {
     "MEMORY.md": "zorg_memory",
-    "memory/*.md": "zorg_memory",
     "AGENTS.md": "md_agents",
     "SOUL.md": "md_soul",
     "USER.md": "md_user",

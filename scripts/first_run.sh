@@ -58,7 +58,6 @@ cfg={
   },
   "table_map": {
     "MEMORY.md": "zorg_memory",
-    "memory/*.md": "zorg_memory",
     "AGENTS.md": "md_agents",
     "SOUL.md": "md_soul",
     "USER.md": "md_user",
@@ -125,14 +124,15 @@ PY
 }
 
 ensure_memory_files(){
-  mkdir -p memory
   for f in AGENTS.md SOUL.md USER.md TOOLS.md IDENTITY.md HEARTBEAT.md MEMORY.md; do
     if [ ! -f "$f" ] && [ -f "templates/$f" ]; then cp "templates/$f" "$f"; fi
   done
 }
 
 import_and_verify(){
-  log "importing markdown memory and refreshing recall views"
+  log "archiving retired memory/ directory into database, if present"
+  OPENCLAW_WORKSPACE="$ROOT" SQL_MEMORY_MAP="$ROOT/sql_memory_map.json" "$PYTHON" scripts/archive_retired_memory_dir.py >/dev/null
+  log "importing core markdown rules and refreshing recall views"
   OPENCLAW_WORKSPACE="$ROOT" SQL_MEMORY_MAP="$ROOT/sql_memory_map.json" "$PYTHON" scripts/import_markdown_memory.py >/dev/null
   OPENCLAW_WORKSPACE="$ROOT" SQL_MEMORY_MAP="$ROOT/sql_memory_map.json" "$PYTHON" scripts/memory_sql_tool.py tables >/dev/null
   log "database memory ready"

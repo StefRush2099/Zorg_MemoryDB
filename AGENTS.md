@@ -10,7 +10,7 @@ Before any reply, tool call, command, file change, external action, or claim of 
 
 1. Query the database-backed memory system for the current request category, project, system, and likely prior solution.
 2. If first-pass recall is weak or empty, perform a deeper DB recall using alternate phrasings and adjacent concepts.
-3. Use flat-file markdown only as a fallback when the DB path is confirmed unavailable, or as a source for repopulating the DB.
+3. Do not use flat-file memory fallback. Repair or restore DB memory if the DB path is unavailable; legacy markdown memory may be imported once into the DB archive, then retired.
 4. If memory cannot be checked, fail closed: do not proceed except to repair or verify the memory path.
 
 ## DB-first recall rule

@@ -5,7 +5,8 @@ The schema is exported structure-only from a working OpenClaw DB-memory installa
 Main recall objects:
 
 - `zorg_memory` - durable memory and remembered context
-- `md_agents`, `md_soul`, `md_user`, `md_tools`, `md_identity`, `md_heartbeat` - line-imported markdown context
+- `zorg_memory_file_archive` - archive of retired legacy `memory/` files before filesystem removal
+- `md_agents`, `md_soul`, `md_user`, `md_tools`, `md_identity`, `md_heartbeat` - line-imported core markdown context
 - `memory_projects`, `memory_hosts`, `memory_services`, `memory_runbooks`, `memory_relationships` - structured operational context
 - `zorg_operational_facts` - promoted operational facts
 - `zorg_memory_search_mv` - unified search surface
@@ -13,7 +14,7 @@ Main recall objects:
 - `zorg_recall_context(query, limit)` - broad recall entry point
 - `zorg_get_project_context`, `zorg_get_host_context`, `zorg_get_runbook_context` - targeted recall entry points
 
-Fresh installs contain no data. The structure is intended to be repopulated locally.
+Fresh installs contain no private data. The structure is intended to be repopulated locally. Legacy workspaces should archive any retired `memory/` directory into `zorg_memory_file_archive` and line-index it into `zorg_memory`, then remove the directory; new durable memory should be written to DB tables only.
 
 ## Weighted semantic recall objects
 

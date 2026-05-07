@@ -8,6 +8,18 @@ All meaningful changes to this project are documented here and released with a G
 
 - Pending future public-safe changes.
 
+## [v1.2.3] - 2026-05-07
+
+### Added
+
+- Added operator-copy email guidance for executive-assistant installs, including an `OPERATOR_CC_EMAIL` example and setup checklist item.
+- Updated templates to require visible operator CC on outbound assistant email by default.
+
+### Changed
+
+- Hardened the shared rich-email helper template so configured operator CC is injected before message serialization/API send.
+- Clarified that BCC is not a substitute for the default visible operator-copy rule unless explicitly approved for a specific message.
+
 ## [v1.2.2] - 2026-05-07
 
 ### Added

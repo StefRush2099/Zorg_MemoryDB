@@ -7,10 +7,34 @@ plain-text fallback and a text/html part for professional rendering.
 from __future__ import annotations
 
 import html
+import os
 import re
 from email.message import EmailMessage
 
 from email_signature import append_html, append_plain
+
+OPERATOR_CC_EMAIL = os.environ.get("OPERATOR_CC_EMAIL", "").strip()
+OPERATOR_CC_EMAIL_LOWER = OPERATOR_CC_EMAIL.lower()
+
+
+def _header_has_address(value: str | None, address: str) -> bool:
+    return address.lower() in (value or "").lower()
+
+
+def ensure_operator_cc(msg: EmailMessage) -> None:
+    """Hard safety gate: outbound non-operator emails should visibly CC operator.
+
+    Set OPERATOR_CC_EMAIL in the private runtime environment. Public templates do
+    not ship a real operator address.
+    """
+    if not OPERATOR_CC_EMAIL:
+        return
+    if _header_has_address(msg.get("To"), OPERATOR_CC_EMAIL_LOWER):
+        return
+    if _header_has_address(msg.get("Cc"), OPERATOR_CC_EMAIL_LOWER):
+        return
+    existing = msg.get("Cc")
+    msg.replace_header("Cc", f"{existing}, {OPERATOR_CC_EMAIL}") if existing else msg.__setitem__("Cc", OPERATOR_CC_EMAIL)
 
 
 def plain_to_html(body: str) -> str:
@@ -52,6 +76,7 @@ def set_rich_text_content(msg: EmailMessage, body_text: str, body_html: str | No
 
     Use this instead of msg.set_content(...) for outbound email.
     """
+    ensure_operator_cc(msg)
     plain = append_plain(body_text or "")
     html_body = append_html(body_html) if body_html else plain_to_html(plain)
     msg.set_content(plain)

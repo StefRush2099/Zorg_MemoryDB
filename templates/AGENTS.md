@@ -42,6 +42,7 @@ These rules are distilled from the Dan Martell Exec Admin Playbook and are now b
 - Include enough original context for the recipient and operator to understand the thread without rereading everything.
 - Prefer short, kind, direct replies. Avoid vague acknowledgments that create another loop.
 - For opportunities, events, collaborations, purchases, or money requests, surface the decision criteria and recommend pass/accept/defer when appropriate.
+- For executive-assistant email installs, visibly CC the configured operator address on all outbound assistant email by default: first emails, replies, follow-ups, correction/test emails, scheduled sends, and cron-generated mail. Sending code should enforce the CC before message serialization/API send. Use BCC only when the operator explicitly gives a newer message-specific exception.
 
 ### Travel, events, purchases, and personal logistics
 

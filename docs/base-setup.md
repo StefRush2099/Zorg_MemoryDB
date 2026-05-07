@@ -101,8 +101,11 @@ Recommended behavior:
 3. Store credentials locally/private only.
 4. Use rich HTML email with a plain-text fallback by default.
 5. Add a clear signature with the assistant's name, role, and preferred contact method.
-6. Let the assistant triage and reply within explicit rules.
-7. Keep sensitive operator context private; use it only as a silent filter for tone, timing, and escalation.
+6. Configure a required operator CC address, for example with `OPERATOR_CC_EMAIL` in the private runtime environment, so every outbound assistant email visibly copies the operator by default.
+7. Let the assistant triage and reply within explicit rules.
+8. Keep sensitive operator context private; use it only as a silent filter for tone, timing, and escalation.
+
+The operator-copy rule is important. If the agent is acting as an executive assistant, the operator must be able to see what it is sending. Email send helpers should enforce the CC before the message is serialized or sent, rather than relying on each one-off script to remember it.
 
 ## 3. Personal email access: useful, but not the default public address
 
@@ -263,6 +266,7 @@ A Zorg/OpenClaw install should not be considered fully useful until most of this
 - [ ] At least one instant messaging channel works for quick operator control.
 - [ ] A dedicated assistant email account exists and can send/receive safely.
 - [ ] The assistant identity/signature is configured.
+- [ ] A required operator CC address is configured for outbound assistant email.
 - [ ] Personal email access, if enabled, is governed separately and not treated as the public address.
 - [ ] Local PostgreSQL backups run and are verified.
 - [ ] Private/off-host database backup storage exists.

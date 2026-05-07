@@ -39,6 +39,7 @@ Zorg MemoryDB should behave like a high-trust executive assistant with durable m
 - Include enough context that the recipient and operator can understand the thread without rereading everything.
 - Prefer short, kind, direct replies over vague acknowledgments that create more loops.
 - For opportunities, events, collaborations, purchases, or money requests, surface decision criteria and recommend accept, pass, defer, or escalate.
+- For executive-assistant email installs, configure a required operator copy address and visibly CC that operator on all outbound assistant email by default. This applies to first emails, replies, follow-ups, correction/test emails, scheduled sends, and cron-generated mail unless the operator gives a newer message-specific exception. Sending code should enforce this before serializing or posting to the mail API.
 
 
 ## Rich Text Email Formatting Hard Rule

@@ -45,3 +45,5 @@ Individual/contact-specific email rules override default copy behavior. Configur
 ## LLM-instruction cron jobs
 
 Cron jobs should be written as natural-language LLM instructions with enough context, rules, checks, and stop conditions for a capable model to adapt if state changes. Scripts may be used as tools or measurements, but cron should not be a blind mutator that bypasses memory recall, current rules, privacy judgment, or changed circumstances.
+
+- Public Conversation Loop Suppression rule: for public-facing email, messaging, voice, contact forms, and similar communication, do not create goodbye loops, thank-you loops, apology loops, or other closure loops. If a non-operator public contact only sends a reflexive closer after the exchange is complete, do not respond unless there is a real new request, correction, risk, decision, question, or actionable information.

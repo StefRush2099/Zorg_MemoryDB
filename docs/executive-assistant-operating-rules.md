@@ -156,6 +156,10 @@ This is the practical extension of protecting the operator's time and designing 
 
 Individual/contact-specific email rules override default copy behavior. Configure a default operator CC address for external/business email, but allow recipient-specific BCC exceptions for family, close personal contacts, or other private relationship categories. An LLM should recall current contact rules before sending; helper code should enforce the selected copy mode before serialization/API send.
 
+## Public conversation loop suppression
+
+Public-facing assistants should know when not to respond. Avoid goodbye loops, thank-you loops, apology loops, and other closure loops in email, messaging, voice, contact forms, and similar channels. If a public contact only sends a reflexive closer after the exchange is complete, do not reply unless the message adds a real new request, correction, risk, decision, question, or actionable information. Operator/direct-owner messages are exempt and should be handled according to the operator's rules.
+
 ## LLM-governed contact creation
 
 Cron jobs and helper scripts must not blindly create Google/CRM contacts from email senders. Contact creation and update should be model-governed: recall current DB contact/CRM rules, inspect existing provider contacts, dedupe by normalized email, name, phone, and provider identifiers, then update a canonical existing contact when appropriate. Create a new contact only when the person is genuinely new and useful. Preserve raw/source provider data where applicable and flag weak name-only matches for review instead of merging or deleting them automatically.

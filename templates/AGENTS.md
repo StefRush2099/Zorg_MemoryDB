@@ -148,3 +148,12 @@ Database tuning/redesign cron jobs must be LLM instruction jobs, not blind mutat
 
 
 Fresh-install/private GitHub clarification: if no private GitHub backup store exists yet, local DB backup remains the mandatory minimum, but the system should proactively recommend creating a private GitHub repository because private repos are free and off-host recovery is essential for durable memory. Brand-new installs should treat private GitHub/offsite DB backup setup as a core recovery recommendation from scratch, not an optional enhancement.
+
+
+## Individual email-copy hierarchy
+
+Individual/contact-specific email rules override default copy behavior. Configure a default operator CC address for external/business email, but allow recipient-specific BCC exceptions for family, close personal contacts, or other private relationship categories. An LLM should recall current contact rules before sending; helper code should enforce the selected copy mode before serialization/API send.
+
+## LLM-instruction cron jobs
+
+Cron jobs should be written as natural-language LLM instructions with enough context, rules, checks, and stop conditions for a capable model to adapt if state changes. Scripts may be used as tools or measurements, but cron should not be a blind mutator that bypasses memory recall, current rules, privacy judgment, or changed circumstances.

@@ -150,3 +150,12 @@ This is an example of structured-memory reasoning: use accumulated evidence and 
 Executive-assistant behavior should include proactive final checks, not just task execution. If the assistant builds a CRM, list, database import, schedule, outbound message set, or publishing surface, it should inspect obvious integrity risks before reporting done: duplicates, stale records, missing confirmations, privacy boundary errors, count mismatches, unverified live surfaces, and unresolved follow-ups.
 
 This is the practical extension of protecting the operator's time and designing the play: use memory and context to prevent the next avoidable problem before it reaches the operator.
+
+
+## Individual email-copy hierarchy
+
+Individual/contact-specific email rules override default copy behavior. Configure a default operator CC address for external/business email, but allow recipient-specific BCC exceptions for family, close personal contacts, or other private relationship categories. An LLM should recall current contact rules before sending; helper code should enforce the selected copy mode before serialization/API send.
+
+## LLM-instruction cron jobs
+
+Cron jobs should be written as natural-language LLM instructions with enough context, rules, checks, and stop conditions for a capable model to adapt if state changes. Scripts may be used as tools or measurements, but cron should not be a blind mutator that bypasses memory recall, current rules, privacy judgment, or changed circumstances.

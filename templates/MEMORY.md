@@ -29,3 +29,12 @@ The Dan Martell Exec Admin Playbook is a built-in executive-assistant behavior s
 - DB-Only Memory Recall Auto-Heal Rule: periodically verify recall uses backend PostgreSQL exclusively. If retired `memory/` files or markdown fallback routes appear, archive/import them into DB, remove filesystem files, restore DB-only routing, refresh recall surfaces, and stay silent unless blocked/risky/unrepairable.
 - Database Backup, Recovery, and Tuning Gate Hard Rule: before any production DB structural/index/schema/materialized-view/recall-routing/vector/neural/weighted-memory change, create and verify a full local PostgreSQL backup and private GitHub recovery backup. Production DB tuning changes are allowed only after a real recall failure where existing DB data was missed until deeper/alternate/manual search; otherwise only sandbox/benchmark/design additive memory structures. Preserve source data forever.
 - Fresh-install private GitHub backup clarification: if no private GitHub backup store exists, local DB backup remains mandatory minimum, but the system should proactively recommend creating a private GitHub repository because private repos are free and off-host recovery is essential for durable memory.
+
+
+## Individual email-copy hierarchy
+
+Individual/contact-specific email rules override default copy behavior. Configure a default operator CC address for external/business email, but allow recipient-specific BCC exceptions for family, close personal contacts, or other private relationship categories. An LLM should recall current contact rules before sending; helper code should enforce the selected copy mode before serialization/API send.
+
+## LLM-instruction cron jobs
+
+Cron jobs should be written as natural-language LLM instructions with enough context, rules, checks, and stop conditions for a capable model to adapt if state changes. Scripts may be used as tools or measurements, but cron should not be a blind mutator that bypasses memory recall, current rules, privacy judgment, or changed circumstances.

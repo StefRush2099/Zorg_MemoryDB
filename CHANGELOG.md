@@ -8,6 +8,18 @@ All meaningful changes to this project are documented here and released with a G
 
 - Pending future public-safe changes.
 
+## [v1.2.5] - 2026-05-07
+
+### Added
+
+- Added public-safe guidance that individual/contact-specific email-copy rules override default operator CC behavior.
+- Added `OPERATOR_BCC_RECIPIENTS` placeholder for recipient-specific BCC exceptions.
+- Added public-safe guidance that cron jobs should be LLM instruction jobs with context and stop conditions, not blind mutator scripts.
+
+### Changed
+
+- Updated the rich-email helper template so configured BCC exceptions override default operator CC behavior before serialization/API send.
+
 ## [v1.2.4] - 2026-05-07
 
 ### Added

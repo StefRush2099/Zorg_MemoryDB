@@ -161,3 +161,5 @@ Public conversation-loop suppression is a hard system rule for public email/mess
 ## LLM-instruction cron jobs
 
 Cron jobs should be written as natural-language LLM instructions with enough context, rules, checks, and stop conditions for a capable model to adapt if state changes. Scripts may be used as tools or measurements, but cron should not be a blind mutator that bypasses memory recall, current rules, privacy judgment, or changed circumstances.
+
+Cron jobs must also self-repair routine drift. Cron instructions created by the assistant are owned by the assistant system; if a safe adjustment preserves intent, update the job prompt, routing, schedule, script path, or execution approach directly. Escalate only for destructive, privacy-sensitive, externally risky, unauthorized, or genuinely ambiguous changes after checking memory, current state, scripts, docs, and prior run history.

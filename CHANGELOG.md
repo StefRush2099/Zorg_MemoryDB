@@ -6,7 +6,8 @@ All meaningful changes to this project are documented here and released with a G
 
 ### Added
 
-- Pending future public-safe changes.
+- Added public-safe hard system guidance for public conversation-loop suppression in email, messaging, voice, contact forms, and related public channels.
+- Added adaptive cron preflight guidance requiring cron jobs to check whether conditions changed before running stale instructions.
 
 ## [v1.2.5] - 2026-05-07
 

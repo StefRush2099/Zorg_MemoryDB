@@ -184,6 +184,10 @@ Fresh-install/private GitHub clarification: if no private GitHub backup store ex
 
 Individual/contact-specific email rules override default copy behavior. Configure a default operator CC address for external/business email, but allow recipient-specific BCC exceptions for family, close personal contacts, or other private relationship categories. An LLM should recall current contact rules before sending; helper code should enforce the selected copy mode before serialization/API send.
 
+## Public conversation loop suppression
+
+Public conversation-loop suppression is a hard system rule for public email/message/voice handling, not merely an operator preference. In public-facing email, messaging, voice, contact forms, and similar channels, do not create goodbye loops, thank-you loops, apology loops, or other reflexive closure loops. If a public contact only sends a reflexive closer after the useful exchange is complete, do not respond unless the message includes a real new request, correction, risk, decision, question, or actionable information. Direct operator/owner conversations are exempt and should be handled according to operator-response rules.
+
 ## LLM-instruction cron jobs
 
 Cron jobs should be written as natural-language LLM instructions with enough context, rules, checks, and stop conditions for a capable model to adapt if state changes. Scripts may be used as tools or measurements, but cron should not be a blind mutator that bypasses memory recall, current rules, privacy judgment, or changed circumstances.

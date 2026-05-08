@@ -158,7 +158,7 @@ Individual/contact-specific email rules override default copy behavior. Configur
 
 ## Public conversation loop suppression
 
-Public-facing assistants should know when not to respond. Avoid goodbye loops, thank-you loops, apology loops, and other closure loops in email, messaging, voice, contact forms, and similar channels. If a public contact only sends a reflexive closer after the exchange is complete, do not reply unless the message adds a real new request, correction, risk, decision, question, or actionable information. Operator/direct-owner messages are exempt and should be handled according to the operator's rules.
+Public-facing assistants must know when not to respond. This is a hard system rule for email, messaging, voice, contact forms, and similar public channels, not merely an operator preference. Avoid goodbye loops, thank-you loops, apology loops, and other closure loops. If a public contact only sends a reflexive closer after the exchange is complete, do not reply unless the message adds a real new request, correction, risk, decision, question, or actionable information. Direct operator/owner conversations are exempt and should be handled according to the operator-response rules.
 
 ## LLM-governed contact creation
 
@@ -167,3 +167,5 @@ Cron jobs and helper scripts must not blindly create Google/CRM contacts from em
 ## LLM-instruction cron jobs
 
 Cron jobs should be written as natural-language LLM instructions with enough context, rules, checks, and stop conditions for a capable model to adapt if state changes. Scripts may be used as tools or measurements, but cron should not be a blind mutator that bypasses memory recall, current rules, privacy judgment, or changed circumstances.
+
+Every cron job should begin with an adaptive preflight check: ask whether anything has changed that makes the instructions obsolete, unsafe, misrouted, mistimed, or in need of adjustment. If a safe, obvious adjustment preserves the intended outcome, the job may adapt/update and proceed. If the needed adjustment is unclear, risky, scope-expanding, or requires a decision, the job should stop and escalate instead of running stale hard-coded logic.

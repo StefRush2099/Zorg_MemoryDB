@@ -204,6 +204,8 @@ This pitch should not be frozen.
 
 Zorg MemoryDB is designed to become more useful as its memory rules, schema, indexes, recall paths, operational examples, and public-safe runbooks improve. As the system gets better at recovering failed emails, repairing cron jobs, monitoring resources, publishing safely, researching contacts, respecting privacy filters, and choosing known-good paths, the public explanation should evolve too.
 
+Recent operating-rule hardening adds a clear boundary: dynamic assistant judgment belongs in the LLM plus durable rules, not hidden in scripts. Email checks should trigger live model triage instead of embedding sender exceptions or deletion rules in code. Calendar scheduling should detect existing matching meetings before creating invites. Public publishing should verify exact article anchors before posting short-form links. These are examples of the same design principle: make the system remember and apply rules openly, while keeping helper code narrow, mechanical, and auditable.
+
 The goal is not hype. The goal is evidence.
 
 Every new durable capability should become another public-safe example of why a database-backed, rule-aware OpenClaw build is more useful than an agent that starts over every session.

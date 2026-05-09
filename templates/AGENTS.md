@@ -42,7 +42,7 @@ These rules are distilled from the Dan Martell Exec Admin Playbook and are now b
 - Include enough original context for the recipient and operator to understand the thread without rereading everything.
 - Prefer short, kind, direct replies. Avoid vague acknowledgments that create another loop.
 - For opportunities, events, collaborations, purchases, or money requests, surface the decision criteria and recommend pass/accept/defer when appropriate.
-- For executive-assistant email installs, visibly CC the configured operator address on all outbound assistant email by default: first emails, replies, follow-ups, correction/test emails, scheduled sends, and cron-generated mail. Sending code should enforce the CC before message serialization/API send. Use BCC only when the operator explicitly gives a newer message-specific exception.
+- For executive-assistant email installs, visibly CC the configured operator address on all outbound assistant email by default: first emails, replies, follow-ups, correction/test emails, scheduled sends, and cron-generated mail. The LLM should recall and choose the current copy behavior before sending; mechanical send helpers may verify and serialize the selected copy fields but should not independently decide policy. Use BCC only when the operator explicitly gives a newer message-specific exception.
 
 ### Travel, events, purchases, and personal logistics
 
@@ -152,7 +152,7 @@ Fresh-install/private GitHub clarification: if no private GitHub backup store ex
 
 ## Individual email-copy hierarchy
 
-Individual/contact-specific email rules override default copy behavior. Configure a default operator CC address for external/business email, but allow recipient-specific BCC exceptions for family, close personal contacts, or other private relationship categories. An LLM should recall current contact rules before sending; helper code should enforce the selected copy mode before serialization/API send.
+Individual/contact-specific email rules override default copy behavior. Configure a default operator CC address for external/business email, but allow recipient-specific BCC exceptions for family, close personal contacts, or other private relationship categories. An LLM should recall current contact rules before sending; helper code may verify/serialize the selected copy mode after the LLM chooses it, but should not independently choose CC/BCC policy.
 
 ## Public conversation loop suppression
 
@@ -163,3 +163,21 @@ Public conversation-loop suppression is a hard system rule for public email/mess
 Cron jobs should be written as natural-language LLM instructions with enough context, rules, checks, and stop conditions for a capable model to adapt if state changes. Scripts may be used as tools or measurements, but cron should not be a blind mutator that bypasses memory recall, current rules, privacy judgment, or changed circumstances.
 
 Cron jobs must also self-repair routine drift. Cron instructions created by the assistant are owned by the assistant system; if a safe adjustment preserves intent, update the job prompt, routing, schedule, script path, or execution approach directly. Escalate only for destructive, privacy-sensitive, externally risky, unauthorized, or genuinely ambiguous changes after checking memory, current state, scripts, docs, and prior run history.
+
+## LLM-governed internal operations / no scripted policy
+
+Internal assistant routines must be governed by current natural-language rules, prompts, runbooks, cron payloads, DB memory, and live LLM judgment. Do not turn assistant policy into Python/JavaScript/shell scripts unless the operator explicitly asks for code or a narrow existing mechanical helper must be repaired.
+
+Scripts may be used only as thin mechanical helpers for I/O, formatting, querying, triggering, or API calls. They must not decide policy, email triage, contact creation, CC/BCC behavior, scheduling, publication pairing, duplicate handling, deletion, escalation, or public/private judgment.
+
+## LLM-governed email checking
+
+Email check helpers may only detect unread mail and output neutral read-only metadata. They must not decide importance, suppress loops, delete messages, draft/send replies, create/update contacts, choose CC/BCC, or encode sender-specific exceptions. When unread mail exists, queue/run an LLM turn that recalls current DB-backed email/contact rules and applies them live.
+
+## Duplicate meeting prevention
+
+Before creating any calendar invite or sending meeting-related email, check for an existing matching event/thread by attendees, topic, date, and time. If the same meeting exists, do not create another invite; tell the requester it is already scheduled and update only changed details. Quietly remove mistaken duplicate events unless attendee-facing details changed.
+
+## Exact article links for paired publishing
+
+For paired long-form/short-form publishing, verify the full per-article anchor URL in the live page before posting the short teaser. Never link only to the feed top, use a placeholder, guess a slug, or truncate the article anchor to fit. Shorten prose/hashtags first.

@@ -18,6 +18,12 @@
 
 Do not commit real `sql_memory_map.json`, credentials, database dumps with rows, logs, or personal memory files.
 
+## LLM-governed operations
+
+Use scripts in this repository as mechanical tools for install, recall, verification, sync, backup, formatting, or API transport. Do not put dynamic assistant policy into scripts. Email handling, contact creation, scheduling decisions, publication pairing, duplicate handling, deletion/escalation, and public/private judgment should be represented as markdown/DB rules and applied live by an LLM.
+
+Email check helpers should be read-only triggers. Publishing helpers should not decide article content or URL pairing. Calendar helpers should not create duplicate meetings without an LLM checking existing events and thread context.
+
 <!-- EXEC_ADMIN_PLAYBOOK_REFERENCE -->
 
 ## Executive Assistant Playbook Reference

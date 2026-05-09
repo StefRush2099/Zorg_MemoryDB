@@ -105,7 +105,7 @@ Recommended behavior:
 7. Let the assistant triage and reply within explicit rules.
 8. Keep sensitive operator context private; use it only as a silent filter for tone, timing, and escalation.
 
-The operator-copy rule is important. If the agent is acting as an executive assistant, the operator must be able to see what it is sending. Email send helpers should enforce the CC before the message is serialized or sent, rather than relying on each one-off script to remember it.
+The operator-copy rule is important. If the agent is acting as an executive assistant, the operator must be able to see what it is sending. The LLM should recall the current copy rule before sending. A mechanical send helper may verify and serialize the LLM-selected copy fields, but it should not independently decide recipient-specific CC/BCC policy.
 
 ## 3. Personal email access: useful, but not the default public address
 

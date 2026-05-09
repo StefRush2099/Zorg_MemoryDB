@@ -99,3 +99,23 @@ Performance/tuning cron jobs should be worded LLM instruction jobs. They may app
 Baseline recovery locations should be documented in local operator markdown. In Stefan's install they are: local `/home/openclaw/.openclaw/backups/postgres/local/`, private GitHub `Zorg_Hive/backups/postgres/openclaw/`, and optional shared mirror `/Zorg/backups/openclaw/postgres` or established jump-box mirror.
 
 Fresh-install note: if no private GitHub/offsite DB backup target exists, local backup is the minimum, but the agent should explicitly recommend setting up a private GitHub repository because private repos are free and off-host recovery is critical for durable memory.
+
+## LLM-governed operations, not scripted policy
+
+Zorg MemoryDB's operating pattern should keep judgment in the LLM and durable rules, not buried in helper scripts. Internal assistant routines should be represented as natural-language instructions, DB-backed rules, runbooks, cron payloads, and explicit commands. The LLM should recall current rules, inspect current state, and decide the safe next action live.
+
+Helper scripts may exist for narrow mechanical tasks such as reading provider metadata, formatting an already chosen message, querying a database, or calling an API. They must not encode dynamic policy: email triage, contact creation, scheduling decisions, publication pairing, duplicate handling, sender exceptions, loop suppression, deletion, escalation, or public/private judgment belong to current rules plus LLM reasoning.
+
+## Email trigger pattern
+
+Email checking should use a trigger pattern. A scheduled helper may detect unread mail and output neutral metadata. It should not decide whether a message is important, draft or send replies, create contacts, choose CC/BCC, delete mail, or suppress public conversation loops.
+
+When unread mail exists, the scheduled job should queue or run an LLM instruction turn. The LLM then recalls current email/contact rules from DB memory and core markdown, inspects the relevant thread/contact context, and performs only the action allowed by current rules.
+
+## Scheduling duplicate prevention
+
+Meeting scheduling should check existing calendar events and relevant email threads for the same attendees, topic, date, and time before creating a new invite. If a match exists, update the existing event instead of creating a duplicate. Mistaken duplicate meetings should be de-duplicated quietly unless attendee-facing details actually changed.
+
+## Paired publishing exact-link rule
+
+When a public short post points to a long-form news/feed article, it should link to the exact verified article anchor. The model should verify the full per-article anchor in the live page HTML before posting. If character limits are tight, shorten prose or hashtags; do not truncate, guess, or replace the article anchor with a feed-top URL.

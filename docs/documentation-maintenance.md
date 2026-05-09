@@ -54,6 +54,8 @@ Patch-only typo fixes can be grouped. Feature/rule/schema/recovery changes shoul
 
 Publish structure, scripts, schema, templates, examples, and public-safe explanations only.
 
+When a meaningful operating rule changes — especially DB-memory recall, no-scripted-policy behavior, LLM-governed cron/email/contact/scheduling behavior, publication verification, or recovery rules — update the relevant public markdown/runbooks and release notes before considering the local change complete. Local core-rule changes should not remain private if they teach future installs how to reproduce the current public-safe design.
+
 Never publish:
 
 - private DB dumps or rows

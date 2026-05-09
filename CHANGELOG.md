@@ -6,8 +6,21 @@ All meaningful changes to this project are documented here and released with a G
 
 ### Added
 
+## [v1.2.6] - 2026-05-08
+
+### Added
+
 - Added public-safe hard system guidance for public conversation-loop suppression in email, messaging, voice, contact forms, and related public channels.
 - Added adaptive cron self-repair guidance requiring assistant-owned cron jobs to check changed conditions and fix routine drift directly instead of asking the operator.
+- Added core no-scripted-policy guidance: internal assistant routines should be expressed as natural-language rules, prompts, runbooks, cron payloads, and commands that an LLM applies live.
+- Added LLM-governed email-check guidance: scheduled email triggers should only detect unread mail and provide neutral metadata; live LLM judgment applies all triage, reply, contact, CC/BCC, deletion, and escalation rules.
+- Added duplicate-meeting prevention guidance for calendar/email scheduling: check existing events and threads first, update matching events instead of creating duplicates, and clean accidental duplicates quietly.
+- Added exact Hyperdine/X article-link guidance: paired X posts must use the verified full per-article Hyperdine anchor URL and must never truncate anchors to fit post length.
+
+### Changed
+
+- Clarified that Hyperdine/news-feed style publishing should be LLM-governed from current rules and live feed state; scripts are allowed only as narrow mechanical helpers for I/O or API calls.
+- Updated public templates and executive-assistant rules so future installs inherit the same dynamic operating pattern instead of embedding policy in code.
 
 ## [v1.2.5] - 2026-05-07
 

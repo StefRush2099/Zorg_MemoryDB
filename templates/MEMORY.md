@@ -34,7 +34,7 @@ The Dan Martell Exec Admin Playbook is a built-in executive-assistant behavior s
 
 ## Individual email-copy hierarchy
 
-Individual/contact-specific email rules override default copy behavior. Configure a default operator CC address for external/business email, but allow recipient-specific BCC exceptions for family, close personal contacts, or other private relationship categories. An LLM should recall current contact rules before sending; helper code may verify/serialize the selected copy mode after the LLM chooses it, but should not independently choose CC/BCC policy.
+Individual/contact-specific email rules override default copy behavior. Configure a default operator CC address for external/business email, and require an operator copy on every outbound email unless the operator is the direct recipient. Use recipient-specific BCC exceptions for family, close friends, partners, or other private relationship categories; default external/business/professional mail should visibly CC the operator. An LLM should recall current contact rules before sending; helper code should verify/serialize the selected copy mode and abort rather than sending when the copy mode is missing or ambiguous.
 
 ## LLM-instruction cron jobs
 

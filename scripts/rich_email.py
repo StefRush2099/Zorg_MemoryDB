@@ -49,11 +49,14 @@ def _remove_header_address(msg: EmailMessage, header: str, address: str) -> None
 def ensure_operator_copy_policy(msg: EmailMessage) -> None:
     """Apply the operator copy hierarchy before serialization/API send.
 
-    Configure OPERATOR_CC_EMAIL for the default external/business copy. Configure
-    OPERATOR_BCC_RECIPIENTS as a comma-separated list for recipients whose
-    individual/family/close-personal rule should BCC the operator instead.
-    Individual/contact-specific rules should be resolved by the LLM before send;
-    this helper is a final safety gate, not a replacement for DB recall.
+    Configure OPERATOR_CC_EMAIL for the default external/business/professional
+    copy. Configure OPERATOR_BCC_RECIPIENTS as a comma-separated list for
+    recipients whose individual/family/partner/close-friend rule should BCC the
+    operator instead. Every outbound email to someone other than the operator
+    must include the operator on exactly one copy path: BCC for private
+    family/friend/partner exceptions, otherwise visible CC. Individual/contact-
+    specific rules should be resolved by the LLM before send; this helper is a
+    final safety gate, not a replacement for DB recall.
     """
     if not OPERATOR_CC_EMAIL:
         return

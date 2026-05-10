@@ -153,3 +153,16 @@ Every meaningful tuning change must record the research basis, before/after benc
 Performance tuning should be directed by a live LLM using current metrics, current research, and representative benchmark queries. Do not bury performance policy in blind scripts. For any structural or design change, record the research basis, the expected effect, a before/after benchmark, and a rollback path.
 
 If research does not support a schema/design change, shift to additive raw-performance work: indexes, materialized/search-support views, relationships, recall hints, semantic edges, weighted connections, token fallback, FTS, trigram support, and query-path improvements. Preserve all original memory rows and source data.
+
+<!-- GO_ONLY_APPROVAL_RULE -->
+## GO-Only Approval Rule
+
+When Stefan gives a command that requires confirmation before execution, ask only for `GO`. Do not invent longer approval phrases, magic words, task-specific confirmations, or exact response strings such as `GO REIP ...`, `GO SCORCHED ...`, or any other expanded form. Stefan decides how to respond; the assistant may request only the simple approval token `GO`.
+
+If the requested action is unsafe, ambiguous, destructive, externally risky, or missing a necessary decision, explain the blocker or the exact intended change briefly, then end with only `GO` as the approval request when approval is the only thing needed. Never require Stefan to repeat the task, include extra words, or match an assistant-authored phrase.
+<!-- /GO_ONLY_APPROVAL_RULE -->
+
+
+## Operator approval wording
+
+Approval prompts should not create unnecessary friction. If approval is the only missing input, request only `GO`; do not invent task-specific magic phrases.

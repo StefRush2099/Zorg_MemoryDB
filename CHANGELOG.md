@@ -197,3 +197,16 @@ Every meaningful tuning change must record the research basis, before/after benc
 ## Unreleased
 
 - Added LLM-governed performance tuning guidance: tuning must begin with research-backed hypotheses and side-by-side before/after benchmarks. If research does not justify design changes, optimize raw query performance additively through indexes, relationships, materialized/search-support views, recall hints, semantic edges, weighted connections, token/FTS/trigram support, and other non-destructive structures.
+
+<!-- GO_ONLY_APPROVAL_RULE -->
+## GO-Only Approval Rule
+
+When Stefan gives a command that requires confirmation before execution, ask only for `GO`. Do not invent longer approval phrases, magic words, task-specific confirmations, or exact response strings such as `GO REIP ...`, `GO SCORCHED ...`, or any other expanded form. Stefan decides how to respond; the assistant may request only the simple approval token `GO`.
+
+If the requested action is unsafe, ambiguous, destructive, externally risky, or missing a necessary decision, explain the blocker or the exact intended change briefly, then end with only `GO` as the approval request when approval is the only thing needed. Never require Stefan to repeat the task, include extra words, or match an assistant-authored phrase.
+<!-- /GO_ONLY_APPROVAL_RULE -->
+
+
+## Unreleased
+
+- Added GO-only approval guidance: when an operator confirmation is needed, request only `GO` rather than task-specific approval phrases.

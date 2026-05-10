@@ -242,7 +242,7 @@ services:
     image: ghcr.io/stefrush2099/zorg-memorydb:latest
     restart: unless-stopped
     ports:
-      - "18789:18789"
+      - "18789-18889:18789"
     volumes:
       - ./openclaw-home:/home/openclaw/.openclaw
 

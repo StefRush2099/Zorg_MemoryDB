@@ -95,7 +95,7 @@ docker build --build-arg OPENCLAW_VERSION=latest -t zorg-memorydb-openclaw:local
 For runtime changes, also verify fresh startup with an alternate port:
 
 ```bash
-OPENCLAW_GATEWAY_PORT=19892 docker compose -p zorg_release_verify up -d --build
+OPENCLAW_GATEWAY_PUBLISHED_PORTS=19892 docker compose -p zorg_release_verify up -d --build
 docker compose -p zorg_release_verify exec openclaw bash -lc 'pg_isready -h 127.0.0.1 -p 5432'
 docker compose -p zorg_release_verify exec openclaw bash -lc 'cd /home/openclaw/.openclaw/workspace && .venv-sqlmem/bin/python scripts/memory_sql_tool.py tables'
 docker compose -p zorg_release_verify exec openclaw bash -lc 'cd /home/openclaw/.openclaw/workspace && .venv-sqlmem/bin/python scripts/memory_recall_router.py "database memory" --limit 5'

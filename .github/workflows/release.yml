@@ -114,7 +114,7 @@ jobs:
             echo "## Docker run one-liner"
             echo ""
             echo '```bash'
-            echo 'INSTALL_ID="${PWD##*/}"; docker run -d --name "${INSTALL_ID}-zorg-memorydb" --restart unless-stopped -p 18789:18789 -v "$PWD/openclaw-home:/home/openclaw/.openclaw" ${IMAGE}:${TAG#v}'
+            echo 'INSTALL_ID="${PWD##*/}"; docker run -d --name "${INSTALL_ID}-zorg-memorydb" --restart unless-stopped -p 18789-18889:18789 -v "$PWD/openclaw-home:/home/openclaw/.openclaw" ${IMAGE}:${TAG#v}'
             echo '```'
           } > "$extra"
           if [ -f "$notes" ]; then

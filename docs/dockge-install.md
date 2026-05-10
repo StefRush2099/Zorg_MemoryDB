@@ -11,7 +11,7 @@ This stack is now folder-local by default:
 - no global named Docker volume for OpenClaw state
 - persistent state lives under the folder that contains `docker-compose.yml`
 
-You may clone/import the repo into any folder name. If you run multiple installs on the same Docker host, use separate folders and give each running copy a unique `OPENCLAW_GATEWAY_PORT` in its own `.env`.
+You may clone/import the repo into any folder name. If multiple installs run on the same Docker host, Docker Compose selects the first free external port from `OPENCLAW_GATEWAY_PUBLISHED_PORTS` — default `18789-18889`.
 
 ## Recommended Dockge start path
 
@@ -35,11 +35,11 @@ Then in Dockge:
 2. Use that folder's `docker-compose.yml` as the stack Compose file.
 3. Start/stop/update it only from Dockge.
 
-Open OpenClaw on the port configured in `.env` — default `18789`.
+Open OpenClaw on the external port shown by `docker compose ps`. The default range starts at `18789`.
 
 ## Multiple installs on the same host
 
-For two installs, use two folders and two ports:
+For two installs, use two folders. Both can keep the default external port range; Docker will assign the first available port in the range:
 
 ```bash
 cd /opt/stacks
@@ -48,14 +48,12 @@ git clone https://github.com/StefRush2099/Zorg_MemoryDB.git zorg-memory-b
 
 cd /opt/stacks/zorg-memory-a
 cp .env.example .env
-printf '\nOPENCLAW_GATEWAY_PORT=18789\n' >> .env
 
 cd /opt/stacks/zorg-memory-b
 cp .env.example .env
-printf '\nOPENCLAW_GATEWAY_PORT=18790\n' >> .env
 ```
 
-Each folder gets its own `openclaw-home/` subfolder; Docker must not create state in a shared default folder.
+Each folder gets its own `openclaw-home/` subfolder; Docker must not create state in a shared default folder. Use `docker compose ps` in each folder to see which external port was selected.
 
 ## Paste-only Dockge stack
 
@@ -78,7 +76,7 @@ services:
       OPENCLAW_GATEWAY_BIND: lan
       OPENCLAW_GATEWAY_AUTH: trusted-proxy
     ports:
-      - "18789:18789"
+      - "18789-18889:18789"
     volumes:
       - ./openclaw-home:/home/openclaw/.openclaw
 ```
@@ -126,7 +124,7 @@ Keep secrets in private `.env` files or secret stores, not in the public repo. S
 ## Notes
 
 - Use any install folder name; keep generated state in that folder's `openclaw-home/` subfolder.
-- If multiple copies run at the same time, set a unique `OPENCLAW_GATEWAY_PORT` per copy.
+- If multiple copies run at the same time, Docker selects the first free external port from `OPENCLAW_GATEWAY_PUBLISHED_PORTS`; use `docker compose ps` to see the selected port.
 - Do not paste private memory rows or private operator context into the public repo.
 - The repo remains a sanitized OpenClaw build template.
 

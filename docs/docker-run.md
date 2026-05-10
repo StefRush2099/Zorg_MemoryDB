@@ -12,16 +12,16 @@ ghcr.io/stefrush2099/zorg-memorydb
 
 ```bash
 INSTALL_ID="${PWD##*/}"
-docker run -d --name "${INSTALL_ID}-zorg-memorydb" --restart unless-stopped -p 18789:18789 -v "$PWD/openclaw-home:/home/openclaw/.openclaw" ghcr.io/stefrush2099/zorg-memorydb:latest
+docker run -d --name "${INSTALL_ID}-zorg-memorydb" --restart unless-stopped -p 18789-18889:18789 -v "$PWD/openclaw-home:/home/openclaw/.openclaw" ghcr.io/stefrush2099/zorg-memorydb:latest
 ```
 
-Open OpenClaw on port `18789`.
+Open OpenClaw on the selected host port. Docker tries `18789` first, then the next free port through `18889`; run `docker ps` to confirm the published port.
 
 ## Version-pinned example
 
 ```bash
 INSTALL_ID="${PWD##*/}"
-docker run -d --name "${INSTALL_ID}-zorg-memorydb" --restart unless-stopped -p 18789:18789 -v "$PWD/openclaw-home:/home/openclaw/.openclaw" ghcr.io/stefrush2099/zorg-memorydb:1.1.2
+docker run -d --name "${INSTALL_ID}-zorg-memorydb" --restart unless-stopped -p 18789-18889:18789 -v "$PWD/openclaw-home:/home/openclaw/.openclaw" ghcr.io/stefrush2099/zorg-memorydb:1.1.2
 ```
 
 ## Verify
@@ -42,7 +42,7 @@ INSTALL_ID="${PWD##*/}"
 docker stop "${INSTALL_ID}-zorg-memorydb"
 docker rm "${INSTALL_ID}-zorg-memorydb"
 
-docker run -d --name "${INSTALL_ID}-zorg-memorydb" --restart unless-stopped -p 18789:18789 -v "$PWD/openclaw-home:/home/openclaw/.openclaw" ghcr.io/stefrush2099/zorg-memorydb:latest
+docker run -d --name "${INSTALL_ID}-zorg-memorydb" --restart unless-stopped -p 18789-18889:18789 -v "$PWD/openclaw-home:/home/openclaw/.openclaw" ghcr.io/stefrush2099/zorg-memorydb:latest
 ```
 
 Do not remove the folder-local `openclaw-home/` directory unless you intentionally want to discard that install's OpenClaw state and memory data.

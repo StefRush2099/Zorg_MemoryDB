@@ -6,6 +6,17 @@ All meaningful changes to this project are documented here and released with a G
 
 ### Added
 
+### Changed
+
+- Added automatic external host-port selection for Docker Compose installs by publishing OpenClaw from the `OPENCLAW_GATEWAY_PUBLISHED_PORTS` range, defaulting to `18789-18889`.
+- Separated the internal container listen port (`OPENCLAW_GATEWAY_CONTAINER_PORT`) from the external host port range so Compose can move to the next free host port without changing the OpenClaw container port.
+- Updated Docker, Dockge, quickstart, and release docs to tell users to check `docker compose ps` / `docker ps` for the selected external port.
+
+### Verified
+
+- Validated Docker Compose config resolves the default published range to `18789-18889:18789`.
+- Tested a real port collision on `18789`; Compose selected the next available external port automatically.
+
 ## [v1.2.7] - 2026-05-10
 
 ### Changed

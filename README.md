@@ -40,10 +40,10 @@ Choose one:
 
 ```bash
 INSTALL_ID="${PWD##*/}"
-docker run -d --name "${INSTALL_ID}-zorg-memorydb" --restart unless-stopped -p 18789:18789 -v "$PWD/openclaw-home:/home/openclaw/.openclaw" ghcr.io/stefrush2099/zorg-memorydb:latest
+docker run -d --name "${INSTALL_ID}-zorg-memorydb" --restart unless-stopped -p 18789-18889:18789 -v "$PWD/openclaw-home:/home/openclaw/.openclaw" ghcr.io/stefrush2099/zorg-memorydb:latest
 ```
 
-Open OpenClaw on port `18789`.
+Open OpenClaw on the selected host port. Docker tries `18789` first, then the next free port through `18889`; run `docker ps` to confirm the published port.
 
 Docs: [`docs/docker-run.md`](docs/docker-run.md)
 
@@ -56,9 +56,9 @@ cp .env.example .env
 docker compose up -d --build
 ```
 
-This creates `./openclaw-home` inside the current folder and keeps that install's OpenClaw state, workspace, embedded PostgreSQL data, and memory DB there. For multiple running installs on the same host, clone into separate folders and set a different `OPENCLAW_GATEWAY_PORT` in each `.env`.
+This creates `./openclaw-home` inside the current folder and keeps that install's OpenClaw state, workspace, embedded PostgreSQL data, and memory DB there. Docker Compose publishes OpenClaw on the first free host port in `OPENCLAW_GATEWAY_PUBLISHED_PORTS` — default `18789-18889`. Run `docker compose ps` after startup to see the selected external port.
 
-Open OpenClaw on port `18789`.
+Open OpenClaw on the selected host port. Docker tries `18789` first, then the next free port through `18889`; run `docker ps` to confirm the published port.
 
 Docs: [`docs/docker-install.md`](docs/docker-install.md)
 

@@ -15,11 +15,15 @@ services:
       DB_PORT: 5432
       DB_NAME: ${DB_NAME:-openclaw_memory}
       DB_USER: ${DB_USER:-openclaw_memory}
-      OPENCLAW_GATEWAY_PORT: ${OPENCLAW_GATEWAY_PORT:-18789}
+      # Internal container listen port. The external host port is selected
+      # from OPENCLAW_GATEWAY_PUBLISHED_PORTS below.
+      OPENCLAW_GATEWAY_PORT: ${OPENCLAW_GATEWAY_CONTAINER_PORT:-18789}
       OPENCLAW_GATEWAY_BIND: ${OPENCLAW_GATEWAY_BIND:-lan}
       OPENCLAW_GATEWAY_AUTH: trusted-proxy
     ports:
-      - "${OPENCLAW_GATEWAY_PORT:-18789}:${OPENCLAW_GATEWAY_PORT:-18789}"
+      # Docker automatically selects the first free host port in this range.
+      # Default tries 18789, then 18790, and so on through 18889.
+      - "${OPENCLAW_GATEWAY_PUBLISHED_PORTS:-18789-18889}:${OPENCLAW_GATEWAY_CONTAINER_PORT:-18789}"
     volumes:
       # Folder-local persistence: each clone/stack stores its OpenClaw state,
       # workspace, embedded PostgreSQL data, and memory DB under this checkout.

@@ -31,9 +31,9 @@ cp .env.example .env
 docker compose up -d --build
 ```
 
-This creates `./openclaw-home` inside the current folder and keeps that install's OpenClaw state, workspace, embedded PostgreSQL data, and memory DB there. For multiple running installs on the same host, clone into separate folders and set a different `OPENCLAW_GATEWAY_PORT` in each `.env`.
+This creates `./openclaw-home` inside the current folder and keeps that install's OpenClaw state, workspace, embedded PostgreSQL data, and memory DB there. Docker Compose publishes OpenClaw on the first free host port in `OPENCLAW_GATEWAY_PUBLISHED_PORTS` — default `18789-18889`. Run `docker compose ps` after startup to see the selected external port.
 
-Open OpenClaw on port `18789`.
+Open OpenClaw on the external port shown by `docker compose ps`.
 
 That is the complete start path. You should not need to manually configure a database or attach memory afterward.
 

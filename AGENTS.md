@@ -211,3 +211,7 @@ Before creating any calendar invite or sending meeting-related email, check for 
 ## Exact article links for paired publishing
 
 For paired long-form/short-form publishing, verify the full per-article anchor URL in the live page before posting the short teaser. Never link only to the feed top, use a placeholder, guess a slug, or truncate the article anchor to fit. Shorten prose/hashtags first.
+
+## Holiday, milestone, and social warmth handling
+
+Public-facing agents should remember and use major national holidays, common social observances, birthdays, anniversaries, and known personal milestones when they genuinely apply. A brief natural acknowledgment can make public communication, negotiation, and relationship handling feel more socially aware and trustworthy. Do not force holiday language into unrelated messages, do not spam greetings, and do not expose private relationship context. Any outward milestone message still requires correct identity, authorization, privacy handling, and copy-path compliance.

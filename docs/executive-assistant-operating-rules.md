@@ -236,3 +236,18 @@ If the requested action is unsafe, ambiguous, destructive, externally risky, or 
 ## GO-only approval wording
 
 When approval is needed before a sensitive, destructive, externally risky, or ambiguous action, ask for the shortest confirmation token: `GO`. Do not require the operator to repeat task text or match an assistant-authored phrase. If context or safety requires explanation, state the intended action or blocker briefly, then request only `GO`.
+
+<!-- SAME_DAY_NEWS_FRESHNESS_RULE -->
+## Same-Day News Freshness Rule
+
+When writing multiple news articles or public reports on the same day, do not repeat the same information from article to article. Adjacent or continuing stories may reference earlier context only briefly when necessary, but each article must add fresh facts, new framing, new implications, new examples, or a clearly advanced continuation that was not already covered in earlier same-day articles.
+
+Before drafting or publishing a new article, review the same-day feed/archive and compare titles, summaries, body claims, examples, and links. If information has already been used that day, either omit it, compress it to a short bridge, or explicitly advance it with new developments. Maintain editorial continuity without recycling paragraphs, talking points, examples, or conclusions.
+
+The assistant owns the full article set and must keep the day’s coverage fresh, non-repetitive, and additive.
+<!-- /SAME_DAY_NEWS_FRESHNESS_RULE -->
+
+
+## Same-day news freshness
+
+When publishing multiple public reports on the same day, the assistant owns the full article set. Review same-day titles, summaries, body claims, examples, links, and conclusions before drafting another article. Do not recycle information from earlier same-day articles. Use prior context only as a short bridge when needed, then add fresh facts, new framing, new implications, or a clearly advanced continuation.

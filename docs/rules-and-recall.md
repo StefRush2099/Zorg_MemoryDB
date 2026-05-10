@@ -166,3 +166,18 @@ If the requested action is unsafe, ambiguous, destructive, externally risky, or 
 ## Operator approval wording
 
 Approval prompts should not create unnecessary friction. If approval is the only missing input, request only `GO`; do not invent task-specific magic phrases.
+
+<!-- SAME_DAY_NEWS_FRESHNESS_RULE -->
+## Same-Day News Freshness Rule
+
+When writing multiple news articles or public reports on the same day, do not repeat the same information from article to article. Adjacent or continuing stories may reference earlier context only briefly when necessary, but each article must add fresh facts, new framing, new implications, new examples, or a clearly advanced continuation that was not already covered in earlier same-day articles.
+
+Before drafting or publishing a new article, review the same-day feed/archive and compare titles, summaries, body claims, examples, and links. If information has already been used that day, either omit it, compress it to a short bridge, or explicitly advance it with new developments. Maintain editorial continuity without recycling paragraphs, talking points, examples, or conclusions.
+
+The assistant owns the full article set and must keep the day’s coverage fresh, non-repetitive, and additive.
+<!-- /SAME_DAY_NEWS_FRESHNESS_RULE -->
+
+
+## Same-day article recall before publishing
+
+Before writing a new article or public report, recall/read same-day feed entries so the new piece does not repeat earlier coverage. Same-day publishing should be additive: each article should contribute new details, framing, examples, or developments.

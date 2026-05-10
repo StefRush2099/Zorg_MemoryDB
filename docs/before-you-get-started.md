@@ -250,7 +250,7 @@ Prepare:
 
 - Docker Engine
 - Docker Compose plugin
-- an install folder such as `/opt/stacks/zorg_memorydb` on Linux hosts
+- an install folder such as `/opt/stacks/my-zorg-memorydb` on Linux hosts
 - optional Dockge stack manager
 - a persistent OpenClaw/Zorg volume
 

@@ -39,7 +39,8 @@ Choose one:
 ## 1. Docker run
 
 ```bash
-docker run -d --name zorg-memorydb --restart unless-stopped -p 18789:18789 -v zorg_openclaw_home:/home/openclaw/.openclaw ghcr.io/stefrush2099/zorg-memorydb:latest
+INSTALL_ID="${PWD##*/}"
+docker run -d --name "${INSTALL_ID}-zorg-memorydb" --restart unless-stopped -p 18789:18789 -v "$PWD/openclaw-home:/home/openclaw/.openclaw" ghcr.io/stefrush2099/zorg-memorydb:latest
 ```
 
 Open OpenClaw on port `18789`.
@@ -49,11 +50,13 @@ Docs: [`docs/docker-run.md`](docs/docker-run.md)
 ## 2. Docker Compose
 
 ```bash
-git clone https://github.com/StefRush2099/Zorg_MemoryDB.git zorg_memorydb
-cd zorg_memorydb
+git clone https://github.com/StefRush2099/Zorg_MemoryDB.git my-zorg-memorydb
+cd my-zorg-memorydb
 cp .env.example .env
 docker compose up -d --build
 ```
+
+This creates `./openclaw-home` inside the current folder and keeps that install's OpenClaw state, workspace, embedded PostgreSQL data, and memory DB there. For multiple running installs on the same host, clone into separate folders and set a different `OPENCLAW_GATEWAY_PORT` in each `.env`.
 
 Open OpenClaw on port `18789`.
 
@@ -61,17 +64,17 @@ Docs: [`docs/docker-install.md`](docs/docker-install.md)
 
 ## 3. Dockge
 
-Use the lowercase folder from the beginning. Dockge and Compose normalize stack names to lowercase, so this avoids duplicate uppercase/lowercase folders.
+Choose any install folder name. State stays inside that folder under `./openclaw-home`; if you run multiple copies, set a unique port in each `.env`.
 
 ```bash
 cd /opt/stacks
-sudo git clone https://github.com/StefRush2099/Zorg_MemoryDB.git zorg_memorydb
-sudo chown -R "$USER:$USER" /opt/stacks/zorg_memorydb
-cd /opt/stacks/zorg_memorydb
+sudo git clone https://github.com/StefRush2099/Zorg_MemoryDB.git my-zorg-memorydb
+sudo chown -R "$USER:$USER" /opt/stacks/my-zorg-memorydb
+cd /opt/stacks/my-zorg-memorydb
 cp .env.example .env
 ```
 
-Then import/start `/opt/stacks/zorg_memorydb/docker-compose.yml` in Dockge with stack name `zorg_memorydb`.
+Then import/start that folder's `docker-compose.yml` in Dockge. The stack will keep state in `./openclaw-home` under the same folder.
 
 Docs: [`docs/dockge-install.md`](docs/dockge-install.md)
 
@@ -101,7 +104,7 @@ See [`docs/base-setup.md`](docs/base-setup.md).
 - one OpenClaw/Zorg container
 - latest OpenClaw CLI/Gateway installed in the image
 - internal PostgreSQL running only inside the same container
-- OpenClaw state, workspace, and memory data under `/home/openclaw/.openclaw`
+- OpenClaw state, workspace, and memory data in the install folder at `./openclaw-home` (mounted inside the container at `/home/openclaw/.openclaw`)
 - first-run bootstrap that wires memory recall before OpenClaw Gateway starts
 
 ## First-run behavior

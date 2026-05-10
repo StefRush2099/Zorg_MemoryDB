@@ -2,10 +2,10 @@
 
 This path starts OpenClaw from scratch with Zorg MemoryDB already integrated.
 
-The database is not a separate user-facing install step. It starts internally inside the OpenClaw/Zorg container and stores its data under the same OpenClaw home volume:
+The database is not a separate user-facing install step. It starts internally inside the OpenClaw/Zorg container and stores its data under the same folder-local OpenClaw home bind mount:
 
 ```text
-/home/openclaw/.openclaw
+./openclaw-home
 ```
 
 ## Install Docker on Ubuntu
@@ -25,11 +25,13 @@ sudo usermod -aG docker "$USER"
 ## Start OpenClaw
 
 ```bash
-git clone https://github.com/StefRush2099/Zorg_MemoryDB.git zorg_memorydb
-cd zorg_memorydb
+git clone https://github.com/StefRush2099/Zorg_MemoryDB.git my-zorg-memorydb
+cd my-zorg-memorydb
 cp .env.example .env
 docker compose up -d --build
 ```
+
+This creates `./openclaw-home` inside the current folder and keeps that install's OpenClaw state, workspace, embedded PostgreSQL data, and memory DB there. For multiple running installs on the same host, clone into separate folders and set a different `OPENCLAW_GATEWAY_PORT` in each `.env`.
 
 Open OpenClaw on port `18789`.
 
@@ -41,7 +43,7 @@ That is the complete start path. You should not need to manually configure a dat
 - full latest OpenClaw install
 - internal PostgreSQL running inside the same OpenClaw/Zorg container
 - Zorg MemoryDB schema, scripts, config, imports, materialized views, and DB-backed recall enforcement
-- one persistent `zorg_openclaw_home` volume containing OpenClaw state/workspace and internal memory data under `/home/openclaw/.openclaw`
+- one folder-local `./openclaw-home` bind mount containing OpenClaw state/workspace and internal memory data under `/home/openclaw/.openclaw` inside the container
 
 ## Verify
 
@@ -62,6 +64,8 @@ Expected recall mode: `database-direct-structured`.
 git pull
 docker compose up -d --build
 ```
+
+This rebuilds the container while reusing the same folder-local `./openclaw-home` state.
 
 The template remains sanitized. Runtime memory data lives only in the local OpenClaw volume and is not committed to GitHub.
 

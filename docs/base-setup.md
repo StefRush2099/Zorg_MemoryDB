@@ -26,7 +26,7 @@ Ubuntu/Debian host
 │  ├─ cloudflared tunnel container
 │  ├─ optional website/static publishing containers
 │  └─ optional support containers
-├─ OpenClaw/Zorg home volume
+├─ OpenClaw/Zorg folder-local home (`openclaw-home/`)
 │  ├─ PostgreSQL-backed Zorg MemoryDB state
 │  ├─ channel credentials and config
 │  ├─ email OAuth/app credentials
@@ -228,7 +228,7 @@ Recommended principles:
 - keep related services on the same host where practical
 - prefer one visible Dockge stack per major service group
 - use `.env` for local secrets and never commit it
-- keep volumes named and persistent
+- keep persistent state folder-local, normally `./openclaw-home` beside `docker-compose.yml`
 - restart with `unless-stopped`
 - verify service health after changes
 
@@ -244,15 +244,13 @@ services:
     ports:
       - "18789:18789"
     volumes:
-      - zorg_openclaw_home:/home/openclaw/.openclaw
+      - ./openclaw-home:/home/openclaw/.openclaw
 
   cloudflared:
     image: cloudflare/cloudflared:latest
     restart: unless-stopped
     command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
 
-volumes:
-  zorg_openclaw_home:
 ```
 
 The exact stack may vary, but the goal should stay the same: make the working assistant visible, restartable, and understandable from one local operations page.

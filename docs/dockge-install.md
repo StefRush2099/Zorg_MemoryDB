@@ -1,20 +1,21 @@
 # Dockge Install: Integrated OpenClaw + Zorg MemoryDB
 
-Dockge should manage **one OpenClaw/Zorg stack**. The stack starts one OpenClaw/Zorg container. Zorg MemoryDB runs internally inside that same container and stores its data inside the normal OpenClaw home volume.
+Dockge should manage **one OpenClaw/Zorg stack per install folder**. Zorg MemoryDB runs inside the OpenClaw/Zorg container and persists under that same stack folder in `./openclaw-home`.
 
-## Important: use the lowercase Dockge folder
+## Folder-local rule
 
-Dockge and Docker Compose normalize stack/project names to lowercase. If the repo is cloned as `/opt/stacks/Zorg_MemoryDB` and imported as `Zorg_MemoryDB`, Dockge may create a second lowercase folder such as `/opt/stacks/zorg_memorydb`.
+This stack is now folder-local by default:
 
-To keep the install confined to the same subfolder it starts in, use this lowercase folder and stack name from the beginning:
+- no top-level hard-coded Compose `name`
+- no hard-coded `COMPOSE_PROJECT_NAME` in `.env.example`
+- no global named Docker volume for OpenClaw state
+- persistent state lives under the folder that contains `docker-compose.yml`
 
-```text
-/opt/stacks/zorg_memorydb
-```
+You may clone/import the repo into any folder name. If you run multiple installs on the same Docker host, use separate folders and give each running copy a unique `OPENCLAW_GATEWAY_PORT` in its own `.env`.
 
 ## Recommended Dockge start path
 
-On the Ubuntu Dockge host:
+On the Ubuntu Dockge host, choose any stack folder name you want:
 
 ```bash
 sudo apt-get update
@@ -22,41 +23,45 @@ sudo apt-get install -y git docker.io docker-compose-plugin
 sudo systemctl enable --now docker
 
 cd /opt/stacks
-sudo git clone https://github.com/StefRush2099/Zorg_MemoryDB.git zorg_memorydb
-sudo chown -R "$USER:$USER" /opt/stacks/zorg_memorydb
-cd /opt/stacks/zorg_memorydb
+sudo git clone https://github.com/StefRush2099/Zorg_MemoryDB.git my-zorg-memorydb
+sudo chown -R "$USER:$USER" /opt/stacks/my-zorg-memorydb
+cd /opt/stacks/my-zorg-memorydb
 cp .env.example .env
 ```
 
 Then in Dockge:
 
-1. Create/import one stack named `zorg_memorydb`.
-2. Use `/opt/stacks/zorg_memorydb/docker-compose.yml` as the stack Compose file.
+1. Create/import one stack using the same folder.
+2. Use that folder's `docker-compose.yml` as the stack Compose file.
 3. Start/stop/update it only from Dockge.
 
-Open OpenClaw on port `18789`.
+Open OpenClaw on the port configured in `.env` — default `18789`.
 
-## If you already have duplicate folders
+## Multiple installs on the same host
 
-If Dockge created both uppercase and lowercase folders, keep the lowercase Dockge-managed folder and move any edited `.env` values into it:
+For two installs, use two folders and two ports:
 
 ```bash
-sudo mkdir -p /opt/stacks/zorg_memorydb
-sudo rsync -a --exclude .git /opt/stacks/Zorg_MemoryDB/ /opt/stacks/zorg_memorydb/
-sudo chown -R "$USER:$USER" /opt/stacks/zorg_memorydb
+cd /opt/stacks
+git clone https://github.com/StefRush2099/Zorg_MemoryDB.git zorg-memory-a
+git clone https://github.com/StefRush2099/Zorg_MemoryDB.git zorg-memory-b
+
+cd /opt/stacks/zorg-memory-a
+cp .env.example .env
+printf '\nOPENCLAW_GATEWAY_PORT=18789\n' >> .env
+
+cd /opt/stacks/zorg-memory-b
+cp .env.example .env
+printf '\nOPENCLAW_GATEWAY_PORT=18790\n' >> .env
 ```
 
-Then point Dockge to `/opt/stacks/zorg_memorydb/docker-compose.yml` and use stack name `zorg_memorydb`.
-
-After confirming Dockge is using `/opt/stacks/zorg_memorydb`, the old uppercase folder is only a stale source checkout. Do not remove it until you confirm there is no unique `.env` or local edit you still need.
+Each folder gets its own `openclaw-home/` subfolder; Docker must not create state in a shared default folder.
 
 ## Paste-only Dockge stack
 
-If you prefer to paste a stack directly into Dockge, name the stack `zorg_memorydb` and use this Compose file:
+If you paste a stack directly into Dockge, keep the bind mount relative so state stays under the stack folder Dockge creates:
 
 ```yaml
-name: zorg_memorydb
-
 services:
   openclaw:
     image: ghcr.io/stefrush2099/zorg-memorydb:latest
@@ -75,10 +80,7 @@ services:
     ports:
       - "18789:18789"
     volumes:
-      - zorg_openclaw_home:/home/openclaw/.openclaw
-
-volumes:
-  zorg_openclaw_home:
+      - ./openclaw-home:/home/openclaw/.openclaw
 ```
 
 ## Verify from Dockge
@@ -86,7 +88,7 @@ volumes:
 Use the Dockge terminal/console or SSH into the Ubuntu host:
 
 ```bash
-cd /opt/stacks/zorg_memorydb
+cd /opt/stacks/my-zorg-memorydb
 docker compose ps
 docker compose exec openclaw bash -lc 'pg_isready -h 127.0.0.1 -p 5432'
 docker compose exec openclaw bash -lc 'cd /home/openclaw/.openclaw/workspace && .venv-sqlmem/bin/python scripts/memory_sql_tool.py tables'
@@ -97,7 +99,7 @@ Expected recall mode: `database-direct-structured`.
 
 ## Cleanup for older duplicate installs
 
-If an earlier Dockge attempt created duplicate unmanaged containers, stop the Dockge stack first, then inspect Docker for leftovers:
+If an earlier Dockge attempt created duplicate unmanaged containers or folders, stop the Dockge stack first, then inspect Docker for leftovers:
 
 ```bash
 docker ps -a --filter name=zorg --filter name=openclaw
@@ -109,7 +111,7 @@ Remove only old duplicate/unmanaged containers after confirming Dockge is stoppe
 docker rm <old-container-name-or-id>
 ```
 
-Do not delete volumes unless you intentionally want to discard that install's local OpenClaw state and memory data.
+Do not delete `openclaw-home/` folders unless you intentionally want to discard that install's local OpenClaw state and memory data.
 
 ## Recommended companion stacks
 
@@ -123,7 +125,8 @@ Keep secrets in private `.env` files or secret stores, not in the public repo. S
 
 ## Notes
 
-- Use lowercase `zorg_memorydb` for the Dockge folder, Dockge stack name, and Compose project name.
+- Use any install folder name; keep generated state in that folder's `openclaw-home/` subfolder.
+- If multiple copies run at the same time, set a unique `OPENCLAW_GATEWAY_PORT` per copy.
 - Do not paste private memory rows or private operator context into the public repo.
 - The repo remains a sanitized OpenClaw build template.
 

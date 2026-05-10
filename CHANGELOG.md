@@ -6,6 +6,19 @@ All meaningful changes to this project are documented here and released with a G
 
 ### Added
 
+## [v1.2.7] - 2026-05-10
+
+### Changed
+
+- Removed hard-coded Docker Compose project naming so Compose/Dockge installs inherit the actual install folder instead of forcing `zorg_memorydb`.
+- Replaced the global `zorg_openclaw_home` named volume with a folder-local `./openclaw-home` bind mount so runtime state, workspace files, embedded PostgreSQL data, and memory DB stay underneath the folder where `docker compose up --build` is run.
+- Updated Docker, Dockge, quickstart, release, and base-setup docs to allow arbitrary install folder names and document unique ports for multiple simultaneous installs on one host.
+
+### Verified
+
+- Validated Docker Compose config and folder-local bind paths for two separate test installs.
+- Built and started separate Compose installs from different folders with independent `openclaw-home` directories.
+
 ## [v1.2.6] - 2026-05-08
 
 ### Added

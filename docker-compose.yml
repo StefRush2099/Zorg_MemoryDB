@@ -1,5 +1,3 @@
-name: ${COMPOSE_PROJECT_NAME:-zorg_memorydb}
-
 services:
   openclaw:
     build:
@@ -23,7 +21,8 @@ services:
     ports:
       - "${OPENCLAW_GATEWAY_PORT:-18789}:${OPENCLAW_GATEWAY_PORT:-18789}"
     volumes:
-      - zorg_openclaw_home:/home/openclaw/.openclaw
-
-volumes:
-  zorg_openclaw_home:
+      # Folder-local persistence: each clone/stack stores its OpenClaw state,
+      # workspace, embedded PostgreSQL data, and memory DB under this checkout.
+      # Do not replace this with a global named volume if you want multiple
+      # installs on the same Docker host to stay isolated.
+      - ./openclaw-home:/home/openclaw/.openclaw

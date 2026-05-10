@@ -11,7 +11,8 @@ ghcr.io/stefrush2099/zorg-memorydb
 ## One-line start
 
 ```bash
-docker run -d --name zorg-memorydb --restart unless-stopped -p 18789:18789 -v zorg_openclaw_home:/home/openclaw/.openclaw ghcr.io/stefrush2099/zorg-memorydb:latest
+INSTALL_ID="${PWD##*/}"
+docker run -d --name "${INSTALL_ID}-zorg-memorydb" --restart unless-stopped -p 18789:18789 -v "$PWD/openclaw-home:/home/openclaw/.openclaw" ghcr.io/stefrush2099/zorg-memorydb:latest
 ```
 
 Open OpenClaw on port `18789`.
@@ -19,15 +20,16 @@ Open OpenClaw on port `18789`.
 ## Version-pinned example
 
 ```bash
-docker run -d --name zorg-memorydb --restart unless-stopped -p 18789:18789 -v zorg_openclaw_home:/home/openclaw/.openclaw ghcr.io/stefrush2099/zorg-memorydb:1.1.2
+INSTALL_ID="${PWD##*/}"
+docker run -d --name "${INSTALL_ID}-zorg-memorydb" --restart unless-stopped -p 18789:18789 -v "$PWD/openclaw-home:/home/openclaw/.openclaw" ghcr.io/stefrush2099/zorg-memorydb:1.1.2
 ```
 
 ## Verify
 
 ```bash
-docker exec zorg-memorydb bash -lc 'pg_isready -h 127.0.0.1 -p 5432'
-docker exec zorg-memorydb bash -lc 'cd /home/openclaw/.openclaw/workspace && .venv-sqlmem/bin/python scripts/memory_sql_tool.py tables'
-docker exec zorg-memorydb bash -lc 'cd /home/openclaw/.openclaw/workspace && .venv-sqlmem/bin/python scripts/memory_recall_router.py "database memory" --limit 5'
+docker exec "${INSTALL_ID}-zorg-memorydb" bash -lc 'pg_isready -h 127.0.0.1 -p 5432'
+docker exec "${INSTALL_ID}-zorg-memorydb" bash -lc 'cd /home/openclaw/.openclaw/workspace && .venv-sqlmem/bin/python scripts/memory_sql_tool.py tables'
+docker exec "${INSTALL_ID}-zorg-memorydb" bash -lc 'cd /home/openclaw/.openclaw/workspace && .venv-sqlmem/bin/python scripts/memory_recall_router.py "database memory" --limit 5'
 ```
 
 Expected recall mode: `database-direct-structured`.
@@ -36,12 +38,14 @@ Expected recall mode: `database-direct-structured`.
 
 ```bash
 docker pull ghcr.io/stefrush2099/zorg-memorydb:latest
-docker stop zorg-memorydb
-docker rm zorg-memorydb
-docker run -d --name zorg-memorydb --restart unless-stopped -p 18789:18789 -v zorg_openclaw_home:/home/openclaw/.openclaw ghcr.io/stefrush2099/zorg-memorydb:latest
+INSTALL_ID="${PWD##*/}"
+docker stop "${INSTALL_ID}-zorg-memorydb"
+docker rm "${INSTALL_ID}-zorg-memorydb"
+
+docker run -d --name "${INSTALL_ID}-zorg-memorydb" --restart unless-stopped -p 18789:18789 -v "$PWD/openclaw-home:/home/openclaw/.openclaw" ghcr.io/stefrush2099/zorg-memorydb:latest
 ```
 
-Do not remove the `zorg_openclaw_home` volume unless you intentionally want to discard the local OpenClaw state and memory data.
+Do not remove the folder-local `openclaw-home/` directory unless you intentionally want to discard that install's OpenClaw state and memory data.
 
 <!-- SCORCHED_MEMORY_RECALL_RULE -->
 ## Absolute Priority 0: Exhaustive Memory Before Response

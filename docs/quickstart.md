@@ -1,11 +1,12 @@
 # Quickstart: OpenClaw + Zorg MemoryDB
 
-This repo starts OpenClaw with Zorg MemoryDB already integrated. The memory database is internal to the OpenClaw runtime and stored under OpenClaw's own home/workspace folders.
+This repo starts OpenClaw with Zorg MemoryDB already integrated. The memory database is internal to the OpenClaw runtime and stored under each install folder in `./openclaw-home`, mounted inside the container as OpenClaw's home/workspace.
 
 ## Option 1: Docker run
 
 ```bash
-docker run -d --name zorg-memorydb --restart unless-stopped -p 18789:18789 -v zorg_openclaw_home:/home/openclaw/.openclaw ghcr.io/stefrush2099/zorg-memorydb:latest
+INSTALL_ID="${PWD##*/}"
+docker run -d --name "${INSTALL_ID}-zorg-memorydb" --restart unless-stopped -p 18789:18789 -v "$PWD/openclaw-home:/home/openclaw/.openclaw" ghcr.io/stefrush2099/zorg-memorydb:latest
 ```
 
 Open OpenClaw on port `18789`.
@@ -13,11 +14,13 @@ Open OpenClaw on port `18789`.
 ## Option 2: Docker Compose
 
 ```bash
-git clone https://github.com/StefRush2099/Zorg_MemoryDB.git zorg_memorydb
-cd zorg_memorydb
+git clone https://github.com/StefRush2099/Zorg_MemoryDB.git my-zorg-memorydb
+cd my-zorg-memorydb
 cp .env.example .env
 docker compose up -d --build
 ```
+
+This creates `./openclaw-home` inside the current folder and keeps that install's OpenClaw state, workspace, embedded PostgreSQL data, and memory DB there. For multiple running installs on the same host, clone into separate folders and set a different `OPENCLAW_GATEWAY_PORT` in each `.env`.
 
 Open OpenClaw on port `18789`.
 
@@ -27,13 +30,13 @@ Use the lowercase target folder `zorg_memorydb` so Dockge does not create a seco
 
 ```bash
 cd /opt/stacks
-sudo git clone https://github.com/StefRush2099/Zorg_MemoryDB.git zorg_memorydb
-sudo chown -R "$USER:$USER" /opt/stacks/zorg_memorydb
-cd /opt/stacks/zorg_memorydb
+sudo git clone https://github.com/StefRush2099/Zorg_MemoryDB.git my-zorg-memorydb
+sudo chown -R "$USER:$USER" /opt/stacks/my-zorg-memorydb
+cd /opt/stacks/my-zorg-memorydb
 cp .env.example .env
 ```
 
-Then import `/opt/stacks/zorg_memorydb/docker-compose.yml` in Dockge with stack name `zorg_memorydb`.
+Then import that folder's `docker-compose.yml` in Dockge. The stack will keep state in `./openclaw-home` under the same folder.
 
 ## Option 4: Standard Ubuntu
 

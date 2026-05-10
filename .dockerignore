@@ -8,3 +8,4 @@ memory/*.md
 backups
 *.log
 .env
+openclaw-home

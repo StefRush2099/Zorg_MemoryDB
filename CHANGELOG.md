@@ -182,3 +182,18 @@ Failure reports must not excuse the miss as “not enough information” when th
 
 - Added scorched-memory recall guidance across markdown surfaces: no immediate response after shallow memory misses; exhaust DB memory first, then add recall hints/indexes/relationships for any phrasing that required deep scouring.
 - Added `db/scorched_memory_recall_hardening_2026_05_09.sql` to include recall hints and query observations in the canonical search surface and rank critical/high-priority recall material ahead of arbitrary source ordering.
+
+<!-- LLM_GOVERNED_PERFORMANCE_TUNING_RULE -->
+## LLM-Governed Performance Tuning Rule
+
+Database and memory performance tuning must be governed by live LLM judgment, not hidden script policy. Tuning work starts with a natural-language hypothesis formed from current system evidence and internet/authoritative research. If research gives a credible reason to believe a database design, recall-path, materialized-view, vector/neural association, or query-structure change will improve performance, the LLM must run side-by-side before/after measurements on representative queries before claiming success.
+
+If research does not support a design change, move to raw additive performance work: indexes, query-path improvements, materialized/search-support views, relationships, recall hints, semantic edges, weighted connections, token/FTS/trigram support, and other non-destructive logic that brings query times down while preserving all source memory. No original memory data may be pruned, deleted, truncated, compacted away, or aged out for speed.
+
+Every meaningful tuning change must record the research basis, before/after benchmark results, changed structures, rollback path, and follow-up indexing/hinting implications in durable memory and public-safe docs when structural behavior changes.
+<!-- /LLM_GOVERNED_PERFORMANCE_TUNING_RULE -->
+
+
+## Unreleased
+
+- Added LLM-governed performance tuning guidance: tuning must begin with research-backed hypotheses and side-by-side before/after benchmarks. If research does not justify design changes, optimize raw query performance additively through indexes, relationships, materialized/search-support views, recall hints, semantic edges, weighted connections, token/FTS/trigram support, and other non-destructive structures.

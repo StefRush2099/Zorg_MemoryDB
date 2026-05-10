@@ -136,3 +136,20 @@ Failure reports must not excuse the miss as “not enough information” when th
 ## Scorched-memory recall implementation note
 
 The canonical recall surface must include explicit recall hints and query observations alongside core rules, contacts, relationships, projects, hosts, runbooks, and operational facts. Query ranking should prefer critical/high-priority recall material and semantically useful hints before arbitrary source ordering. When an operator correction proves a known memory existed but was missed, treat it as a production recall failure: add aliases, hints, relationship edges, query observations, indexes, or materialized-search support so the same phrasing is not missed again.
+
+<!-- LLM_GOVERNED_PERFORMANCE_TUNING_RULE -->
+## LLM-Governed Performance Tuning Rule
+
+Database and memory performance tuning must be governed by live LLM judgment, not hidden script policy. Tuning work starts with a natural-language hypothesis formed from current system evidence and internet/authoritative research. If research gives a credible reason to believe a database design, recall-path, materialized-view, vector/neural association, or query-structure change will improve performance, the LLM must run side-by-side before/after measurements on representative queries before claiming success.
+
+If research does not support a design change, move to raw additive performance work: indexes, query-path improvements, materialized/search-support views, relationships, recall hints, semantic edges, weighted connections, token/FTS/trigram support, and other non-destructive logic that brings query times down while preserving all source memory. No original memory data may be pruned, deleted, truncated, compacted away, or aged out for speed.
+
+Every meaningful tuning change must record the research basis, before/after benchmark results, changed structures, rollback path, and follow-up indexing/hinting implications in durable memory and public-safe docs when structural behavior changes.
+<!-- /LLM_GOVERNED_PERFORMANCE_TUNING_RULE -->
+
+
+## LLM-governed performance tuning
+
+Performance tuning should be directed by a live LLM using current metrics, current research, and representative benchmark queries. Do not bury performance policy in blind scripts. For any structural or design change, record the research basis, the expected effect, a before/after benchmark, and a rollback path.
+
+If research does not support a schema/design change, shift to additive raw-performance work: indexes, materialized/search-support views, relationships, recall hints, semantic edges, weighted connections, token fallback, FTS, trigram support, and query-path improvements. Preserve all original memory rows and source data.

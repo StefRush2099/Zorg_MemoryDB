@@ -1,5 +1,10 @@
 # AGENTS.md - DB Memory Operating Rules
 
+## Clean-install DB-only memory hard stop
+
+A clean Zorg MemoryDB install must never recreate `memory/` markdown files as durable memory. The only durable memory backend is PostgreSQL through Zorg MemoryDB. Core markdown files such as `AGENTS.md`, `MEMORY.md`, `SOUL.md`, `USER.md`, `TOOLS.md`, `IDENTITY.md`, and `HEARTBEAT.md` are bootstrap/rule sources only; they are imported into the database and are not a flat-file memory fallback. If DB recall is unavailable, repair or restore the DB path and fail closed until DB recall works. Do not create `memory/YYYY-MM-DD.md`, `memory/projects/*.md`, `memory/people-research/*.md`, `memory/*.json`, or any other `memory/` subdirectory file. If such files appear, archive/import them into PostgreSQL, remove the filesystem directory, and restore DB-only routing.
+
+
 ## Top-level DB Memory Publication Rule
 
 Whenever any meaningful structural, configuration, routing, schema, indexing, recall, benchmark, enforcement, or operational-rule change is made to the memory database or memory recall system, the matching structural change must be published to the GitHub `Zorg_MemoryDB` repository. Update the relevant markdown/runbook files at the same time so future installs reproduce the current behavior. Do not publish personal memory contents, credentials, live database rows, contact data, transcripts, or private operator context — only structure, scripts, schema, templates, and documentation.

@@ -119,6 +119,29 @@ select * from zorg_get_logic_context('duplicate', 5);
 
 Expected: active logic rules exist, logic recall can return proactive quality-control rules, and public documentation contains only sanitized rule summaries.
 
+
+## DB-only clean-install configuration
+
+Verify a clean install writes DB-only memory settings into OpenClaw config:
+
+```bash
+docker compose exec openclaw python3 - <<'PY'
+import json, pathlib
+for path in [pathlib.Path('/home/openclaw/.openclaw/openclaw.json'), pathlib.Path('/home/openclaw/.openclaw/.openclaw/openclaw.json')]:
+    cfg=json.loads(path.read_text())
+    ms=cfg.get('agents',{}).get('defaults',{}).get('memorySearch',{})
+    assert ms.get('enabled') is True
+    assert ms.get('fallback') == 'none'
+print('DB-only memory config verified')
+PY
+```
+
+No `memory/` directory should remain after first run:
+
+```bash
+docker compose exec openclaw test ! -d /home/openclaw/.openclaw/workspace/memory
+```
+
 <!-- SCORCHED_MEMORY_RECALL_RULE -->
 ## Absolute Priority 0: Exhaustive Memory Before Response
 

@@ -132,9 +132,10 @@ def backup(path: Path) -> None:
 
 
 def enforce_config() -> bool:
-    if not CONFIG.exists():
-        return False
-    data = json.loads(CONFIG.read_text(encoding='utf-8'))
+    if CONFIG.exists():
+        data = json.loads(CONFIG.read_text(encoding='utf-8'))
+    else:
+        data = {}
     defaults = data.setdefault('agents', {}).setdefault('defaults', {})
     ms = defaults.setdefault('memorySearch', {})
     changed = False
@@ -152,12 +153,20 @@ def enforce_config() -> bool:
     if multimodal.get('enabled') is not False:
         multimodal['enabled'] = False
         changed = True
+    # Clean installs must fail closed into DB-only recall. Remove settings that can
+    # re-enable remote embedding or flat-file memory fallback behavior.
     for stale in ('remote', 'model', 'outputDimensionality'):
         if stale in ms:
             del ms[stale]
             changed = True
-    if changed:
+    # Older v1.2.10 draft builds wrote this non-schema root marker. Remove it so
+    # upgraded/failed test installs recover instead of breaking gateway validation.
+    if 'zorgMemoryDb' in data:
+        del data['zorgMemoryDb']
+        changed = True
+    if changed or not CONFIG.exists():
         backup(CONFIG)
+        CONFIG.parent.mkdir(parents=True, exist_ok=True)
         CONFIG.write_text(json.dumps(data, indent=2) + '\n', encoding='utf-8')
     return changed
 

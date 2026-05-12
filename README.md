@@ -135,8 +135,9 @@ When the container starts, `docker/entrypoint.sh`:
 6. archives any legacy retired `memory/` directory into DB if present
 7. imports public template/rule markdown
 8. refreshes recall/search surfaces
-9. enforces OpenClaw built-in `memory_search` routing through Zorg MemoryDB
-10. starts `openclaw gateway run`
+9. writes DB-only OpenClaw memory settings so clean installs do not fall back to markdown memory files
+10. enforces OpenClaw built-in `memory_search` routing through Zorg MemoryDB
+11. starts `openclaw gateway run`
 
 ## Verify
 

@@ -88,6 +88,15 @@ gw['port']=int('$OPENCLAW_GATEWAY_PORT')
 gw['auth']={'mode':'$OPENCLAW_GATEWAY_AUTH','trustedProxy':{'userHeader':'x-openclaw-user'}}
 gw['trustedProxies']=['0.0.0.0/0','::/0']
 gw.setdefault('controlUi', {})['dangerouslyAllowHostHeaderOriginFallback']=True
+agents=cfg.setdefault('agents', {})
+defaults=agents.setdefault('defaults', {})
+defaults['memorySearch']={
+    'enabled': True,
+    'provider': 'local',
+    'fallback': 'none',
+    'sources': ['memory'],
+    'multimodal': {'enabled': False},
+}
 home.mkdir(parents=True, exist_ok=True)
 path.write_text(json.dumps(cfg, indent=2)+'\n')
 PY

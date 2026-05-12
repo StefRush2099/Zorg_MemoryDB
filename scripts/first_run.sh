@@ -146,6 +146,12 @@ enforce_builtin_memory_search(){
   fi
 }
 
+run_db_only_autoheal(){
+  log "verifying DB-only memory state"
+  OPENCLAW_WORKSPACE="$ROOT" SQL_MEMORY_MAP="$ROOT/sql_memory_map.json" SQLMEM_PYTHON="$PYTHON" "$PYTHON" scripts/db_only_memory_autoheal.py >/dev/null || \
+    log "DB-only auto-heal reported issues; DB config/routing enforcement already ran and periodic repair can retry"
+}
+
 ensure_python_env
 write_config
 ensure_memory_files
@@ -153,3 +159,4 @@ start_postgres_if_needed || { log "could not reach PostgreSQL. Install/start Pos
 apply_schema
 import_and_verify
 enforce_builtin_memory_search
+run_db_only_autoheal

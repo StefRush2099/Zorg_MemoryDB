@@ -108,6 +108,15 @@ for home in homes:
     gw['trustedProxies']=['0.0.0.0/0','::/0']
     control=gw.setdefault('controlUi', {})
     control['dangerouslyAllowHostHeaderOriginFallback']=True
+    agents=cfg.setdefault('agents', {})
+    defaults=agents.setdefault('defaults', {})
+    defaults['memorySearch']={
+        'enabled': True,
+        'provider': 'local',
+        'fallback': 'none',
+        'sources': ['memory'],
+        'multimodal': {'enabled': False},
+    }
     home.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(cfg, indent=2)+'\n')
 PY

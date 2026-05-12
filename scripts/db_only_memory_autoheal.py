@@ -15,15 +15,16 @@ import os
 import shutil
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 import psycopg2
 from psycopg2.extras import Json
 
-BASE = Path('/home/openclaw/.openclaw/workspace')
-MAP = BASE / 'sql_memory_map.json'
+BASE = Path(os.environ.get('OPENCLAW_WORKSPACE', '/home/openclaw/.openclaw/workspace')).expanduser().resolve()
+MAP = Path(os.environ.get('SQL_MEMORY_MAP', BASE / 'sql_memory_map.json')).expanduser().resolve()
 MEMORY_DIR = BASE / 'memory'
-PYTHON = BASE / '.venv-sqlmem/bin/python'
+PYTHON = Path(os.environ.get('SQLMEM_PYTHON', str(BASE / '.venv-sqlmem/bin/python'))).expanduser()
 
 ARCHIVE_SCHEMA = '''
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
@@ -52,12 +53,19 @@ CREATE INDEX IF NOT EXISTS idx_zorg_memory_file_archive_content_trgm
 '''
 
 
-def db_conn():
+def db_conn(attempts: int = 30, delay: float = 1.0):
     cfg = json.loads(MAP.read_text())['postgres']
-    return psycopg2.connect(
-        host=cfg['host'], port=cfg['port'], dbname=cfg['database'],
-        user=cfg['user'], password=cfg.get('password', '')
-    )
+    last_error = None
+    for _ in range(max(1, attempts)):
+        try:
+            return psycopg2.connect(
+                host=cfg['host'], port=cfg['port'], dbname=cfg['database'],
+                user=cfg['user'], password=cfg.get('password', '')
+            )
+        except psycopg2.OperationalError as exc:
+            last_error = exc
+            time.sleep(delay)
+    raise last_error
 
 
 def rel(p: Path) -> str:
@@ -68,11 +76,19 @@ def check_db_recall() -> list[str]:
     issues: list[str] = []
     # Verify local SQL tool can query DB and that built-in memory_search is DB-backed when available via direct tool output is not script-accessible.
     try:
-        out = subprocess.run(
-            [str(PYTHON), str(BASE / 'memory_sql_tool.py'), 'search', 'db only memory recall exclusive backend database', '--table', 'all', '--limit', '1'],
-            cwd=str(BASE), text=True, capture_output=True, timeout=30, check=False,
-        )
-        if out.returncode != 0:
+        tool = BASE / 'memory_sql_tool.py'
+        if not tool.exists():
+            tool = BASE / 'scripts' / 'memory_sql_tool.py'
+        out = None
+        for _ in range(30):
+            out = subprocess.run(
+                [str(PYTHON), str(tool), 'search', 'db only memory recall exclusive backend database', '--table', 'all', '--limit', '1'],
+                cwd=str(BASE), text=True, capture_output=True, timeout=30, check=False,
+            )
+            if out.returncode == 0:
+                break
+            time.sleep(1)
+        if out is not None and out.returncode != 0:
             issues.append(f'memory_sql_tool_failed rc={out.returncode} stderr={out.stderr.strip()[:500]}')
     except Exception as exc:
         issues.append(f'memory_sql_tool_exception {type(exc).__name__}: {exc}')
@@ -147,10 +163,11 @@ def main() -> int:
             archived, line_rows, removed = archive_and_remove_memory_dir(cur)
             if archived or not removed:
                 repaired = True
-            for proc in ['refresh_zorg_memory_search_mv', 'refresh_zorg_memory_search_fast_mv', 'refresh_zorg_master_context']:
-                cur.execute('select to_regprocedure(%s)', (f'public.{proc}()',))
-                if cur.fetchone()[0]:
-                    cur.execute(f'select public.{proc}()')
+            if os.environ.get('ZORG_AUTOHEAL_REFRESH_VIEWS') == '1':
+                for proc in ['refresh_zorg_memory_search_mv', 'refresh_zorg_memory_search_fast_mv', 'refresh_zorg_master_context']:
+                    cur.execute('select to_regprocedure(%s)', (f'public.{proc}()',))
+                    if cur.fetchone()[0]:
+                        cur.execute(f'select public.{proc}()')
             status = {
                 'issues': issues,
                 'files_archived': archived,

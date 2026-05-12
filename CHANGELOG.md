@@ -6,13 +6,29 @@ All meaningful changes to this project are documented here and released with a G
 
 ### Added
 
+### Changed
+
+### Verified
+
+## [v1.2.10] - 2026-05-12
+
+### Added
+
+- Added clean-install DB-only memory enforcement so fresh Docker/Ubuntu installs write OpenClaw memory settings that disable flat-file fallback and force Zorg MemoryDB recall.
 - Added an optional `openclaw-cli` Docker Compose helper service for launching OpenClaw TUI/chat against the same folder-local `./openclaw-home` state.
 - Documented Docker Compose TUI/chat commands: `docker compose run --rm openclaw-cli tui --local` and `docker compose run --rm openclaw-cli chat`.
 
 ### Changed
 
+- `scripts/enforce_db_memory_search.py` now creates or patches `openclaw.json` even when the file does not already exist, and removes unsupported stale `zorgMemoryDb` draft config keys.
+- Docker and standard Ubuntu startup now write DB-only `agents.defaults.memorySearch` settings during clean install.
+- Strengthened core/template rules to prohibit durable `memory/` markdown files and require DB repair/restore instead of markdown fallback.
+- Made `scripts/db_only_memory_autoheal.py` honor workspace/config environment variables for clean installs and non-default workspaces, avoid startup-time materialized-view refreshes unless explicitly requested, and preserve the SQL venv Python path instead of resolving it to the system interpreter.
+- First-run bootstrap now invokes DB-only auto-heal after importing core rules and enforcing memory routing; startup continues after logging any retryable auto-heal warning.
+
 ### Verified
 
+- Verified clean installs write DB-only `memorySearch` config and that `memory/` is absent after first run.
 - Validated Docker Compose config includes the new `openclaw-cli` helper service.
 
 ## [v1.2.8] - 2026-05-10

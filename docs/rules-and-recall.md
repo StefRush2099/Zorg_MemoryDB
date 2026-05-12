@@ -13,6 +13,12 @@
 9. Recall quality must evolve additively toward vector/neural-style weighted semantic retrieval: add embeddings/vector slots, concepts/entities, aliases, graph edges, query feedback, LLM-readable recall hints, and materialized views without deleting source rows.
 10. Database repair/recovery is a hard continuity rule: predictable backups must exist; repair is attempted first; backup candidates are tested if repair fails; the first verified working backup is promoted; DB health/recall tests must pass before claiming success. See [`database-recovery.md`](database-recovery.md).
 
+## Clean-install enforcement
+
+Clean installs must enforce DB-only memory in both rules and runtime configuration. The installer/startup path writes valid OpenClaw `agents.defaults.memorySearch` settings with `enabled: true`, `provider: local`, `fallback: none`, and `sources: [memory]`. `scripts/enforce_db_memory_search.py` must create or patch `openclaw.json` even when the file does not exist yet, and must avoid unsupported config keys so fresh OpenClaw gateways still pass schema validation.
+
+The `memory/` subdirectory is retired. It must not be used for daily notes, project notes, people research, source notes, heartbeat state, JSON logs, or any durable memory. If a `memory/` directory appears during or after install, the auto-heal path archives/imports it into PostgreSQL, removes it from the filesystem, and records the repair in DB memory.
+
 ## Recall escalation
 
 Recommended order:

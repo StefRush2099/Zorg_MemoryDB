@@ -37,6 +37,22 @@ Then in Dockge:
 
 Open OpenClaw on the external port shown by `docker compose ps`. The default range starts at `18789`.
 
+## Open the OpenClaw TUI or chat
+
+From the stack folder on the Docker host, run:
+
+```bash
+docker compose run --rm openclaw-cli tui --local
+```
+
+Or start OpenClaw chat mode:
+
+```bash
+docker compose run --rm openclaw-cli chat
+```
+
+The helper service uses the same `./openclaw-home` folder as the main OpenClaw/Zorg container.
+
 ## Multiple installs on the same host
 
 For two installs, use two folders. Both can keep the default external port range; Docker will assign the first available port in the range:

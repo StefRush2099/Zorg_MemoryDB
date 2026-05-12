@@ -6,9 +6,14 @@ All meaningful changes to this project are documented here and released with a G
 
 ### Added
 
+- Added an optional `openclaw-cli` Docker Compose helper service for launching OpenClaw TUI/chat against the same folder-local `./openclaw-home` state.
+- Documented Docker Compose TUI/chat commands: `docker compose run --rm openclaw-cli tui --local` and `docker compose run --rm openclaw-cli chat`.
+
 ### Changed
 
 ### Verified
+
+- Validated Docker Compose config includes the new `openclaw-cli` helper service.
 
 ## [v1.2.8] - 2026-05-10
 

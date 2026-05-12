@@ -30,3 +30,20 @@ services:
       # Do not replace this with a global named volume if you want multiple
       # installs on the same Docker host to stay isolated.
       - ./openclaw-home:/home/openclaw/.openclaw
+
+  openclaw-cli:
+    profiles: ["cli"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        OPENCLAW_VERSION: ${OPENCLAW_VERSION:-latest}
+    image: ghcr.io/stefrush2099/zorg-memorydb:latest
+    depends_on:
+      - openclaw
+    environment:
+      OPENCLAW_HOME: /home/openclaw/.openclaw
+      OPENCLAW_WORKSPACE: /home/openclaw/.openclaw/workspace
+    volumes:
+      - ./openclaw-home:/home/openclaw/.openclaw
+    entrypoint: ["openclaw"]

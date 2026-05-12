@@ -62,6 +62,22 @@ Open OpenClaw on the selected host port. Docker tries `18789` first, then the ne
 
 Docs: [`docs/docker-install.md`](docs/docker-install.md)
 
+### Open the OpenClaw TUI or chat from Docker Compose
+
+After the Compose stack is running, open the terminal UI from the same checkout folder:
+
+```bash
+docker compose run --rm openclaw-cli tui --local
+```
+
+Or start OpenClaw chat mode:
+
+```bash
+docker compose run --rm openclaw-cli chat
+```
+
+The `openclaw-cli` helper service uses the same `./openclaw-home` folder as the running OpenClaw/Zorg container, so it sees the same local OpenClaw configuration and workspace state.
+
 ## 3. Dockge
 
 Choose any install folder name. State stays inside that folder under `./openclaw-home`; if you run multiple copies, set a unique port in each `.env`.
@@ -218,4 +234,3 @@ Before drafting or publishing a new article, review the same-day feed/archive an
 
 The assistant owns the full article set and must keep the day’s coverage fresh, non-repetitive, and additive.
 <!-- /SAME_DAY_NEWS_FRESHNESS_RULE -->
-

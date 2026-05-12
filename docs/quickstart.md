@@ -24,6 +24,18 @@ This creates `./openclaw-home` inside the current folder and keeps that install'
 
 Open OpenClaw on the selected host port; run `docker ps` or `docker compose ps` to confirm it.
 
+Open the OpenClaw terminal UI from the same folder:
+
+```bash
+docker compose run --rm openclaw-cli tui --local
+```
+
+Or use chat mode:
+
+```bash
+docker compose run --rm openclaw-cli chat
+```
+
 ## Option 3: Dockge
 
 Use the lowercase target folder `zorg_memorydb` so Dockge does not create a second normalized folder.
@@ -119,4 +131,3 @@ Before drafting or publishing a new article, review the same-day feed/archive an
 
 The assistant owns the full article set and must keep the day’s coverage fresh, non-repetitive, and additive.
 <!-- /SAME_DAY_NEWS_FRESHNESS_RULE -->
-

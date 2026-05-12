@@ -37,9 +37,26 @@ Open OpenClaw on the external port shown by `docker compose ps`.
 
 That is the complete start path. You should not need to manually configure a database or attach memory afterward.
 
+## Open the OpenClaw TUI or chat inside Docker
+
+From the same folder as `docker-compose.yml`, run the OpenClaw terminal UI through the helper CLI service:
+
+```bash
+docker compose run --rm openclaw-cli tui --local
+```
+
+Or start OpenClaw chat mode:
+
+```bash
+docker compose run --rm openclaw-cli chat
+```
+
+The `openclaw-cli` service mounts the same `./openclaw-home` folder as the running `openclaw` service, so the CLI sees the same OpenClaw home, workspace, and local configuration.
+
 ## What the stack includes
 
 - one `openclaw` Compose service
+- one optional `openclaw-cli` Compose helper service for `tui` and `chat`
 - full latest OpenClaw install
 - internal PostgreSQL running inside the same OpenClaw/Zorg container
 - Zorg MemoryDB schema, scripts, config, imports, materialized views, and DB-backed recall enforcement
@@ -108,4 +125,3 @@ Before drafting or publishing a new article, review the same-day feed/archive an
 
 The assistant owns the full article set and must keep the day’s coverage fresh, non-repetitive, and additive.
 <!-- /SAME_DAY_NEWS_FRESHNESS_RULE -->
-

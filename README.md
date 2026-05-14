@@ -106,7 +106,8 @@ Docs: [`docs/standard-ubuntu-install.md`](docs/standard-ubuntu-install.md)
 
 A fully useful OpenClaw + Zorg MemoryDB install should have more than the memory container alone:
 
-- a fast instant messaging control channel such as Telegram, WhatsApp, Signal, Discord, or Slack
+- the built-in LAN/local command chat for private local access to the agent without an outside chat provider
+- an optional fast instant messaging control channel such as Telegram, WhatsApp, Signal, Discord, or Slack for remote/mobile convenience
 - a dedicated assistant email account used as the public-facing executive-assistant identity, so routine mail is filtered through the agent instead of the operator's private address
 - optional, separately governed access to the operator's personal email for triage/search/drafting
 - a private GitHub repo or other private off-host target for PostgreSQL memory backups
@@ -123,6 +124,7 @@ See [`docs/base-setup.md`](docs/base-setup.md).
 - OpenClaw state, workspace, and memory data in the install folder at `./openclaw-home` (mounted inside the container at `/home/openclaw/.openclaw`)
 - first-run bootstrap that wires memory recall before OpenClaw Gateway starts
 - built-in LAN/local command chat (`lan-chat` plus nginx) so the operator and authorized local agents have a default web back channel if external messaging is unavailable
+- local-first communication path so private prompts do not have to traverse an outside chat provider before reaching the agent
 
 ## First-run behavior
 

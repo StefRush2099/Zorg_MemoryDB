@@ -3,6 +3,7 @@
 
 - Added the LAN console (`lan-chat`) to the base Zorg MemoryDB repository and Docker Compose install so new deployments include a maintained web fallback communication path by default.
 - Clarified that `lan-chat` is a built-in local command chat/back channel for the default install, not a separate optional add-on, and documented the maintenance responsibility to keep it available.
+- Documented the privacy/security rationale for local-first agent communication: outside chat providers are convenient, but they add third-party account, bot, metadata, and retention surfaces for prompts that could otherwise remain local.
 
 
 ## 2026-05-14

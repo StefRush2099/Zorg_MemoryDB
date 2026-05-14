@@ -88,9 +88,20 @@ Useful official docs:
 
 You can configure both OpenRouter and OpenAI. That gives you a fallback path if one provider is unavailable or if a task is better suited to a different model.
 
-## 3. Messaging channel token
+## 3. Local command chat and optional messaging channel
 
-A useful agent needs a fast control channel. Telegram, Signal, WhatsApp, Discord, Slack, or another OpenClaw-supported channel can work.
+Zorg MemoryDB includes a LAN/local command chat by default. Treat that as the private first control path: a browser page on the same LAN/VPN as the agent. External messaging such as Telegram, Signal, WhatsApp, Discord, Slack, or another OpenClaw-supported channel can still be added for remote convenience, but it should not be the only way to talk to the agent.
+
+The security reason is simple: if you use an outside chat provider for private agent instructions, your prompts and metadata pass through that provider's app/account/bot/integration surface before reaching your own agent. A local console keeps local/private conversations inside your own network when you are on that network.
+
+Prepare for the local console:
+
+1. Know the LAN/VPN address of the machine running OpenClaw/Zorg.
+2. Decide which local ranges should be allowed to access the console.
+3. Keep it LAN/VPN scoped unless you intentionally add a protected remote access layer.
+4. Plan future hardening if needed: front-end password/token, device pairing, HTTPS, or reverse-proxy access policy.
+
+For remote/mobile convenience, a messaging channel is still useful. Telegram, Signal, WhatsApp, Discord, Slack, or another OpenClaw-supported channel can work.
 
 Prepare:
 

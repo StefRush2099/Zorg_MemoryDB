@@ -4,13 +4,14 @@ Zorg MemoryDB is most useful when it is not only installed as a local agent, but
 
 Plain OpenClaw can run with very little connected. That is useful for testing. A working executive-assistant style agent needs a fuller base setup:
 
-1. An instant messaging channel where you can reach the agent quickly.
-2. A dedicated assistant email account that becomes the public-facing assistant identity.
-3. Optional, carefully governed access to your personal email account for triage and drafting.
-4. A private GitHub repository or other private off-host backup target for database recovery.
-5. A Cloudflare Tunnel/connector so the agent can publish web-accessible pages and services without opening inbound ports.
-6. Dockerized services on the same system that runs OpenClaw/Zorg where practical.
-7. Dockge or an equivalent Docker stack UI so less technical operators can see, stop, start, and update the moving pieces.
+1. The built-in LAN/local command chat where you can reach the local agent from a normal browser page.
+2. An optional instant messaging channel where you can reach the agent quickly when away from the LAN.
+3. A dedicated assistant email account that becomes the public-facing assistant identity.
+4. Optional, carefully governed access to your personal email account for triage and drafting.
+5. A private GitHub repository or other private off-host backup target for database recovery.
+6. A Cloudflare Tunnel/connector so the agent can publish web-accessible pages and services without opening inbound ports.
+7. Dockerized services on the same system that runs OpenClaw/Zorg where practical.
+8. Dockge or an equivalent Docker stack UI so less technical operators can see, stop, start, and update the moving pieces.
 
 This is the practical baseline before OpenClaw + Zorg MemoryDB starts feeling fully useful rather than merely installed.
 
@@ -37,11 +38,21 @@ Ubuntu/Debian host
 
 Keep the baseline services visible in Dockge when possible. The point is not only convenience; it makes the system easier to operate. A non-specialist should be able to open one web page, see the OpenClaw/Zorg stack, see the Cloudflare connector, and stop/start/update services without memorizing shell commands.
 
-## 1. Instant messaging channel: the fast control surface
+## 1. LAN/local command chat: the private first control surface
+
+Zorg MemoryDB includes a local web command chat (`lan-chat`) by default. This should be the first control surface available on the network where the agent is running. It gives the operator a normal browser page for talking to the agent without SSH, terminal commands, raw API calls, or an outside chat provider.
+
+This matters for security and privacy. Telegram, Discord, Slack, Signal gateways, WhatsApp connectors, and similar integrations are useful, but they route private prompts through another provider, account, bot token, app, device, metadata trail, and retention boundary before the text reaches the agent. That may be acceptable for convenience, but it should not be mandatory for private local work. If the operator is on the same LAN or VPN as the agent, sensitive conversations can often remain entirely inside local infrastructure.
+
+The local console is also the better expectation for nontechnical users. They should not have to memorize a command line or type API calls just to use their own assistant. Future versions can add stronger front-end security such as passwords, tokens, device pairing, HTTPS, access roles, connection audit views, and friendlier discovery/setup flows while preserving the same local-first architecture.
+
+Use instant messaging as a remote/mobile convenience layer, not as the only practical way to speak to the agent.
+
+## 2. Instant messaging channel: the fast remote control surface
 
 Connect Zorg/OpenClaw to Telegram, WhatsApp, Signal, Discord, Slack, or another instant messaging app you actually use.
 
-This channel is the day-to-day control surface:
+This channel is a remote/mobile control surface:
 
 - send quick tasks from your phone
 - approve sensitive actions
@@ -62,7 +73,7 @@ General setup pattern:
 
 For a production personal assistant, use direct-message authorization and least privilege. Do not expose a public group chat as an admin surface unless you intentionally want that behavior.
 
-## 2. Dedicated assistant email: the recommended public-facing identity
+## 3. Dedicated assistant email: the recommended public-facing identity
 
 A dedicated assistant email account is not merely a fallback. It is the recommended public-facing executive-assistant identity.
 
@@ -107,7 +118,7 @@ Recommended behavior:
 
 The operator-copy rule is important. If the agent is acting as an executive assistant, the operator must be able to see what it is sending. The LLM should recall the current copy rule before sending. A mechanical send helper may verify and serialize the LLM-selected copy fields, but it should not independently decide recipient-specific CC/BCC policy.
 
-## 3. Personal email access: useful, but not the default public address
+## 4. Personal email access: useful, but not the default public address
 
 Direct access to the operator's personal email can be powerful, but it should be treated differently from the dedicated assistant email.
 
@@ -127,7 +138,7 @@ Personal email access should be governed with stricter rules:
 
 This gives you the benefit of an AI executive assistant without turning the operator's private inbox into the public-facing address.
 
-## 4. Private GitHub backup repo: off-host memory recovery
+## 5. Private GitHub backup repo: off-host memory recovery
 
 Zorg MemoryDB's database is operational memory. Losing it means losing rules, decisions, contact context, recovery paths, and accumulated working knowledge.
 
@@ -163,7 +174,7 @@ Example high-level flow:
 
 For a fresh install, create the private recovery repository before the system becomes important. It is much easier to set up recovery before you need it.
 
-## 5. Cloudflare connector: web-accessible publishing surface
+## 6. Cloudflare connector: web-accessible publishing surface
 
 A useful assistant eventually needs to publish things the operator can open from anywhere: status pages, reports, dashboards, temporary review pages, public articles, private web tools, or webhook endpoints.
 
@@ -210,7 +221,7 @@ Official references:
 - Cloudflare Tunnel dashboard setup: <https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/get-started/create-remote-tunnel/>
 - cloudflared downloads and Docker image reference: <https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/downloads/>
 
-## 6. Docker + Dockge: visibility for the whole assistant stack
+## 7. Docker + Dockge: visibility for the whole assistant stack
 
 Zorg MemoryDB can run with plain Docker or Docker Compose, but Dockge is a strong recommendation for less technical users and for operator visibility.
 

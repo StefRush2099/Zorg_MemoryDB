@@ -1,6 +1,6 @@
 # LAN Console
 
-Zorg MemoryDB includes a LAN web console (`lan-chat`) as a built-in local command chat and fallback communication path for OpenClaw.
+Zorg MemoryDB includes a LAN web console (`lan-chat`) as a built-in local command chat and fallback communication path for OpenClaw. This is a minimum usability feature: an operator should be able to open a normal web page on the same LAN and talk to the local agent without logging into a terminal, knowing CLI commands, or sending private prompts through an outside chat provider first.
 
 Purpose:
 
@@ -11,6 +11,30 @@ Purpose:
 - provide a default back channel for authorized local AI agents.
 
 The LAN console is installed from `lan-chat/` and wired into the default install. It is not a separate optional tool; it is part of the base communication surface on top of other OpenClaw channels and connections.
+
+## Why this matters for privacy
+
+External chat providers such as Telegram, Discord, Slack, Signal gateways, or similar integrations are useful remote-control surfaces, but they are not the same as a local/private control path. When a user sends private information to an agent through an outside chat provider, the message necessarily passes through that provider's account, network, retention, metadata, device, and integration surfaces before it reaches the agent. Even if the provider is trustworthy, that adds another system, account, token, bot, and policy boundary to information that might otherwise have stayed entirely on the user's own LAN.
+
+The LAN console gives the install a local-first option: for sensitive prompts, internal system details, private documents, family/business context, or agent-to-agent coordination on the same network, the user can keep the conversation inside their own local infrastructure. Remote chat is still valuable for convenience and mobile use, but it should not be the only practical way to talk to a personal agent.
+
+## Usability expectation
+
+A serious personal-agent install should not require the operator to SSH into a box, launch a command prompt, remember CLI syntax, or type raw API calls just to speak to the agent. The minimum expected connection is a browser-accessible local page. Future versions should make this even easier through discovery, friendlier URLs, QR/setup flows, bookmarks, and optional front-end authentication, but the baseline is already clear: talking to the local agent should feel like opening a local app, not operating a server.
+
+## Security roadmap
+
+The current public template is intentionally simple and LAN-scoped. It can easily grow stronger front-end security in future versions without changing the basic architecture, including:
+
+- password or token gate at the LAN console front end,
+- device pairing / approved-client lists,
+- optional HTTPS with local certificates,
+- per-session access controls,
+- read-only vs send permissions,
+- audit display for recent local connections,
+- LAN/VPN allowlists and reverse-proxy policy.
+
+Those additions should harden the local surface while preserving the core privacy benefit: users should have a direct local path to their local agent before they are forced to involve any outside messaging provider.
 
 ## Default behavior
 

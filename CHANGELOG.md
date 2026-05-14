@@ -1,6 +1,11 @@
 
 ## 2026-05-14
 
+- Added the LAN console (`lan-chat`) to the base Zorg MemoryDB repository and Docker Compose install so new deployments include a maintained web fallback communication path by default.
+
+
+## 2026-05-14
+
 - Added AI DJ agent reporting pattern for documenting memory-backed persona, artist-research, music-news, and streaming-station behavior in public-safe reports.
 
 

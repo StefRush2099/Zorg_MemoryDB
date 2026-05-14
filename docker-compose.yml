@@ -47,3 +47,33 @@ services:
     volumes:
       - ./openclaw-home:/home/openclaw/.openclaw
     entrypoint: ["openclaw"]
+
+
+  lan-chat:
+    build:
+      context: ./lan-chat
+      dockerfile: Dockerfile
+    image: ghcr.io/stefrush2099/zorg-memorydb-lan-chat:latest
+    restart: unless-stopped
+    depends_on:
+      - openclaw
+    environment:
+      HOME: /home/openclaw
+      GATEWAY_HOST: openclaw
+      GATEWAY_SESSION_KEY: ${GATEWAY_SESSION_KEY:-agent:main:main}
+      CHAT_SOURCE_LABEL: ${CHAT_SOURCE_LABEL:-LAN Console}
+      CHAT_HISTORY_LIMIT: ${CHAT_HISTORY_LIMIT:-50}
+      GATEWAY_CALL_TIMEOUT_MS: ${GATEWAY_CALL_TIMEOUT_MS:-15000}
+    volumes:
+      - ./openclaw-home:/home/openclaw/.openclaw:ro
+      - ./lan-chat/uploads:/app/public/uploads
+
+  lan-chat-nginx:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    depends_on:
+      - lan-chat
+    ports:
+      - "${LAN_CHAT_HTTP_PORT:-80}:80"
+    volumes:
+      - ./lan-chat/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro

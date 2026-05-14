@@ -77,6 +77,8 @@ else
   cp -a /opt/zorg-memorydb/db/. "$OPENCLAW_WORKSPACE/db"/
   cp -a /opt/zorg-memorydb/config/. "$OPENCLAW_WORKSPACE/config"/
   cp -a /opt/zorg-memorydb/docs/. "$OPENCLAW_WORKSPACE/docs"/
+  rm -rf "$OPENCLAW_WORKSPACE/lan-chat"
+  cp -a /opt/zorg-memorydb/lan-chat "$OPENCLAW_WORKSPACE/lan-chat"
 fi
 
 cd "$OPENCLAW_WORKSPACE"

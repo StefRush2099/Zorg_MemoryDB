@@ -122,6 +122,7 @@ See [`docs/base-setup.md`](docs/base-setup.md).
 - internal PostgreSQL running only inside the same container
 - OpenClaw state, workspace, and memory data in the install folder at `./openclaw-home` (mounted inside the container at `/home/openclaw/.openclaw`)
 - first-run bootstrap that wires memory recall before OpenClaw Gateway starts
+- built-in LAN/local command chat (`lan-chat` plus nginx) so the operator and authorized local agents have a default web back channel if external messaging is unavailable
 
 ## First-run behavior
 

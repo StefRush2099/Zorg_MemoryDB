@@ -1,8 +1,8 @@
 # Zorg LAN Console
 
-Next.js LAN web console for OpenClaw/Zorg MemoryDB deployments.
+Next.js LAN/local command chat console for OpenClaw/Zorg MemoryDB deployments.
 
-The console provides a local browser chat surface that talks to the OpenClaw Gateway, stores conversation traffic in PostgreSQL-backed memory, and keeps communication available if an external messaging channel is unavailable.
+The console provides a local browser chat surface that talks to the OpenClaw Gateway, stores conversation traffic in PostgreSQL-backed memory, and keeps communication available if an external messaging channel such as Telegram is unavailable. It is part of the default Zorg MemoryDB install, not a separate optional side app.
 
 ## Features
 
@@ -12,6 +12,7 @@ The console provides a local browser chat surface that talks to the OpenClaw Gat
 - Runtime and database status display
 - Optional file upload support
 - Nginx front-end for simple LAN access
+- Built-in fallback command chat for operator and authorized local agent coordination
 
 ## Configuration
 
@@ -31,7 +32,7 @@ Useful environment variables:
 
 ## Docker Compose
 
-The top-level Zorg MemoryDB `docker-compose.yml` builds this app as `lan-chat` and publishes it through `lan-chat-nginx`.
+The top-level Zorg MemoryDB `docker-compose.yml` builds this app as `lan-chat` and publishes it through `lan-chat-nginx`. Keep it online as base communication infrastructure alongside the normal OpenClaw gateway and messaging connectors.
 
 The app mounts `./openclaw-home` read-only so it can read the local OpenClaw gateway/device auth configuration. Uploaded files are stored under `./lan-chat/uploads`.
 

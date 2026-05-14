@@ -1,3 +1,8 @@
+
+## 2026-05-14
+
+- Added public-safe recall failure benchmark documentation and chart methodology for measuring confirmed memory/recall correction incidents without publishing private transcripts, credentials, contact data, or live database rows.
+
 # Changelog
 
 All meaningful changes to this project are documented here and released with a GitHub Release plus GHCR container image.

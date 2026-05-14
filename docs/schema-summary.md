@@ -128,3 +128,19 @@ Before drafting or publishing a new article, review the same-day feed/archive an
 The assistant owns the full article set and must keep the day’s coverage fresh, non-repetitive, and additive.
 <!-- /SAME_DAY_NEWS_FRESHNESS_RULE -->
 
+
+## Semantic neural recall v1 objects
+
+2026-05-13 additive upgrade: queue-driven weighted semantic recall was added.
+
+Primary objects:
+
+- `memory_semantic_work_queue` - statused work queue for semantic association jobs; indexed by status/due/priority and source key.
+- `memory_semantic_tuner_versions` - active tuner/worker metadata and safety notes.
+- `memory_recall_weight_runs` - weighted recall audit rows.
+- `memory_enqueue_semantic_job(...)` - idempotent enqueue helper using `pg_notify`.
+- Trigger functions on `zorg_memory`, `zorg_contacts_crm`, and `zorg_success_query_index`.
+- `zorg_weighted_recall_context(...)` - weighted recall entry point.
+- `scripts/memory_semantic_worker.py` - bounded external worker for semantic nodes, weighted edges, query observations, and recall hints.
+
+This layer follows PostgreSQL queue best practice by using `FOR UPDATE SKIP LOCKED` in the worker and keeping triggers lightweight. It does not execute generated code inside PostgreSQL triggers and does not remove original memory data.

@@ -87,3 +87,37 @@ Before drafting or publishing a new article, review the same-day feed/archive an
 The assistant owns the full article set and must keep the day’s coverage fresh, non-repetitive, and additive.
 <!-- /SAME_DAY_NEWS_FRESHNESS_RULE -->
 
+
+## 2026-05-13 production v1: queue-driven semantic association loop
+
+The production-safe implementation uses database triggers only to enqueue work, not to run arbitrary generated code in PostgreSQL hot paths.
+
+New additive objects:
+
+- `memory_semantic_work_queue` - durable queue for source, contact, successful-query, and recall-query association work.
+- `memory_semantic_tuner_versions` - records the active LLM-governed tuner/worker version and safety notes.
+- `memory_recall_weight_runs` - audit trail for weighted recall calls and max score/result counts.
+- `memory_enqueue_semantic_job(...)` - idempotent queue insert + `pg_notify` signal.
+- Source triggers on `zorg_memory`, `zorg_contacts_crm`, and `zorg_success_query_index` enqueue lightweight jobs.
+- `zorg_weighted_recall_context(query, limit)` - returns normal recall context plus `relevance_score`, `relevance_percent`, `score_reason`, and `weight_breakdown`.
+- `scripts/memory_semantic_worker.py` - outside-DB worker that claims queue rows with `FOR UPDATE SKIP LOCKED`, extracts semantic cues, upserts nodes, creates weighted edges, adds recall hints, and refreshes derived search surfaces.
+
+Safety/performance shape:
+
+- Source rows are never deleted or compacted away.
+- Trigger work is O(1): enqueue + notify only.
+- Worker batches are bounded and can run periodically/opportunistically.
+- Derived graph/vector-like layers are additive and rebuildable.
+- LLM tuning must revise worker/migration logic only after recall evidence, backup, and before/after benchmarks.
+
+Operational behavior:
+
+- Existing recall surfaces are seeded into the queue with staggered due times.
+- New memories, CRM contacts, and successful query records enqueue automatically.
+- Calls to weighted recall enqueue `recall_query` jobs so query patterns become future association cues.
+
+Research basis used for v1 implementation:
+
+- PostgreSQL `CREATE TRIGGER` supports row-level/statement-level triggers and `AFTER` triggers that see completed row changes; v1 uses this only for enqueue metadata, not heavy work.
+- PostgreSQL `NOTIFY` is intended for transaction-safe change signaling and recommends storing larger structured data in tables while sending a lightweight notification payload; v1 stores job payloads in `memory_semantic_work_queue` and sends only the queue signal.
+- PostgreSQL `FOR UPDATE SKIP LOCKED` is documented as appropriate for avoiding lock contention among multiple consumers of a queue-like table; v1 worker uses it for bounded concurrent-safe queue claims.

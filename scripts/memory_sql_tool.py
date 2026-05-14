@@ -18,7 +18,22 @@ def connect(cfg):
 def mapped_tables(cfg) -> List[str]: return sorted(set(cfg["table_map"].values()))
 
 def search(cur, table: str, q: str, limit: int = 10):
-    routes = {"all":"zorg_recall_context", "project":"zorg_get_project_context", "host":"zorg_get_host_context", "runbook":"zorg_get_runbook_context"}
+    if table == "all":
+        try:
+            cur.execute("""
+            select source_type, source_id, path, line_start, line_end, priority,
+                   left(content, 400) as content,
+                   relevance_score, relevance_percent, score_reason, weight_breakdown
+            from zorg_weighted_recall_context(%s, %s)
+            """, (q, limit))
+            return cur.fetchall()
+        except Exception:
+            # Older installs may not have semantic neural recall v1 yet; caller transaction may need rollback.
+            cur.connection.rollback()
+            cur.execute("""select source_type, source_id, path, line_start, line_end, priority, left(content, 400) as content from zorg_recall_context(%s, %s)""", (q, limit))
+            return cur.fetchall()
+
+    routes = {"project":"zorg_get_project_context", "host":"zorg_get_host_context", "runbook":"zorg_get_runbook_context"}
     if table in routes:
         cur.execute(f"""select source_type, source_id, path, line_start, line_end, priority, left(content, 400) as content from {routes[table]}(%s, %s)""", (q, limit))
         return cur.fetchall()

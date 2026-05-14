@@ -230,3 +230,10 @@ All meaningful changes to this project are documented here and released with a G
 
 - Initial public sanitized Zorg MemoryDB repository.
 - PostgreSQL-backed memory schema, recall tooling, and OpenClaw integration documentation.
+## 2026-05-13 - Semantic neural recall v1
+
+- Added queue-driven semantic association layer for weighted MemoryDB recall.
+- Added `memory_semantic_work_queue`, tuner metadata, weighted recall audit rows, source/contact/success-query enqueue triggers, and `zorg_weighted_recall_context`.
+- Added `scripts/memory_semantic_worker.py` to build semantic nodes, weighted edges, recall hints, and query observations outside PostgreSQL hot paths.
+- Documented safety model: additive only, no source pruning, lightweight triggers, bounded worker batches, backup/benchmark gate.
+

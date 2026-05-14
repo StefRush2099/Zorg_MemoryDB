@@ -1,20 +1,3 @@
-
-## 2026-05-14
-
-- Added the LAN console (`lan-chat`) to the base Zorg MemoryDB repository and Docker Compose install so new deployments include a maintained web fallback communication path by default.
-- Clarified that `lan-chat` is a built-in local command chat/back channel for the default install, not a separate optional add-on, and documented the maintenance responsibility to keep it available.
-- Documented the privacy/security rationale for local-first agent communication: outside chat providers are convenient, but they add third-party account, bot, metadata, and retention surfaces for prompts that could otherwise remain local.
-
-
-## 2026-05-14
-
-- Added AI DJ agent reporting pattern for documenting memory-backed persona, artist-research, music-news, and streaming-station behavior in public-safe reports.
-
-
-## 2026-05-14
-
-- Added public-safe recall failure benchmark documentation and chart methodology for measuring confirmed memory/recall correction incidents without publishing private transcripts, credentials, contact data, or live database rows.
-
 # Changelog
 
 All meaningful changes to this project are documented here and released with a GitHub Release plus GHCR container image.
@@ -26,6 +9,27 @@ All meaningful changes to this project are documented here and released with a G
 ### Changed
 
 ### Verified
+
+## [v1.2.11] - 2026-05-14
+
+### Added
+
+- Added the built-in LAN console (`lan-chat`) to the base repository and Docker Compose install so new deployments include a local web command chat/back channel by default.
+- Added public-safe documentation for the LAN console privacy rationale, explaining why local-first agent communication reduces dependence on outside chat-provider accounts, bot surfaces, metadata, and retention boundaries.
+- Added queue-driven semantic neural recall v1 structures and worker support: durable semantic work queue, tuner metadata, enqueue helper, weighted semantic nodes/edges, recall hints, and query-observation generation.
+- Added public-safe recall failure benchmark methodology and a benchmark chart asset for measuring confirmed memory/recall correction incidents without publishing private transcripts or live DB rows.
+- Added an AI DJ agent reporting pattern for documenting memory-backed persona, artist-research, music-news, and streaming-station behavior in public-safe reports.
+- Added individual communication profile guidance so contact-specific handling rules can be represented publicly without exposing private contacts or messages.
+
+### Changed
+
+- Clarified that `lan-chat` is a built-in local command chat for the default install, not a separate optional add-on, and documented the maintenance responsibility to keep it available.
+- Updated schema and weighted-recall docs to describe the semantic queue/worker loop as an additive, source-preserving recall layer.
+- Updated setup docs so new installs understand LAN console wiring and local-first communication boundaries.
+
+### Verified
+
+- Verified release documentation stays public-safe and excludes private memory rows, transcripts, contacts, credentials, emails, live account data, and operator-specific infrastructure.
 
 ## [v1.2.10] - 2026-05-12
 

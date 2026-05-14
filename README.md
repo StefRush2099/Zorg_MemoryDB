@@ -14,6 +14,9 @@ Zorg MemoryDB is the OpenClaw base with a durable PostgreSQL-backed memory spine
 - Before you get started: [`docs/before-you-get-started.md`](docs/before-you-get-started.md)
 - Recommended baseline for a fully useful assistant install: [`docs/base-setup.md`](docs/base-setup.md)
 - How docs/releases stay current: [`docs/documentation-maintenance.md`](docs/documentation-maintenance.md)
+- Built-in LAN/local command console: [`docs/lan-console.md`](docs/lan-console.md)
+
+![Zorg MemoryDB LAN command console](docs/assets/lan-console-in-use-2026-05-14.png)
 
 ## Packages and releases
 
@@ -40,10 +43,12 @@ Choose one:
 
 ```bash
 INSTALL_ID="${PWD##*/}"
-docker run -d --name "${INSTALL_ID}-zorg-memorydb" --restart unless-stopped -p 18789-18889:18789 -v "$PWD/openclaw-home:/home/openclaw/.openclaw" ghcr.io/stefrush2099/zorg-memorydb:latest
+docker run -d --name "${INSTALL_ID}-zorg-memorydb" --restart unless-stopped -p 18789-18889:18789 -p 3001:3001 -v "$PWD/openclaw-home:/home/openclaw/.openclaw" ghcr.io/stefrush2099/zorg-memorydb:latest
 ```
 
 Open OpenClaw on the selected host port. Docker tries `18789` first, then the next free port through `18889`; run `docker ps` to confirm the published port.
+
+The built-in LAN command console is available on `http://127.0.0.1:3001/` by default.
 
 Docs: [`docs/docker-run.md`](docs/docker-run.md)
 
@@ -123,7 +128,7 @@ See [`docs/base-setup.md`](docs/base-setup.md).
 - internal PostgreSQL running only inside the same container
 - OpenClaw state, workspace, and memory data in the install folder at `./openclaw-home` (mounted inside the container at `/home/openclaw/.openclaw`)
 - first-run bootstrap that wires memory recall before OpenClaw Gateway starts
-- built-in LAN/local command chat (`lan-chat` plus nginx) so the operator and authorized local agents have a default web back channel if external messaging is unavailable
+- built-in LAN/local command chat (`lan-chat`; Compose/Dockge also includes nginx) so the operator and authorized local agents have a default web back channel if external messaging is unavailable
 - local-first communication path so private prompts do not have to traverse an outside chat provider before reaching the agent
 
 ## First-run behavior

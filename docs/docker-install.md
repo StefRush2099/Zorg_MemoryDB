@@ -33,7 +33,7 @@ docker compose up -d --build
 
 This creates `./openclaw-home` inside the current folder and keeps that install's OpenClaw state, workspace, embedded PostgreSQL data, and memory DB there. Docker Compose publishes OpenClaw on the first free host port in `OPENCLAW_GATEWAY_PUBLISHED_PORTS` — default `18789-18889`. Run `docker compose ps` after startup to see the selected external port.
 
-Open OpenClaw on the external port shown by `docker compose ps`.
+Open OpenClaw on the external port shown by `docker compose ps`. The built-in LAN/local command console is published by `lan-chat-nginx` on `LAN_CHAT_HTTP_PORT`, default `http://127.0.0.1:80/`.
 
 That is the complete start path. You should not need to manually configure a database or attach memory afterward.
 
@@ -57,6 +57,8 @@ The `openclaw-cli` service mounts the same `./openclaw-home` folder as the runni
 
 - one `openclaw` Compose service
 - one optional `openclaw-cli` Compose helper service for `tui` and `chat`
+- one built-in `lan-chat` local command console service
+- one `lan-chat-nginx` front door publishing the console on the LAN
 - full latest OpenClaw install
 - internal PostgreSQL running inside the same OpenClaw/Zorg container
 - Zorg MemoryDB schema, scripts, config, imports, materialized views, and DB-backed recall enforcement
@@ -71,6 +73,7 @@ docker compose logs -f openclaw
 docker compose exec openclaw bash -lc 'pg_isready -h 127.0.0.1 -p 5432'
 docker compose exec openclaw bash -lc 'cd /home/openclaw/.openclaw/workspace && .venv-sqlmem/bin/python scripts/memory_sql_tool.py tables'
 docker compose exec openclaw bash -lc 'cd /home/openclaw/.openclaw/workspace && .venv-sqlmem/bin/python scripts/memory_recall_router.py "database memory" --limit 5'
+curl -fsS http://127.0.0.1:${LAN_CHAT_HTTP_PORT:-80}/ | grep -i '<title>'
 ```
 
 Expected recall mode: `database-direct-structured`.

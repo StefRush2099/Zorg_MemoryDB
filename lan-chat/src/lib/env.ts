@@ -8,6 +8,9 @@ export const appConfig = {
   kokoroVoice: process.env.KOKORO_VOICE?.trim() || "",
   chatterboxBase: process.env.CHATTERBOX_BASE?.trim() || "",
   chatterboxVoice: process.env.CHATTERBOX_VOICE?.trim() || "",
+  openaiApiKey: process.env.OPENAI_API_KEY?.trim() || "",
+  openaiBaseUrl: process.env.OPENAI_BASE_URL?.trim() || "https://api.openai.com/v1",
+  whisperModel: process.env.WHISPER_MODEL?.trim() || "whisper-1",
 };
 
 if (!Number.isFinite(appConfig.historyLimit) || appConfig.historyLimit <= 0) {

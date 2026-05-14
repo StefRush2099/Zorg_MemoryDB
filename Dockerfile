@@ -17,7 +17,9 @@ ENV DEBIAN_FRONTEND=noninteractive \
     DB_NAME=openclaw_memory \
     DB_USER=openclaw_memory \
     OPENCLAW_GATEWAY_PORT=18789 \
-    OPENCLAW_GATEWAY_BIND=lan
+    OPENCLAW_GATEWAY_BIND=lan \
+    LAN_CHAT_PORT=3001 \
+    ENABLE_LAN_CHAT_INTERNAL=true
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
@@ -39,8 +41,11 @@ RUN npm install -g openclaw@${OPENCLAW_VERSION}
 
 WORKDIR /opt/zorg-memorydb
 COPY . /opt/zorg-memorydb
-RUN chmod +x /opt/zorg-memorydb/scripts/*.sh /opt/zorg-memorydb/scripts/openclaw-db-memory /opt/zorg-memorydb/docker/entrypoint.sh
+RUN chmod +x /opt/zorg-memorydb/scripts/*.sh /opt/zorg-memorydb/scripts/openclaw-db-memory /opt/zorg-memorydb/docker/entrypoint.sh \
+    && cd /opt/zorg-memorydb/lan-chat \
+    && npm ci \
+    && npm run build
 
-EXPOSE 18789
+EXPOSE 18789 3001
 ENTRYPOINT ["/usr/bin/tini", "--", "/opt/zorg-memorydb/docker/entrypoint.sh"]
 CMD ["gateway"]

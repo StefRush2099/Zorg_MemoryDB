@@ -1,6 +1,10 @@
 # LAN Console
 
-Zorg MemoryDB includes a LAN web console (`lan-chat`) as a built-in local command chat and fallback communication path for OpenClaw. This is a minimum usability feature: an operator should be able to open a normal web page on the same LAN and talk to the local agent without logging into a terminal, knowing CLI commands, or sending private prompts through an outside chat provider first.
+Zorg MemoryDB includes a LAN web console (`lan-chat`) as a built-in local command chat and fallback communication path for OpenClaw. It is installed with the base Zorg MemoryDB distribution in the Docker Compose/Dockge and native Ubuntu install paths, the same way database memory is installed as base infrastructure. This is a minimum usability feature: an operator should be able to open a normal web page on the same LAN and talk to the local agent without logging into a terminal, knowing CLI commands, or sending private prompts through an outside chat provider first.
+
+![LAN command console in use](assets/lan-console-in-use-2026-05-14.png)
+
+_Public-safe documentation screenshot. The live console should show the local agent identity, runtime/database readouts, and the unified latest-20 command stream without exposing private messages in public docs._
 
 Purpose:
 
@@ -39,10 +43,47 @@ Those additions should harden the local surface while preserving the core privac
 ## Default behavior
 
 - `lan-chat` builds from `./lan-chat`.
-- `lan-chat-nginx` publishes HTTP on port `80` by default.
-- The console reads the OpenClaw gateway config from the shared `./openclaw-home` volume.
-- It connects to the OpenClaw gateway over the compose network using `GATEWAY_HOST=openclaw`.
+- Docker Compose/Dockge starts `lan-chat` and `lan-chat-nginx` automatically with the main OpenClaw/Zorg service.
+- `lan-chat-nginx` publishes HTTP on port `80` by default (`LAN_CHAT_HTTP_PORT=80`).
+- Native Ubuntu installs `lan-chat.service` as a user-level systemd service on port `3001` (`LAN_CHAT_PORT=3001`).
+- The console reads the OpenClaw gateway config from the shared OpenClaw home (`./openclaw-home` in Compose or `$HOME/.openclaw` on native installs).
+- It connects to the OpenClaw gateway over the compose network using `GATEWAY_HOST=openclaw` in Docker, or `127.0.0.1` on native installs.
 - Chat messages are stored as DB memory rows so the LAN console becomes part of durable recall.
+- The browser tab title uses the running agent's full identity name instead of a hard-coded product title.
+- The conversation command stream is unified and limited to the latest 20 visible items from LAN/back-channel messages, Gateway/session history, local transcript history, and DB-ingested chat rows.
+
+## Install and verification
+
+### Docker Compose / Dockge
+
+The top-level `docker-compose.yml` includes both services by default:
+
+- `lan-chat` — the Next.js command console
+- `lan-chat-nginx` — the LAN HTTP front door
+
+After startup:
+
+```bash
+docker compose ps
+curl -fsS http://127.0.0.1:${LAN_CHAT_HTTP_PORT:-80}/ | grep -i '<title>'
+```
+
+### Native Ubuntu
+
+The native installer calls:
+
+```bash
+./scripts/install_lan_chat.sh
+```
+
+That helper installs dependencies, builds `./lan-chat`, writes `.env.local`, and registers `~/.config/systemd/user/lan-chat.service`.
+
+Verify with:
+
+```bash
+systemctl --user status lan-chat.service
+curl -fsS http://127.0.0.1:${LAN_CHAT_PORT:-3001}/ | grep -i '<title>'
+```
 
 ## Runtime notes
 

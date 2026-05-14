@@ -6,9 +6,19 @@ All meaningful changes to this project are documented here and released with a G
 
 ### Added
 
+- Promoted the LAN command console to a built-in install component across the packaged Docker image, Docker Compose/Dockge stack, and native Ubuntu path.
+- Added `scripts/install_lan_chat.sh` to build and register the native `lan-chat.service` on port 3001.
+- Added a public-safe LAN console screenshot asset for documentation.
+
 ### Changed
 
+- Updated Docker run examples to publish the built-in LAN command console on port 3001.
+- Updated install docs so the LAN console is documented alongside database memory as base Zorg MemoryDB infrastructure.
+- Updated the packaged Docker entrypoint to start an internal LAN console for single-container `docker run` installs while disabling that internal process in Compose, where `lan-chat` runs as its own service.
+
 ### Verified
+
+- Verified the live `lan-chat` app builds after the unified command-stream and dynamic tab-title changes.
 
 ## [v1.2.11] - 2026-05-14
 

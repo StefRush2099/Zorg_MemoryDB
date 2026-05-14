@@ -14,7 +14,9 @@ HOME=/home/openclaw
 : "${OPENCLAW_GATEWAY_PORT:=18789}"
 : "${OPENCLAW_GATEWAY_BIND:=lan}"
 : "${OPENCLAW_GATEWAY_AUTH:=trusted-proxy}"
-export HOME OPENCLAW_HOME OPENCLAW_WORKSPACE PGDATA DB_HOST DB_PORT DB_NAME DB_USER
+: "${LAN_CHAT_PORT:=3001}"
+: "${ENABLE_LAN_CHAT_INTERNAL:=true}"
+export HOME OPENCLAW_HOME OPENCLAW_WORKSPACE PGDATA DB_HOST DB_PORT DB_NAME DB_USER LAN_CHAT_PORT
 export ZORG_FORCE_WRITE_CONFIG=1
 
 POSTGRES_INITDB="$(find /usr/lib/postgresql -type f -name initdb | sort -V | tail -1)"
@@ -56,7 +58,41 @@ start_local_postgres(){
     -c "ALTER DATABASE $(pg_ident "$DB_NAME") OWNER TO $(pg_ident "$DB_USER")" >/dev/null
 }
 
+LAN_CHAT_PID=""
+
+start_lan_chat_internal(){
+  if [ "${ENABLE_LAN_CHAT_INTERNAL}" = "false" ] || [ "${ENABLE_LAN_CHAT_INTERNAL}" = "0" ]; then
+    log "internal LAN command console disabled for this container"
+    return 0
+  fi
+  if [ ! -d /opt/zorg-memorydb/lan-chat/.next ]; then
+    log "LAN command console build not found; skipping internal lan-chat start"
+    return 0
+  fi
+  log "starting built-in LAN command console on port ${LAN_CHAT_PORT}"
+  (
+    cd /opt/zorg-memorydb/lan-chat
+    export HOME OPENCLAW_HOME OPENCLAW_WORKSPACE
+    export GATEWAY_HOST=127.0.0.1
+    export GATEWAY_SESSION_KEY="${GATEWAY_SESSION_KEY:-agent:main:main}"
+    export CHAT_SOURCE_LABEL="${CHAT_SOURCE_LABEL:-LAN Console}"
+    export CHAT_HISTORY_LIMIT="${CHAT_HISTORY_LIMIT:-20}"
+    export GATEWAY_CALL_TIMEOUT_MS="${GATEWAY_CALL_TIMEOUT_MS:-15000}"
+    export PORT="${LAN_CHAT_PORT}"
+    exec npm run start
+  ) &
+  LAN_CHAT_PID="$!"
+}
+
+stop_lan_chat_internal(){
+  if [ -n "${LAN_CHAT_PID:-}" ]; then
+    kill "$LAN_CHAT_PID" >/dev/null 2>&1 || true
+    wait "$LAN_CHAT_PID" >/dev/null 2>&1 || true
+  fi
+}
+
 stop_local_postgres(){
+  stop_lan_chat_internal
   if [ -s "$PGDATA/PG_VERSION" ]; then
     gosu postgres pg_ctl -D "$PGDATA" -m fast -w stop >/dev/null 2>&1 || true
   fi
@@ -128,6 +164,7 @@ write_gateway_config
 case "${1:-gateway}" in
   gateway|openclaw-gateway)
     shift || true
+    start_lan_chat_internal
     log "starting OpenClaw Gateway on port ${OPENCLAW_GATEWAY_PORT} with Zorg DB memory enabled"
     exec openclaw gateway run \
       --allow-unconfigured \

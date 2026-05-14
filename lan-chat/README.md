@@ -2,21 +2,28 @@
 
 Next.js LAN/local command chat console for OpenClaw/Zorg MemoryDB deployments.
 
-The console provides a local browser chat surface that talks to the OpenClaw Gateway, stores conversation traffic in PostgreSQL-backed memory, and keeps communication available if an external messaging channel such as Telegram is unavailable. It is part of the default Zorg MemoryDB install, not a separate optional side app.
+The console provides a local browser chat surface that talks to the OpenClaw Gateway, stores conversation traffic in PostgreSQL-backed memory, and keeps communication available if an external channel such as Telegram is unavailable. It is part of the default Zorg MemoryDB install, not a separate optional side app.
+
+## Built-in install behavior
+
+- Docker run: the packaged image starts an internal LAN console on port `3001` when `ENABLE_LAN_CHAT_INTERNAL=true` (default).
+- Docker Compose/Dockge: the top-level stack runs `lan-chat` as a dedicated service and publishes it through `lan-chat-nginx` on `LAN_CHAT_HTTP_PORT` (default `80`).
+- Native Ubuntu: `scripts/install_lan_chat.sh` builds this app and registers `lan-chat.service` as a user-level systemd service on `LAN_CHAT_PORT` (default `3001`).
 
 ## Features
 
 - Local web chat UI
+- Dynamic browser tab title from the running agent identity
+- Unified latest-20 command stream across LAN/back-channel, Gateway/session history, transcript history, and DB-ingested chat rows
 - Gateway-backed `chat.send` / history access
 - PostgreSQL memory ingestion for LAN chat messages
 - Runtime and database status display
 - Optional file upload support
-- Nginx front-end for simple LAN access
 - Built-in fallback command chat for operator and authorized local agent coordination
 
 ## Configuration
 
-Copy the example environment file if running outside the bundled Docker Compose setup:
+Copy the example environment file if running outside the bundled service setup:
 
 ```bash
 cp .env.local.example .env.local
@@ -26,16 +33,11 @@ Useful environment variables:
 
 - `GATEWAY_SESSION_KEY` — OpenClaw session key to expose, default `agent:main:main`
 - `CHAT_SOURCE_LABEL` — label shown in injected metadata, default `LAN Console`
-- `CHAT_HISTORY_LIMIT` — message count to return, default `50`
+- `CHAT_HISTORY_LIMIT` — visible history limit, default `20`
 - `GATEWAY_CALL_TIMEOUT_MS` — gateway request timeout, default `15000`
-- `GATEWAY_HOST` — gateway host, default `127.0.0.1`; bundled Compose sets this to `openclaw`
-
-## Docker Compose
-
-The top-level Zorg MemoryDB `docker-compose.yml` builds this app as `lan-chat` and publishes it through `lan-chat-nginx`. Keep it online as base communication infrastructure alongside the normal OpenClaw gateway and messaging connectors.
-
-The app mounts `./openclaw-home` read-only so it can read the local OpenClaw gateway/device auth configuration. Uploaded files are stored under `./lan-chat/uploads`.
+- `GATEWAY_HOST` — gateway host (`openclaw` in Compose, `127.0.0.1` on native installs)
+- `PORT` / `LAN_CHAT_PORT` — Next.js listen port, default `3001`
 
 ## Privacy boundary
 
-Do not commit `.env.local`, live OpenClaw state, credentials, uploaded files, build output, or node dependencies. This directory is intended to contain source and public-safe install structure only.
+Do not commit `.env.local`, live OpenClaw state, credentials, uploaded files, build output, node dependencies, private screenshots, transcripts, or operator-specific context. This directory contains source and public-safe install structure only.

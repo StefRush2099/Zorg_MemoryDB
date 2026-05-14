@@ -11,6 +11,7 @@ DB_USER="${DB_USER:-openclaw_memory}"
 OPENCLAW_GATEWAY_PORT="${OPENCLAW_GATEWAY_PORT:-18789}"
 OPENCLAW_GATEWAY_BIND="${OPENCLAW_GATEWAY_BIND:-lan}"
 OPENCLAW_GATEWAY_AUTH="${OPENCLAW_GATEWAY_AUTH:-trusted-proxy}"
+LAN_CHAT_PORT="${LAN_CHAT_PORT:-3001}"
 
 have(){ command -v "$1" >/dev/null 2>&1; }
 run_priv(){ if [ "$(id -u)" -eq 0 ]; then "$@"; else sudo "$@"; fi; }
@@ -62,6 +63,15 @@ SQL
 cd "$INSTALL_DIR"
 DB_HOST=127.0.0.1 DB_PORT=5432 DB_NAME="$DB_NAME" DB_USER="$DB_USER" ./scripts/first_run.sh
 
+OPENCLAW_HOME="$HOME/.openclaw" \
+OPENCLAW_WORKSPACE="$INSTALL_DIR" \
+GATEWAY_HOST=127.0.0.1 \
+GATEWAY_SESSION_KEY=agent:main:main \
+CHAT_SOURCE_LABEL="LAN Console" \
+CHAT_HISTORY_LIMIT=20 \
+LAN_CHAT_PORT="$LAN_CHAT_PORT" \
+./scripts/install_lan_chat.sh
+
 cat > .env.native <<ENV
 DB_HOST=127.0.0.1
 DB_PORT=5432
@@ -70,6 +80,7 @@ DB_USER=$DB_USER
 OPENCLAW_GATEWAY_PORT=$OPENCLAW_GATEWAY_PORT
 OPENCLAW_GATEWAY_BIND=$OPENCLAW_GATEWAY_BIND
 OPENCLAW_GATEWAY_AUTH=$OPENCLAW_GATEWAY_AUTH
+LAN_CHAT_PORT=$LAN_CHAT_PORT
 ENV
 chmod 600 .env.native
 
@@ -103,5 +114,7 @@ PY
 
 echo "Native Ubuntu OpenClaw + Zorg MemoryDB install complete."
 echo "Config saved to $INSTALL_DIR/.env.native"
+echo "LAN command console installed at http://127.0.0.1:$LAN_CHAT_PORT/"
+echo "Service status: systemctl --user status lan-chat.service"
 echo "Start gateway with:"
 echo "  cd $INSTALL_DIR && source .env.native && OPENCLAW_WORKSPACE=$INSTALL_DIR SQL_MEMORY_MAP=$INSTALL_DIR/sql_memory_map.json openclaw gateway run --allow-unconfigured --bind \$OPENCLAW_GATEWAY_BIND --port \$OPENCLAW_GATEWAY_PORT --auth \$OPENCLAW_GATEWAY_AUTH"

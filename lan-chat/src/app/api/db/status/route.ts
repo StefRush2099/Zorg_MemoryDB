@@ -35,6 +35,13 @@ type PreviousSample = {
 
 let previousSample: PreviousSample | null = null;
 
+type CpuTimes = {
+  total: number;
+  idle: number;
+};
+
+let previousCpuTimes: CpuTimes | null = null;
+
 function toNumber(value: unknown) {
   if (typeof value === "number") return Number.isFinite(value) ? value : 0;
   if (typeof value === "string") {
@@ -46,6 +53,61 @@ function toNumber(value: unknown) {
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
+}
+
+function readCpuTimes(): CpuTimes | null {
+  try {
+    const line = fs.readFileSync("/proc/stat", "utf8").split("\n").find((entry) => entry.startsWith("cpu "));
+    if (!line) return null;
+    const values = line.trim().split(/\s+/).slice(1).map((value) => Number(value));
+    if (!values.length || values.some((value) => !Number.isFinite(value))) return null;
+    const idle = (values[3] || 0) + (values[4] || 0);
+    const total = values.reduce((sum, value) => sum + value, 0);
+    return { total, idle };
+  } catch {
+    return null;
+  }
+}
+
+function getCpuBaseGHz() {
+  try {
+    const cpuInfo = fs.readFileSync("/proc/cpuinfo", "utf8");
+    const modelMhz = [...cpuInfo.matchAll(/@\s*([0-9.]+)GHz/gim)]
+      .map((match) => Number(match[1]))
+      .filter((value) => Number.isFinite(value) && value > 0);
+    if (modelMhz.length) return modelMhz[0];
+    const currentMhz = [...cpuInfo.matchAll(/^cpu MHz\s*:\s*([0-9.]+)/gim)]
+      .map((match) => Number(match[1]))
+      .filter((value) => Number.isFinite(value) && value > 0);
+    if (currentMhz.length) return currentMhz.reduce((sum, value) => sum + value, 0) / currentMhz.length / 1000;
+  } catch {
+    // fall through
+  }
+  return 0;
+}
+
+function getCpuMetric() {
+  const current = readCpuTimes();
+  const baseGHz = getCpuBaseGHz();
+  const cores = Math.max(1, (fs.readFileSync("/proc/cpuinfo", "utf8").match(/^processor\s*:/gim) || []).length || 1);
+  const capacityGHz = baseGHz > 0 ? baseGHz * cores : 0;
+  let usageRatio = 0;
+
+  if (current && previousCpuTimes) {
+    const totalDelta = current.total - previousCpuTimes.total;
+    const idleDelta = current.idle - previousCpuTimes.idle;
+    if (totalDelta > 0) usageRatio = clamp((totalDelta - idleDelta) / totalDelta, 0, 1);
+  }
+
+  if (current) previousCpuTimes = current;
+
+  return {
+    usagePercent: Math.round(usageRatio * 1000) / 10,
+    usedGHz: Math.round(capacityGHz * usageRatio * 100) / 100,
+    baseGHz: Math.round(baseGHz * 100) / 100,
+    capacityGHz: Math.round(capacityGHz * 100) / 100,
+    cores,
+  };
 }
 
 function getStorageMetric() {
@@ -82,6 +144,7 @@ function getStorageMetric() {
 export async function GET() {
   try {
     const storageMetric = getStorageMetric();
+    const cpuMetric = getCpuMetric();
     const pool = getDbPool();
     if (!pool) {
       return NextResponse.json({
@@ -108,6 +171,11 @@ export async function GET() {
           storageTotalBytes: storageMetric.totalBytes,
           storageUsedBytes: storageMetric.usedBytes,
           storageFreePercent: storageMetric.freePercent,
+          cpuGHz: cpuMetric.usedGHz,
+          cpuUsagePercent: cpuMetric.usagePercent,
+          cpuBaseGHz: cpuMetric.baseGHz,
+          cpuCapacityGHz: cpuMetric.capacityGHz,
+          cpuCores: cpuMetric.cores,
         },
         healthScore: 0,
         degraded: true,
@@ -290,6 +358,11 @@ export async function GET() {
         storageTotalBytes: storageMetric.totalBytes,
         storageUsedBytes: storageMetric.usedBytes,
         storageFreePercent: storageMetric.freePercent,
+        cpuGHz: cpuMetric.usedGHz,
+        cpuUsagePercent: cpuMetric.usagePercent,
+        cpuBaseGHz: cpuMetric.baseGHz,
+        cpuCapacityGHz: cpuMetric.capacityGHz,
+        cpuCores: cpuMetric.cores,
       },
       healthScore: clamp(
         Math.round(100 - blockedQueries * 18 - slowQueries * 10 - Math.min(longestQuerySeconds * 4, 35) - Math.max(0, 95 - cacheHitRatio) * 1.2),
@@ -300,6 +373,7 @@ export async function GET() {
   } catch (error) {
     console.error("db status failed", error);
     const storageMetric = getStorageMetric();
+    const cpuMetric = getCpuMetric();
     return NextResponse.json({
       sampledAt: new Date().toISOString(),
       statsResetAt: null,
@@ -324,6 +398,11 @@ export async function GET() {
         storageTotalBytes: storageMetric.totalBytes,
         storageUsedBytes: storageMetric.usedBytes,
         storageFreePercent: storageMetric.freePercent,
+        cpuGHz: cpuMetric.usedGHz,
+        cpuUsagePercent: cpuMetric.usagePercent,
+        cpuBaseGHz: cpuMetric.baseGHz,
+        cpuCapacityGHz: cpuMetric.capacityGHz,
+        cpuCores: cpuMetric.cores,
       },
       healthScore: 0,
       degraded: true,

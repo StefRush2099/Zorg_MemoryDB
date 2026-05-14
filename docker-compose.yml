@@ -20,6 +20,9 @@ services:
       OPENCLAW_GATEWAY_PORT: ${OPENCLAW_GATEWAY_CONTAINER_PORT:-18789}
       OPENCLAW_GATEWAY_BIND: ${OPENCLAW_GATEWAY_BIND:-lan}
       OPENCLAW_GATEWAY_AUTH: trusted-proxy
+      # Compose runs lan-chat as a dedicated service below; keep the
+      # single-container/docker-run internal LAN console disabled here.
+      ENABLE_LAN_CHAT_INTERNAL: "false"
     ports:
       # Docker automatically selects the first free host port in this range.
       # Default tries 18789, then 18790, and so on through 18889.
@@ -62,7 +65,8 @@ services:
       GATEWAY_HOST: openclaw
       GATEWAY_SESSION_KEY: ${GATEWAY_SESSION_KEY:-agent:main:main}
       CHAT_SOURCE_LABEL: ${CHAT_SOURCE_LABEL:-LAN Console}
-      CHAT_HISTORY_LIMIT: ${CHAT_HISTORY_LIMIT:-50}
+      CHAT_HISTORY_LIMIT: ${CHAT_HISTORY_LIMIT:-20}
+      PORT: 3001
       GATEWAY_CALL_TIMEOUT_MS: ${GATEWAY_CALL_TIMEOUT_MS:-15000}
     volumes:
       - ./openclaw-home:/home/openclaw/.openclaw:ro

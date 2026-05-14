@@ -12,16 +12,16 @@ ghcr.io/stefrush2099/zorg-memorydb
 
 ```bash
 INSTALL_ID="${PWD##*/}"
-docker run -d --name "${INSTALL_ID}-zorg-memorydb" --restart unless-stopped -p 18789-18889:18789 -v "$PWD/openclaw-home:/home/openclaw/.openclaw" ghcr.io/stefrush2099/zorg-memorydb:latest
+docker run -d --name "${INSTALL_ID}-zorg-memorydb" --restart unless-stopped -p 18789-18889:18789 -p 3001:3001 -v "$PWD/openclaw-home:/home/openclaw/.openclaw" ghcr.io/stefrush2099/zorg-memorydb:latest
 ```
 
-Open OpenClaw on the selected host port. Docker tries `18789` first, then the next free port through `18889`; run `docker ps` to confirm the published port.
+Open OpenClaw on the selected host port. Docker tries `18789` first, then the next free port through `18889`; run `docker ps` to confirm the published port. The built-in LAN command console is available on `http://127.0.0.1:3001/` by default.
 
 ## Version-pinned example
 
 ```bash
 INSTALL_ID="${PWD##*/}"
-docker run -d --name "${INSTALL_ID}-zorg-memorydb" --restart unless-stopped -p 18789-18889:18789 -v "$PWD/openclaw-home:/home/openclaw/.openclaw" ghcr.io/stefrush2099/zorg-memorydb:1.1.2
+docker run -d --name "${INSTALL_ID}-zorg-memorydb" --restart unless-stopped -p 18789-18889:18789 -p 3001:3001 -v "$PWD/openclaw-home:/home/openclaw/.openclaw" ghcr.io/stefrush2099/zorg-memorydb:1.1.2
 ```
 
 ## Verify
@@ -30,6 +30,7 @@ docker run -d --name "${INSTALL_ID}-zorg-memorydb" --restart unless-stopped -p 1
 docker exec "${INSTALL_ID}-zorg-memorydb" bash -lc 'pg_isready -h 127.0.0.1 -p 5432'
 docker exec "${INSTALL_ID}-zorg-memorydb" bash -lc 'cd /home/openclaw/.openclaw/workspace && .venv-sqlmem/bin/python scripts/memory_sql_tool.py tables'
 docker exec "${INSTALL_ID}-zorg-memorydb" bash -lc 'cd /home/openclaw/.openclaw/workspace && .venv-sqlmem/bin/python scripts/memory_recall_router.py "database memory" --limit 5'
+curl -fsS http://127.0.0.1:3001/ | grep -i '<title>'
 ```
 
 Expected recall mode: `database-direct-structured`.
@@ -42,7 +43,7 @@ INSTALL_ID="${PWD##*/}"
 docker stop "${INSTALL_ID}-zorg-memorydb"
 docker rm "${INSTALL_ID}-zorg-memorydb"
 
-docker run -d --name "${INSTALL_ID}-zorg-memorydb" --restart unless-stopped -p 18789-18889:18789 -v "$PWD/openclaw-home:/home/openclaw/.openclaw" ghcr.io/stefrush2099/zorg-memorydb:latest
+docker run -d --name "${INSTALL_ID}-zorg-memorydb" --restart unless-stopped -p 18789-18889:18789 -p 3001:3001 -v "$PWD/openclaw-home:/home/openclaw/.openclaw" ghcr.io/stefrush2099/zorg-memorydb:latest
 ```
 
 Do not remove the folder-local `openclaw-home/` directory unless you intentionally want to discard that install's OpenClaw state and memory data.

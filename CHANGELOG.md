@@ -1,6 +1,11 @@
 
 ## 2026-05-14
 
+- Added AI DJ agent reporting pattern for documenting memory-backed persona, artist-research, music-news, and streaming-station behavior in public-safe reports.
+
+
+## 2026-05-14
+
 - Added public-safe recall failure benchmark documentation and chart methodology for measuring confirmed memory/recall correction incidents without publishing private transcripts, credentials, contact data, or live database rows.
 
 # Changelog

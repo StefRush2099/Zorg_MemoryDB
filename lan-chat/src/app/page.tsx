@@ -541,7 +541,6 @@ export default function Home() {
           <div className="panel-title-row chat-title">
             <div>
               <p className="eyebrow">Conversation</p>
-              <h2>Conversation</h2>
             </div>
             {latestAssistant ? <span className="mini">last reply {formatTime(latestAssistant.timestamp)}</span> : <span className="mini">ready</span>}
           </div>

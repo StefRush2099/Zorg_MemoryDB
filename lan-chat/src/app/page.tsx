@@ -596,7 +596,7 @@ export default function Home() {
                 value={draft}
                 onChange={(event) => setDraft(event.target.value)}
                 onKeyDown={onKeyDown}
-                placeholder="Send a command to Zorg…"
+                placeholder={`Send a command to ${identity}…`}
                 spellCheck
               />
               <div className="compose-actions">

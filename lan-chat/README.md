@@ -44,4 +44,4 @@ Do not commit `.env.local`, live OpenClaw state, credentials, uploaded files, bu
 
 ## Login password reset procedure
 
-The default landing page is a password login gate for the LAN command chat. To rotate access, generate a new strong random password, update `LAN_CHAT_PASSWORD_HASH` with a salted PBKDF2-SHA256 hash, update/keep `LAN_CHAT_AUTH_SECRET` for signed login cookies, rebuild/restart `lan-chat`, then send the new plaintext password to the operator at the approved email address. Do not commit plaintext passwords.
+The default landing page is a password login gate for the LAN command chat. To rotate access, generate a new strong random password, update `LAN_CHAT_PASSWORD_HASH` with a salted PBKDF2-SHA256 hash, update/keep `LAN_CHAT_AUTH_SECRET` for signed login cookies, rebuild/restart `lan-chat`, then send the new plaintext password to the operator at the approved email address. If email is unavailable, use the backup secure-channel procedure: direct the operator/user to open the OpenClaw TUI on the LAN and provide the password there, keeping the password on an internal LAN channel. Do not commit plaintext passwords.

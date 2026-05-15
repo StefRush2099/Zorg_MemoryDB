@@ -39,7 +39,7 @@ export async function POST(request: Request) {
     }
 
     const form = new FormData();
-    form.append("file", audio, audio.name || "zorg-voice.webm");
+    form.append("file", audio, audio.name || "agent-voice.webm");
     form.append("model", appConfig.whisperModel);
     form.append("response_format", "json");
     if (typeof language === "string" && language.trim()) form.append("language", language.trim());

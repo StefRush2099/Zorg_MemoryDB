@@ -107,8 +107,8 @@ function formatGHz(value: unknown) {
   return Number.isFinite(numeric) && numeric > 0 ? `${numeric.toFixed(2)} GHz` : "GHz n/a";
 }
 
-function roleLabel(role: Role) {
-  if (role === "assistant") return "Zorg";
+function roleLabel(role: Role, identity: string) {
+  if (role === "assistant") return identity || "Assistant";
   if (role === "system") return "System";
   return "You";
 }
@@ -165,12 +165,12 @@ function Gauge({ label, metric }: { label: string; metric?: DialMetric }) {
   );
 }
 
-function MessageBubble({ message }: { message: ChatMessage }) {
+function MessageBubble({ message, identity }: { message: ChatMessage; identity: string }) {
   const chunks = redactSensitiveText(message.text).split("\n");
   return (
     <article className={cx("message", `message-${message.role}`)}>
       <header>
-        <span>{roleLabel(message.role)}</span>
+        <span>{roleLabel(message.role, identity)}</span>
         <time>{formatTime(message.timestamp)}</time>
       </header>
       <div className="message-body">
@@ -215,7 +215,7 @@ export default function Home() {
   const [dbQueries, setDbQueries] = useState<DbQueries | null>(null);
   const [dbError, setDbError] = useState<string | null>(null);
   const [queryError, setQueryError] = useState<string | null>(null);
-  const [identity, setIdentity] = useState("Zorg Rush");
+  const [identity, setIdentity] = useState("Assistant");
   const [draft, setDraft] = useState("");
   const [attachments, setAttachments] = useState<ChatAttachment[]>([]);
   const [sending, setSending] = useState(false);
@@ -560,7 +560,7 @@ export default function Home() {
                   {event.detail ? <span>{event.detail}</span> : null}
                 </div>
               ))}
-              {(!activity?.events || activity.events.length === 0) ? <div className="activity-event"><b>No current run</b><span>Messages will show thinking/tools here while Zorg works.</span></div> : null}
+              {(!activity?.events || activity.events.length === 0) ? <div className="activity-event"><b>No current run</b><span>Messages will show thinking/tools here while this agent works.</span></div> : null}
             </div>
           </section>
           <div className="messages" ref={messagesRef} aria-live="polite">
@@ -570,7 +570,7 @@ export default function Home() {
                 <p>Type, paste, drag files, or dictate a command.</p>
               </div>
             ) : null}
-            {messages.map((message) => <MessageBubble key={message.id} message={message} />)}
+            {messages.map((message) => <MessageBubble key={message.id} message={message} identity={identity} />)}
             {sending ? <div className="working">Sending<span>.</span><span>.</span><span>.</span></div> : null}
             <div ref={bottomRef} />
           </div>
@@ -610,7 +610,7 @@ export default function Home() {
         </section>
       </div>
 
-      <div className="signature">Zorg LAN Console · scratch rebuilt UI</div>
+      <div className="signature">{identity} LAN Console · scratch rebuilt UI</div>
     </main>
   );
 }

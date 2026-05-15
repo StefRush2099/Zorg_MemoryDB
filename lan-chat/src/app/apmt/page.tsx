@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type ResultState = {
   data: unknown | null;
@@ -15,10 +15,18 @@ function pretty(value: unknown) {
 }
 
 export default function ApmtPage() {
+  const [identity, setIdentity] = useState("Assistant");
   const [facilityCode, setFacilityCode] = useState("");
   const [assetId, setAssetId] = useState("");
   const [emptyState, setEmptyState] = useState<ResultState>(defaultState);
   const [bookingState, setBookingState] = useState<ResultState>(defaultState);
+
+  useEffect(() => {
+    fetch("/api/chat/identity", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error("identity unavailable"))))
+      .then((data) => typeof data?.name === "string" && setIdentity(data.name))
+      .catch(() => setIdentity("Assistant"));
+  }, []);
 
   async function runLookup(endpoint: string, setState: (s: ResultState) => void) {
     setState({ data: null, error: null, loading: true });
@@ -37,7 +45,7 @@ export default function ApmtPage() {
     <div className="min-h-screen bg-slate-950 text-slate-50">
       <div className="mx-auto flex h-screen max-w-5xl flex-col px-4 py-8 md:px-8">
         <header className="mb-6 flex flex-col gap-1 border-b border-white/10 pb-4">
-          <p className="text-sm uppercase tracking-[0.3em] text-emerald-300">Zorg · APMT Console</p>
+          <p className="text-sm uppercase tracking-[0.3em] text-emerald-300">{identity} · APMT Console</p>
           <h1 className="text-3xl font-semibold text-white">APMT Track & Trace</h1>
           <p className="text-sm text-slate-400">Lookup empty returns and booking enquiries.</p>
         </header>

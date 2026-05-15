@@ -541,11 +541,11 @@ export default function Home() {
           <div className="panel-title-row chat-title">
             <div>
               <p className="eyebrow">Conversation</p>
-              <h2>Command stream</h2>
+              <h2>Conversation</h2>
             </div>
             {latestAssistant ? <span className="mini">last reply {formatTime(latestAssistant.timestamp)}</span> : <span className="mini">ready</span>}
           </div>
-          <section className={cx("activity-card", activity?.active && "active", activity?.degraded && "warn")}>
+          <section className={cx("activity-card", activity?.active && "active", activity?.label === "Reply ready" && "ready", activity?.degraded && "unavailable")}>
             <div className="activity-head">
               <span className="activity-dot" />
               <div>

@@ -292,11 +292,13 @@ h2 { font-size: 18px; letter-spacing: -.02em; }
 .theme-dark .activity-card { border-color: rgba(125,211,252,.16); background: rgba(2, 6, 23, .50); box-shadow: none; }
 .activity-card.active { border-color: rgba(5, 150, 105, .55); }
 .activity-card.warn { border-color: rgba(217, 119, 6, .5); }
+.activity-card.unavailable { border-color: rgba(220, 38, 38, .66); }
 .activity-head { display: flex; align-items: center; gap: 10px; }
 .activity-head strong { display: block; color: var(--text); font-size: 13px; }
 .activity-head small { display: block; color: var(--muted); font-size: 11px; margin-top: 2px; }
 .activity-dot { width: 10px; height: 10px; border-radius: 999px; background: #94a3b8; box-shadow: 0 0 0 4px rgba(148,163,184,.14); }
-.activity-card.active .activity-dot { background: #22c55e; box-shadow: 0 0 0 4px rgba(34,197,94,.16), 0 0 18px rgba(34,197,94,.5); animation: statusPulse 1.2s ease-in-out infinite; }
+.activity-card.active .activity-dot, .activity-card.ready .activity-dot { background: #22c55e; box-shadow: 0 0 0 4px rgba(34,197,94,.16), 0 0 18px rgba(34,197,94,.5); animation: statusPulse 1s ease-in-out infinite; }
+.activity-card.unavailable .activity-dot { background: #ef4444; box-shadow: 0 0 0 4px rgba(239,68,68,.18), 0 0 18px rgba(239,68,68,.55); animation: none; }
 .activity-events { display: grid; gap: 6px; max-height: 120px; overflow: auto; }
 .activity-event { display: grid; grid-template-columns: 130px minmax(0, 1fr); gap: 8px; align-items: baseline; border-radius: 11px; padding: 6px 8px; background: rgba(241,245,249,.72); }
 .theme-dark .activity-event { background: rgba(255,255,255,.05); }

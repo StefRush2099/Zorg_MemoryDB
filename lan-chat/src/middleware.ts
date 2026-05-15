@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 const AUTH_COOKIE = "lan_chat_auth";
 const AUTH_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
-const LAN_CHAT_PUBLIC_PATHS = new Set(["/", "/api/auth/login", "/api/chat/identity", "/favicon.ico"]);
+const LAN_CHAT_PUBLIC_PATHS = new Set(["/", "/api/auth/login", "/api/chat/identity", "/api/chat/status", "/favicon.ico"]);
 
 
 const ALLOWED_CIDRS = [

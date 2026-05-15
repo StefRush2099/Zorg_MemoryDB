@@ -411,3 +411,37 @@ textarea:focus { border-color: rgba(56,189,248,.56); box-shadow: 0 0 0 4px rgba(
   .compose-actions { grid-template-columns: repeat(3, 1fr); }
   .mode-row .hint { width: 100%; margin-left: 0; }
 }
+
+.login-shell {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+.login-card {
+  width: min(430px, calc(100vw - 32px));
+  min-height: 430px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 22px;
+  position: relative;
+  z-index: 1;
+}
+.login-head { text-align: center; display: grid; gap: 8px; }
+.login-head h1 { margin: 0; font-size: clamp(32px, 7vw, 54px); letter-spacing: -.06em; }
+.login-form { display: grid; gap: 10px; }
+.login-form label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .13em; font-weight: 800; }
+.login-form input {
+  width: 100%;
+  border: 1px solid rgba(15,23,42,.14);
+  border-radius: 16px;
+  padding: 13px 14px;
+  background: rgba(255,255,255,.74);
+  color: var(--text);
+  outline: none;
+  font-size: 16px;
+}
+.theme-dark .login-form input { border-color: rgba(255,255,255,.12); background: rgba(2,6,23,.64); }
+.login-error { margin: 0; color: #ef4444; font-size: 13px; font-weight: 700; }
+.login-theme { align-self: center; }

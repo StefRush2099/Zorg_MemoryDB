@@ -41,3 +41,7 @@ Useful environment variables:
 ## Privacy boundary
 
 Do not commit `.env.local`, live OpenClaw state, credentials, uploaded files, build output, node dependencies, private screenshots, transcripts, or operator-specific context. This directory contains source and public-safe install structure only.
+
+## Login password reset procedure
+
+The default landing page is a password login gate for the LAN command chat. To rotate access, generate a new strong random password, update `LAN_CHAT_PASSWORD_HASH` with a salted PBKDF2-SHA256 hash, update/keep `LAN_CHAT_AUTH_SECRET` for signed login cookies, rebuild/restart `lan-chat`, then send the new plaintext password to the operator at the approved email address. Do not commit plaintext passwords.

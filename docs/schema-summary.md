@@ -144,3 +144,17 @@ Primary objects:
 - `scripts/memory_semantic_worker.py` - bounded external worker for semantic nodes, weighted edges, query observations, and recall hints.
 
 This layer follows PostgreSQL queue best practice by using `FOR UPDATE SKIP LOCKED` in the worker and keeping triggers lightweight. It does not execute generated code inside PostgreSQL triggers and does not remove original memory data.
+
+## 2026-05-14 non-destructive index tuning
+
+`db/non_destructive_index_tuning_2026_05_14.sql` adds trigram and sort-support indexes for existing recall/context tables without pruning or reshaping source memory. The indexes target the existing lookup predicates used by `zorg_get_logic_context`, `zorg_get_runbook_context`, `zorg_get_project_context`, `zorg_get_host_context`, and related context surfaces:
+
+- active logic-rule text and priority/update ordering
+- active runbook title/key/trigger/procedure text and update ordering
+- active project key/name/path/purpose text
+- project alias text
+- active host name/key/IP/purpose text
+- active directive text/category/priority text
+- project fact text/type/key text
+
+The production tuning run also refreshed planner statistics with `VACUUM (ANALYZE)` and rebuilt existing hot recall indexes before adding the new indexes. This is additive performance support only; original memory rows remain the source of truth.

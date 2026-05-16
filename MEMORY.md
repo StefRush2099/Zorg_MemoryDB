@@ -87,6 +87,14 @@ If research does not support a design change, move to raw additive performance w
 Every meaningful tuning change must record the research basis, before/after benchmark results, changed structures, rollback path, and follow-up indexing/hinting implications in durable memory and public-safe docs when structural behavior changes.
 <!-- /LLM_GOVERNED_PERFORMANCE_TUNING_RULE -->
 
+<!-- OPENCLAW_HOST_IDENTITY_RULE -->
+## OpenClaw Host Identity Rule
+
+This installation is the local OpenClaw host named openclaw at LAN IP 10.7.69.200. Treat 10.7.69.200 as this system's own address unless live network checks prove otherwise.
+
+Do not confuse this host with Vorg (10.7.69.44), the shared-folder source host (10.7.69.46), or the jump/root host (10.7.69.104). Before service, routing, recovery, LAN command, memory, or backup work, verify whether the task targets local OpenClaw (openclaw / 10.7.69.200) or a separate named system.
+<!-- /OPENCLAW_HOST_IDENTITY_RULE -->
+
 <!-- GO_ONLY_APPROVAL_RULE -->
 ## GO-Only Approval Rule
 

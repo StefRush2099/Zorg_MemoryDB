@@ -6,6 +6,7 @@ All meaningful changes to this project are documented here and released with a G
 
 ### Added
 
+- Added a public-safe one-step self-recovery entrypoint, `scripts/zorg_self_recover.sh`, and documented the private-backup recovery process in `docs/self-recovery.md`.
 - Promoted the LAN command console to a built-in install component across the packaged Docker image, Docker Compose/Dockge stack, and native Ubuntu path.
 - Added `scripts/install_lan_chat.sh` to build and register the native `lan-chat.service` on port 3001.
 - Added a public-safe LAN console screenshot asset for documentation.
@@ -252,4 +253,3 @@ All meaningful changes to this project are documented here and released with a G
 - Added `memory_semantic_work_queue`, tuner metadata, weighted recall audit rows, source/contact/success-query enqueue triggers, and `zorg_weighted_recall_context`.
 - Added `scripts/memory_semantic_worker.py` to build semantic nodes, weighted edges, recall hints, and query observations outside PostgreSQL hot paths.
 - Documented safety model: additive only, no source pruning, lightweight triggers, bounded worker batches, backup/benchmark gate.
-

@@ -11,9 +11,6 @@ DB_CONT="local-postgres"
 DB_USER="zorg"
 DB_NAME="zorgdb"
 
-# No direct SSH copies by policy.
-LOCAL_MIRROR_046="/Zorg/backups/openclaw/postgres"
-
 mkdir -p "$BASE_LOCAL" "$LOG_DIR"
 
 OUT_SQL="$BASE_LOCAL/zorgdb-$TS.sql.gz"
@@ -32,14 +29,6 @@ OUT_SCHEMA="$BASE_LOCAL/zorgdb-schema-$TS.sql.gz"
   SIZE_MAIN=$(du -h "$OUT_SQL" | awk '{print $1}')
   SIZE_SCHEMA=$(du -h "$OUT_SCHEMA" | awk '{print $1}')
   echo "[$(date -Is)] local backup complete main=$SIZE_MAIN schema=$SIZE_SCHEMA"
-
-  # optional local mirror if /Zorg is mounted on this host
-  if [ -d "/Zorg" ] || mkdir -p "$LOCAL_MIRROR_046" 2>/dev/null; then
-    cp -f "$OUT_SQL" "$OUT_SCHEMA" "$LOCAL_MIRROR_046/"
-    echo "[$(date -Is)] mirrored to local /Zorg path"
-  else
-    echo "[$(date -Is)] WARN: /Zorg not available locally; skipped mirror copy"
-  fi
 
   # mandatory private GitHub recovery mirror (Zorg_Hive).
   # This repo is private; do not copy DB dumps into public repos such as Zorg_MemoryDB.

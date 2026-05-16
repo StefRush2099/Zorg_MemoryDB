@@ -30,7 +30,7 @@ type DeviceIdentity = {
   createdAtMs?: number;
 };
 
-const PROTOCOL_VERSION = 3;
+const PROTOCOL_VERSION = 4;
 const DEVICE_AUTH_PATH = `${process.env.HOME}/.openclaw/identity/device-auth.json`;
 const DEVICE_IDENTITY_PATH = `${process.env.HOME}/.openclaw/identity/device.json`;
 

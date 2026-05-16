@@ -23,6 +23,8 @@ Zorg MemoryDB is the OpenClaw base with a durable PostgreSQL-backed memory spine
 - How docs/releases stay current: [`docs/documentation-maintenance.md`](docs/documentation-maintenance.md)
 - Dynamic trigger backpressure: [`docs/dynamic-trigger-backpressure.md`](docs/dynamic-trigger-backpressure.md)
 - Built-in LAN/local command console: [`docs/lan-console.md`](docs/lan-console.md)
+- One-step self-recovery from private backup: [`docs/self-recovery.md`](docs/self-recovery.md)
+- Master recovery rules for upgrade/regression lockout: [`docs/master-recovery-rules.md`](docs/master-recovery-rules.md)
 
 ![Zorg MemoryDB LAN command console](docs/assets/lan-console-in-use-2026-05-14.png)
 
@@ -254,4 +256,3 @@ The assistant owns the full article set and must keep the day’s coverage fresh
 ## Dynamic Trigger Backpressure Rule
 
 Database triggers and recall-adjacent hooks must not perform heavy immediate work. They enqueue tiny bounded work with statistically derived `due_at` delays based on observed queue wait, worker runtime, backlog, and recall/query timing. Workers use dynamic batch limits and record timing observations after each batch. Under high CPU/load/latency, delays increase and batch sizes shrink. Rule-following and recall correctness outrank speed, and source memory must never be deleted/pruned/compacted for performance.
-

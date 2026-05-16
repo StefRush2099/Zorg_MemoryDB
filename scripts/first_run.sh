@@ -57,7 +57,6 @@ cfg={
     "user": os.environ["DB_USER"]
   },
   "table_map": {
-    "MEMORY.md": "zorg_memory",
     "AGENTS.md": "md_agents",
     "SOUL.md": "md_soul",
     "USER.md": "md_user",
@@ -124,7 +123,7 @@ PY
 }
 
 ensure_memory_files(){
-  for f in AGENTS.md SOUL.md USER.md TOOLS.md IDENTITY.md HEARTBEAT.md MEMORY.md; do
+  for f in ZORG_MEMORYDB_MASTER_RULES.md AGENTS.md SOUL.md USER.md TOOLS.md IDENTITY.md HEARTBEAT.md; do
     if [ ! -f "$f" ] && [ -f "templates/$f" ]; then cp "templates/$f" "$f"; fi
   done
 }

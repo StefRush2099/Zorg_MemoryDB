@@ -83,7 +83,6 @@ cfg={
     "user": os.environ["DB_USER"]
   },
   "table_map": {
-    "MEMORY.md": "zorg_memory",
     "AGENTS.md": "md_agents",
     "SOUL.md": "md_soul",
     "USER.md": "md_user",
@@ -148,7 +147,10 @@ PY
 append_rules(){
   cd "$TARGET_WORKSPACE"
   log "updating OpenClaw markdown files with DB-memory rules"
-  touch AGENTS.md SOUL.md TOOLS.md MEMORY.md
+  touch AGENTS.md SOUL.md TOOLS.md
+  if [ ! -f ZORG_MEMORYDB_MASTER_RULES.md ] && [ -f "$REPO_ROOT/templates/ZORG_MEMORYDB_MASTER_RULES.md" ]; then
+    cp "$REPO_ROOT/templates/ZORG_MEMORYDB_MASTER_RULES.md" ZORG_MEMORYDB_MASTER_RULES.md
+  fi
   marker='<!-- ZORG_MEMORYDB_RULES -->'
   block='<!-- ZORG_MEMORYDB_RULES -->
 
@@ -179,7 +181,7 @@ append_rules(){
 - When authorized business contact fails, do not stop at a bounce; use structured memory, CRM records, prior correspondence, official websites, and public contact pages to find a credible alternate route before escalating.
 <!-- /ZORG_MEMORYDB_RULES -->
 '
-  for file in AGENTS.md SOUL.md TOOLS.md MEMORY.md; do
+  for file in AGENTS.md SOUL.md TOOLS.md; do
     if ! grep -q "$marker" "$file"; then
       printf '\n%s\n' "$block" >> "$file"
     fi

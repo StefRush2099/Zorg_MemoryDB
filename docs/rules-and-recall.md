@@ -5,13 +5,14 @@
 1. Memory check is Priority 0.
 2. DB-backed recall is primary.
 3. Flat-file memory fallback is retired. If DB recall is unavailable, repair/restore DB memory or ask the operator before any exceptional non-DB fallback.
-4. Weak first-pass recall requires deeper recall, not an immediate conclusion.
-5. Before claiming inability, search prior working solutions, runbooks, project records, backups, mirrors, and related operational facts.
-6. Preserve all source history forever; never prune, delete, truncate, age out, compact-by-removal, or discard original/source data for performance. The database must grow continuously.
-7. Whenever any meaningful structural, configuration, routing, schema, indexing, recall, benchmark, enforcement, or operational-rule change is made to the memory database or recall system, publish the matching structural update to `Zorg_MemoryDB` and update the relevant markdown/runbooks.
-8. Public exports must be schema/tooling/rules only unless all data is intentionally synthetic.
-9. Recall quality must evolve additively toward vector/neural-style weighted semantic retrieval: add embeddings/vector slots, concepts/entities, aliases, graph edges, query feedback, LLM-readable recall hints, and materialized views without deleting source rows.
-10. Database repair/recovery is a hard continuity rule: predictable backups must exist; repair is attempted first; backup candidates are tested if repair fails; the first verified working backup is promoted; DB health/recall tests must pass before claiming success. See [`database-recovery.md`](database-recovery.md).
+4. The workspace root ZORG_MEMORYDB_MASTER_RULES.md is the master recovery contract for upgrade/regression lockout. If an OpenClaw upgrade, config rewrite, or package replacement bypasses normal rule priority, consult that file and repair DB recall before unrelated work.
+5. Weak first-pass recall requires deeper recall, not an immediate conclusion.
+6. Before claiming inability, search prior working solutions, runbooks, project records, backups, mirrors, and related operational facts.
+7. Preserve all source history forever; never prune, delete, truncate, age out, compact-by-removal, or discard original/source data for performance. The database must grow continuously.
+8. Whenever any meaningful structural, configuration, routing, schema, indexing, recall, benchmark, enforcement, or operational-rule change is made to the memory database or recall system, publish the matching structural update to `Zorg_MemoryDB` and update the relevant markdown/runbooks.
+9. Public exports must be schema/tooling/rules only unless all data is intentionally synthetic.
+10. Recall quality must evolve additively toward vector/neural-style weighted semantic retrieval: add embeddings/vector slots, concepts/entities, aliases, graph edges, query feedback, LLM-readable recall hints, and materialized views without deleting source rows.
+11. Database repair/recovery is a hard continuity rule: predictable backups must exist; repair is attempted first; backup candidates are tested if repair fails; the first verified working backup is promoted; DB health/recall tests must pass before claiming success. See [`database-recovery.md`](database-recovery.md).
 
 ## Rule failure lockout
 
@@ -224,4 +225,3 @@ System changes, code writing, and software changes are governed by permanent bas
 ## Dynamic Trigger Backpressure Rule
 
 Database triggers and recall-adjacent hooks must not perform heavy immediate work. They enqueue tiny bounded work with statistically derived `due_at` delays based on observed queue wait, worker runtime, backlog, and recall/query timing. Workers use dynamic batch limits and record timing observations after each batch. Under high CPU/load/latency, delays increase and batch sizes shrink. Rule-following and recall correctness outrank speed, and source memory must never be deleted/pruned/compacted for performance.
-

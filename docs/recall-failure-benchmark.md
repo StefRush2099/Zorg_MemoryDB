@@ -41,6 +41,18 @@ Public-safe aggregate scan results from one OpenClaw/Zorg deployment:
 
 A memory-backed assistant should not merely apologize after forgetting. It should make forgetting harder next time. Zorg MemoryDB uses these incidents as training signals for the surrounding operating system: failures become structured recall tests and documentation updates instead of disappearing into chat history.
 
+## 2026-05-15 Rule-Enforcement Failure Class
+
+A confirmed failure class was added after an assistant had the relevant rule in DB memory but still mutated files/services without summarizing the intended change, widened scope during corrective work, and treated a corrective-loop exception too broadly. The database connection was healthy; the failure was agent-side rule enforcement plus recall-ranking noise.
+
+Required remediation for this class:
+
+- promote the violated rule into top-level system markdown and structured logic-rule recall;
+- audit configured database connections and recall functions before claiming memory was broken;
+- create a failure report with cause, evidence, DB health, and corrective actions;
+- harden recall so broad natural-language phrasing surfaces the critical rule;
+- verify `memory_search` returns the corrected rule before completion claims.
+
 ## Privacy Boundary
 
 This public benchmark intentionally excludes private content. The repo receives only aggregate counts, public-safe methodology, and sanitized examples of failure categories. Private transcripts, contact records, credentials, operational secrets, and raw database rows remain out of the public repository.

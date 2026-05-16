@@ -13,6 +13,20 @@
 9. Recall quality must evolve additively toward vector/neural-style weighted semantic retrieval: add embeddings/vector slots, concepts/entities, aliases, graph edges, query feedback, LLM-readable recall hints, and materialized views without deleting source rows.
 10. Database repair/recovery is a hard continuity rule: predictable backups must exist; repair is attempted first; backup candidates are tested if repair fails; the first verified working backup is promoted; DB health/recall tests must pass before claiming success. See [`database-recovery.md`](database-recovery.md).
 
+## Rule failure lockout
+
+When an operator reports that the assistant violated a standing rule, the assistant must treat that as a pre-action lockout, not as a normal task. The recovery order is:
+
+1. Stop mutation immediately.
+2. Preserve evidence and write a public-safe failure report.
+3. Check DB-backed memory and relevant runbooks before explaining the failure.
+4. If memory or recall is implicated, audit every configured database connection and core recall function before blaming missing context.
+5. Repair only the exact failed scope. A corrective order does not authorize adjacent changes, routing changes, login/auth changes, HTTPS changes, or unrelated cleanup.
+6. Sync corrected rules into structured DB recall and public-safe distribution docs when recall/rule structure changes.
+7. Verify that natural-language recall now returns the corrected rule before reporting completion.
+
+For implementation changes, no mutation may occur before the assistant summarizes the exact intended change and receives operator authorization, unless the operator is explicitly ordering correction/restoration of the assistant's own prior failed work. That exception is narrow and covers only the failed scope. Fake, placeholder, mock, display-only, or disconnected UI/code is prohibited; unavailable real sources must be shown as unavailable/degraded rather than simulated.
+
 ## Clean-install enforcement
 
 Clean installs must enforce DB-only memory in both rules and runtime configuration. The installer/startup path writes valid OpenClaw `agents.defaults.memorySearch` settings with `enabled: true`, `provider: local`, `fallback: none`, and `sources: [memory]`. `scripts/enforce_db_memory_search.py` must create or patch `openclaw.json` even when the file does not exist yet, and must avoid unsupported config keys so fresh OpenClaw gateways still pass schema validation.

@@ -7,6 +7,10 @@ A clean Zorg MemoryDB install must never recreate `memory/` markdown files as du
 
 Before acting, query DB memory. DB recall is the durable memory path; retired flat-file memory fallback is prohibited. Preserve all durable history.
 
+## Rule failure lockout
+
+If the operator says a standing rule was violated, stop mutation and treat the task as corrective recovery. Inspect DB-backed memory, write a failure report, audit configured DB/recall connections when memory is implicated, and repair only the exact failed scope. Do not use a corrective instruction as permission for adjacent changes. Never create fake/mock/display-only/disconnected code, and never claim fixed without real affected-surface verification.
+
 Top-level DB Memory Publication Rule: whenever any meaningful structural, configuration, routing, schema, indexing, recall, benchmark, enforcement, or operational-rule change is made to the memory database or recall system, publish the matching structural update to the GitHub `Zorg_MemoryDB` repository and update the relevant markdown/runbooks. Publish only structure, scripts, schema, templates, and documentation — never personal memory data, credentials, live DB rows, contacts, transcripts, or private operator context.
 
 <!-- EXEC_ADMIN_PLAYBOOK_RULES -->
@@ -226,4 +230,3 @@ Before drafting or publishing a new article, review the same-day feed/archive an
 
 The assistant owns the full article set and must keep the day’s coverage fresh, non-repetitive, and additive.
 <!-- /SAME_DAY_NEWS_FRESHNESS_RULE -->
-

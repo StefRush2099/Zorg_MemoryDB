@@ -39,7 +39,7 @@ For Zorg/OpenClaw system work, a change is not complete when the local file edit
 
 1. Push changed system artifacts to the correct GitHub repository. Use `Zorg_MemoryDB` for public-safe memory/recall structure, schema, skills, templates, and docs; use `Zorg_Hive` for private backups/state/system data; use the project repository when one exists. Never publish private rows, credentials, contacts, transcripts, or operator memory into public docs.
 2. Update documentation/runbooks/templates/skills at the same time as behavior changes so the corrected behavior is reproducible outside the chat transcript.
-3. For visible UI changes, capture and deliver screenshots covering desktop light mode, desktop dark mode, and cellphone/mobile viewport unless one is not applicable or blocked. Report any blocker explicitly.
+3. For visible UI changes, capture and deliver screenshots covering desktop light mode, desktop dark mode, cellphone/mobile light mode, and cellphone/mobile dark mode unless one is not applicable or blocked. Report any blocker explicitly.
 4. After markdown/rule/skill/recall changes, sync structured rules into DB recall, refresh search/materialized views, analyze/reindex affected recall tables when appropriate, and verify natural-language recall returns the new process rule near the top.
 5. If the operator reports process regression, run before/after representative recall queries, identify the failed ranking/structure, make additive fixes only, and record the result in durable memory plus public-safe docs when structural behavior changes.
 

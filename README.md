@@ -6,6 +6,13 @@ It installs and runs the latest OpenClaw package (`openclaw@latest`) with Zorg M
 
 The public repository is sanitized. It includes structure, scripts, schema, docs, and templates only — no private rows, transcripts, account data, or operator context.
 
+
+## Base-install permanent engineering rules
+
+System changes, code writing, and software changes are governed by permanent base-install rules, not personal operator preferences. They are documented in [`docs/base-install-permanent-engineering-rules.md`](docs/base-install-permanent-engineering-rules.md), included in clean-install templates, and synchronized into structured DB recall.
+
+Zorg MemoryDB is packaged as an add-on overlay to upstream OpenClaw. Overlay installs and upgrades must preserve existing OpenClaw behavior/user data unless an explicit migration documents otherwise.
+
 ## Why Zorg MemoryDB?
 
 Zorg MemoryDB is the OpenClaw base with a durable PostgreSQL-backed memory spine, structured operating rules, privacy-aware communication filters, adaptive recovery patterns, automatic DB-only recall repair, private/off-host backup guidance, and public-safe templates. It is designed as a clean add-on layer so you can keep the upside of upstream OpenClaw while gaining operational continuity.
@@ -14,6 +21,7 @@ Zorg MemoryDB is the OpenClaw base with a durable PostgreSQL-backed memory spine
 - Before you get started: [`docs/before-you-get-started.md`](docs/before-you-get-started.md)
 - Recommended baseline for a fully useful assistant install: [`docs/base-setup.md`](docs/base-setup.md)
 - How docs/releases stay current: [`docs/documentation-maintenance.md`](docs/documentation-maintenance.md)
+- Dynamic trigger backpressure: [`docs/dynamic-trigger-backpressure.md`](docs/dynamic-trigger-backpressure.md)
 - Built-in LAN/local command console: [`docs/lan-console.md`](docs/lan-console.md)
 
 ![Zorg MemoryDB LAN command console](docs/assets/lan-console-in-use-2026-05-14.png)
@@ -243,3 +251,7 @@ Before drafting or publishing a new article, review the same-day feed/archive an
 
 The assistant owns the full article set and must keep the day’s coverage fresh, non-repetitive, and additive.
 <!-- /SAME_DAY_NEWS_FRESHNESS_RULE -->
+## Dynamic Trigger Backpressure Rule
+
+Database triggers and recall-adjacent hooks must not perform heavy immediate work. They enqueue tiny bounded work with statistically derived `due_at` delays based on observed queue wait, worker runtime, backlog, and recall/query timing. Workers use dynamic batch limits and record timing observations after each batch. Under high CPU/load/latency, delays increase and batch sizes shrink. Rule-following and recall correctness outrank speed, and source memory must never be deleted/pruned/compacted for performance.
+

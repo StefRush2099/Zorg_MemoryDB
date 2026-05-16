@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Zorg MemoryDB overlay rule: install/upgrade must be additive to upstream OpenClaw and preserve existing OpenClaw behavior/user data unless an explicit migration documents otherwise. Permanent engineering rules are documented in docs/base-install-permanent-engineering-rules.md.
 set -euo pipefail
 
 # Native all-in-one install for the latest Ubuntu release (currently Ubuntu 26.04 LTS).

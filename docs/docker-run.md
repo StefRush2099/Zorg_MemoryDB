@@ -88,3 +88,7 @@ Before drafting or publishing a new article, review the same-day feed/archive an
 The assistant owns the full article set and must keep the day’s coverage fresh, non-repetitive, and additive.
 <!-- /SAME_DAY_NEWS_FRESHNESS_RULE -->
 
+## Permanent engineering rules
+
+System changes, code writing, and software changes are governed by permanent base-install rules, not personal preferences. See [`base-install-permanent-engineering-rules.md`](base-install-permanent-engineering-rules.md). Zorg MemoryDB must be installed/upgraded as an additive OpenClaw overlay that preserves existing OpenClaw behavior and user data unless an explicit migration says otherwise.
+

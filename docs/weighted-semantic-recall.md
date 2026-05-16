@@ -121,3 +121,7 @@ Research basis used for v1 implementation:
 - PostgreSQL `CREATE TRIGGER` supports row-level/statement-level triggers and `AFTER` triggers that see completed row changes; v1 uses this only for enqueue metadata, not heavy work.
 - PostgreSQL `NOTIFY` is intended for transaction-safe change signaling and recommends storing larger structured data in tables while sending a lightweight notification payload; v1 stores job payloads in `memory_semantic_work_queue` and sends only the queue signal.
 - PostgreSQL `FOR UPDATE SKIP LOCKED` is documented as appropriate for avoiding lock contention among multiple consumers of a queue-like table; v1 worker uses it for bounded concurrent-safe queue claims.
+## Dynamic Trigger Backpressure Rule
+
+Database triggers and recall-adjacent hooks must not perform heavy immediate work. They enqueue tiny bounded work with statistically derived `due_at` delays based on observed queue wait, worker runtime, backlog, and recall/query timing. Workers use dynamic batch limits and record timing observations after each batch. Under high CPU/load/latency, delays increase and batch sizes shrink. Rule-following and recall correctness outrank speed, and source memory must never be deleted/pruned/compacted for performance.
+

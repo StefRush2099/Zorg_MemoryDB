@@ -12,6 +12,7 @@ import hashlib
 import json
 import os
 import re
+import time
 import socket
 from pathlib import Path
 from typing import Iterable
@@ -106,6 +107,9 @@ def extract_concepts(text: str, payload: dict | None = None, limit: int = 18) ->
 
 
 def claim_jobs(cur, limit: int):
+    cur.execute("select public.memory_dynamic_worker_batch_limit(%s)", (limit,))
+    row = cur.fetchone()
+    effective_limit = int(row[0] if not isinstance(row, dict) else row['memory_dynamic_worker_batch_limit'])
     cur.execute(
         """
         with picked as (
@@ -122,7 +126,7 @@ def claim_jobs(cur, limit: int):
         where q.id=picked.id
         returning q.*
         """,
-        (limit, WORKER_ID),
+        (effective_limit, WORKER_ID),
     )
     return cur.fetchall()
 
@@ -277,6 +281,7 @@ def main():
     args = ap.parse_args()
 
     processed = 0
+    batch_started = time.time()
     with psycopg2.connect(**load_cfg()) as conn:
         conn.autocommit = False
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
@@ -298,18 +303,32 @@ def main():
                         """
                         update public.memory_semantic_work_queue
                         set status=case when attempts >= max_attempts then 'error' else 'queued' end,
-                            locked_at=null, locked_by=null, last_error=%s, updated_at=now(), due_at=now() + interval '5 minutes'
+                            locked_at=null, locked_by=null, last_error=%s, updated_at=now(), due_at=now() + public.memory_dynamic_defer_interval(priority)
                         where id=%s
                         """,
                         (str(exc)[:2000], job["id"]),
                     )
+            batch_duration_ms = (time.time() - batch_started) * 1000
+            cur.execute(
+                """
+                select public.memory_record_runtime_timing(
+                  'semantic_worker_batch', %s, %s, null, %s,
+                  (select count(*)::int from public.memory_semantic_work_queue where status in ('queued','running')),
+                  %s::jsonb
+                )
+                """,
+                (WORKER_ID, batch_duration_ms, processed, json.dumps({"claimed": len(jobs)})),
+            )
             if processed:
                 try:
                     cur.execute("select public.zorg_refresh_memory_search()")
                 except Exception:
                     pass
+            cur.execute("select extract(epoch from public.memory_dynamic_defer_interval(50))")
+            row = cur.fetchone()
+            recommended_delay_seconds = float(row[0] if not isinstance(row, dict) else row['extract'])
             conn.commit()
-    print(json.dumps({"worker": WORKER_ID, "claimed": len(jobs), "processed": processed}, indent=2))
+    print(json.dumps({"worker": WORKER_ID, "claimed": len(jobs), "processed": processed, "batch_duration_ms": round(batch_duration_ms, 2), "recommended_delay_seconds": round(recommended_delay_seconds, 2)}, indent=2))
 
 
 if __name__ == "__main__":

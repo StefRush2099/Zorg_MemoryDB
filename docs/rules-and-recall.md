@@ -217,3 +217,11 @@ The assistant owns the full article set and must keep the day’s coverage fresh
 ## Same-day article recall before publishing
 
 Before writing a new article or public report, recall/read same-day feed entries so the new piece does not repeat earlier coverage. Same-day publishing should be additive: each article should contribute new details, framing, examples, or developments.
+
+## Permanent engineering rules
+
+System changes, code writing, and software changes are governed by permanent base-install rules, not personal preferences. See [`base-install-permanent-engineering-rules.md`](base-install-permanent-engineering-rules.md). Zorg MemoryDB must be installed/upgraded as an additive OpenClaw overlay that preserves existing OpenClaw behavior and user data unless an explicit migration says otherwise.
+## Dynamic Trigger Backpressure Rule
+
+Database triggers and recall-adjacent hooks must not perform heavy immediate work. They enqueue tiny bounded work with statistically derived `due_at` delays based on observed queue wait, worker runtime, backlog, and recall/query timing. Workers use dynamic batch limits and record timing observations after each batch. Under high CPU/load/latency, delays increase and batch sizes shrink. Rule-following and recall correctness outrank speed, and source memory must never be deleted/pruned/compacted for performance.
+

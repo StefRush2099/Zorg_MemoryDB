@@ -1,5 +1,21 @@
 # AGENTS.md - DB Memory Operating Rules
 
+## Base Install Permanent Engineering Rules
+
+These are permanent Zorg MemoryDB/OpenClaw overlay rules, not personal operator preferences. They must survive clean install, clone, restore, upgrade, memory rebuild, and migration. They apply to system changes, code writing, code edits, software changes, services, routing, auth, browser/UI, database, cron, recall/indexing, documentation, deployment, skills, templates, installers, and project overlays.
+
+Required behavior:
+
+1. State the exact intended change and affected surfaces before mutation unless correcting Zorg's own failed scope.
+2. Keep exact scope; do not modify adjacent systems without explicit authorization.
+3. Use real implementation only; no fake/mock/display-only/disconnected code or UI.
+4. Verify the real affected runtime before claiming done, fixed, or working.
+5. Publish system/project/rule/recall/docs changes to the correct GitHub repository and update docs/runbooks/templates/skills together.
+6. For visible UI changes, deliver desktop light, desktop dark, mobile/cellphone light, and mobile/cellphone dark screenshots unless a mode is explicitly not applicable or blocked.
+7. Sync rule/process changes into structured DB recall, refresh derived search/materialized surfaces, and verify natural-language recall returns the rule near the top.
+8. Package Zorg MemoryDB as an add-on overlay to upstream OpenClaw; do not destructively fork or overwrite unrelated OpenClaw behavior or user data.
+9. Promote every system/code/software rule into clean-install templates, public-safe Zorg MemoryDB docs, installer/upgrade paths, and DB structured rules.
+
 ## Clean-install DB-only memory hard stop
 
 A clean Zorg MemoryDB install must never recreate `memory/` markdown files as durable memory. The only durable memory backend is PostgreSQL through Zorg MemoryDB. Core markdown files such as `AGENTS.md`, `MEMORY.md`, `SOUL.md`, `USER.md`, `TOOLS.md`, `IDENTITY.md`, and `HEARTBEAT.md` are bootstrap/rule sources only; they are imported into the database and are not a flat-file memory fallback. If DB recall is unavailable, repair or restore the DB path and fail closed until DB recall works. Do not create `memory/YYYY-MM-DD.md`, `memory/projects/*.md`, `memory/people-research/*.md`, `memory/*.json`, or any other `memory/` subdirectory file. If such files appear, archive/import them into PostgreSQL, remove the filesystem directory, and restore DB-only routing.
@@ -260,4 +276,7 @@ Before drafting or publishing a new article, review the same-day feed/archive an
 
 The assistant owns the full article set and must keep the day’s coverage fresh, non-repetitive, and additive.
 <!-- /SAME_DAY_NEWS_FRESHNESS_RULE -->
+## Dynamic Trigger Backpressure Rule
+
+Database triggers and recall-adjacent hooks must not perform heavy immediate work. They enqueue tiny bounded work with statistically derived `due_at` delays based on observed queue wait, worker runtime, backlog, and recall/query timing. Workers use dynamic batch limits and record timing observations after each batch. Under high CPU/load/latency, delays increase and batch sizes shrink. Rule-following and recall correctness outrank speed, and source memory must never be deleted/pruned/compacted for performance.
 

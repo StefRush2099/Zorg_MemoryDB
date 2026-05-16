@@ -48,7 +48,7 @@ function normalizeZorgDbMemoryRows(payload, maxResults) {
 async function searchZorgDatabaseMemory(query, maxResults) {
 	const fs = await import("node:fs/promises");
 	const path = await import("node:path");
-	const workspaceDir = process.env.OPENCLAW_WORKSPACE || process.cwd();
+	const workspaceDir = process.env.OPENCLAW_WORKSPACE || (process.env.HOME ? path.join(process.env.HOME, ".openclaw", "workspace") : process.cwd());
 	const pythonPath = process.env.SQLMEM_PYTHON || path.join(workspaceDir, ".venv-sqlmem", "bin", "python");
 	let routerPath = process.env.MEMORY_RECALL_ROUTER || path.join(workspaceDir, "memory_recall_router.py");
 	const startedAt = Date.now();

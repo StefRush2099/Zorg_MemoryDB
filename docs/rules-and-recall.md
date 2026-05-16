@@ -27,6 +27,12 @@ When an operator reports that the assistant violated a standing rule, the assist
 
 For implementation changes, no mutation may occur before the assistant summarizes the exact intended change and receives operator authorization, unless the operator is explicitly ordering correction/restoration of the assistant's own prior failed work. That exception is narrow and covers only the failed scope. Fake, placeholder, mock, display-only, or disconnected UI/code is prohibited; unavailable real sources must be shown as unavailable/degraded rather than simulated.
 
+## Screenshot delivery rule
+
+When a screenshot is captured as verification, proof, or a deliverable for the operator, saving the file is only a staging step. The screenshot must be delivered in the active channel unless the operator explicitly asked only for a local path or artifact.
+
+For Telegram, place PNG/JPEG verification screenshots under the managed media directory and send them with the messaging tool as an attachment/document when that is the reliable delivery mode. A completion report should not leave the operator with only “screenshot saved at …” when the screenshot was meant to prove visible UI state.
+
 ## Clean-install enforcement
 
 Clean installs must enforce DB-only memory in both rules and runtime configuration. The installer/startup path writes valid OpenClaw `agents.defaults.memorySearch` settings with `enabled: true`, `provider: local`, `fallback: none`, and `sources: [memory]`. `scripts/enforce_db_memory_search.py` must create or patch `openclaw.json` even when the file does not exist yet, and must avoid unsupported config keys so fresh OpenClaw gateways still pass schema validation.

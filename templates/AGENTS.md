@@ -11,6 +11,10 @@ Before acting, query DB memory. DB recall is the durable memory path; retired fl
 
 If the operator says a standing rule was violated, stop mutation and treat the task as corrective recovery. Inspect DB-backed memory, write a failure report, audit configured DB/recall connections when memory is implicated, and repair only the exact failed scope. Do not use a corrective instruction as permission for adjacent changes. Never create fake/mock/display-only/disconnected code, and never claim fixed without real affected-surface verification.
 
+## Screenshot delivery
+
+If a screenshot is captured as verification/proof/deliverable, send it to the operator in the active channel. Saving the file is only staging unless the operator asked only for a path. Do not report only a saved screenshot path when the image is meant to be seen.
+
 Top-level DB Memory Publication Rule: whenever any meaningful structural, configuration, routing, schema, indexing, recall, benchmark, enforcement, or operational-rule change is made to the memory database or recall system, publish the matching structural update to the GitHub `Zorg_MemoryDB` repository and update the relevant markdown/runbooks. Publish only structure, scripts, schema, templates, and documentation — never personal memory data, credentials, live DB rows, contacts, transcripts, or private operator context.
 
 <!-- EXEC_ADMIN_PLAYBOOK_RULES -->

@@ -15,6 +15,10 @@ If the operator says a standing rule was violated, stop mutation and treat the t
 
 If a screenshot is captured as verification/proof/deliverable, send it to the operator in the active channel. Saving the file is only staging unless the operator asked only for a path. Do not report only a saved screenshot path when the image is meant to be seen.
 
+## System change publication and visual verification
+
+When system/process/project/UI behavior changes, completion requires GitHub publication to the correct repository, documentation/runbook/template updates, structured DB recall sync, and verification. For visible UI changes, deliver desktop light-mode, desktop dark-mode, and cellphone/mobile screenshots unless a viewport is not applicable or blocked. If process following regresses, run before/after recall scans with representative queries, fix ranking/structure additively, and verify the corrected rule is retrieved before reporting done.
+
 Top-level DB Memory Publication Rule: whenever any meaningful structural, configuration, routing, schema, indexing, recall, benchmark, enforcement, or operational-rule change is made to the memory database or recall system, publish the matching structural update to the GitHub `Zorg_MemoryDB` repository and update the relevant markdown/runbooks. Publish only structure, scripts, schema, templates, and documentation — never personal memory data, credentials, live DB rows, contacts, transcripts, or private operator context.
 
 <!-- EXEC_ADMIN_PLAYBOOK_RULES -->

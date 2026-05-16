@@ -53,6 +53,26 @@ Required remediation for this class:
 - harden recall so broad natural-language phrasing surfaces the critical rule;
 - verify `memory_search` returns the corrected rule before completion claims.
 
+## 2026-05-16 Process-Following Regression Class
+
+A second failure class was identified when the operator reported that system/process follow-through had regressed compared with two days earlier. Baseline queries for GitHub publication, documentation updates, screenshots, light/dark/mobile verification, and reindexing did not all return the intended process rule at the top; some were outranked by unrelated critical rules. This indicates recall-ranking and rule-surface specificity problems rather than source-data loss.
+
+Representative baseline queries for this class:
+
+- `push all system changes to GitHub update documentation screenshots light dark mobile`
+- `verification screenshots light mode dark mode cell phone screenshots sent to Stefan`
+- `process rule update docs push GitHub whenever changes made`
+- `reindex broken process following compare before after recall ranking`
+
+Required remediation:
+
+- add/update a top-level system-change publication and visual-verification rule;
+- sync that rule into structured DB recall;
+- refresh materialized/search views and analyze/reindex affected recall tables where appropriate;
+- add public-safe recall hints/observations so the representative queries surface the rule;
+- push the documentation and structural changes to GitHub;
+- rerun the representative queries and record before/after evidence.
+
 ## Privacy Boundary
 
 This public benchmark intentionally excludes private content. The repo receives only aggregate counts, public-safe methodology, and sanitized examples of failure categories. Private transcripts, contact records, credentials, operational secrets, and raw database rows remain out of the public repository.

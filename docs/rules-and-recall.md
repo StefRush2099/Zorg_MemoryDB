@@ -33,6 +33,16 @@ When a screenshot is captured as verification, proof, or a deliverable for the o
 
 For Telegram, place PNG/JPEG verification screenshots under the managed media directory and send them with the messaging tool as an attachment/document when that is the reliable delivery mode. A completion report should not leave the operator with only “screenshot saved at …” when the screenshot was meant to prove visible UI state.
 
+## System change publication and visual verification rule
+
+For Zorg/OpenClaw system work, a change is not complete when the local file edit succeeds. Completion requires all applicable follow-through:
+
+1. Push changed system artifacts to the correct GitHub repository. Use `Zorg_MemoryDB` for public-safe memory/recall structure, schema, skills, templates, and docs; use `Zorg_Hive` for private backups/state/system data; use the project repository when one exists. Never publish private rows, credentials, contacts, transcripts, or operator memory into public docs.
+2. Update documentation/runbooks/templates/skills at the same time as behavior changes so the corrected behavior is reproducible outside the chat transcript.
+3. For visible UI changes, capture and deliver screenshots covering desktop light mode, desktop dark mode, and cellphone/mobile viewport unless one is not applicable or blocked. Report any blocker explicitly.
+4. After markdown/rule/skill/recall changes, sync structured rules into DB recall, refresh search/materialized views, analyze/reindex affected recall tables when appropriate, and verify natural-language recall returns the new process rule near the top.
+5. If the operator reports process regression, run before/after representative recall queries, identify the failed ranking/structure, make additive fixes only, and record the result in durable memory plus public-safe docs when structural behavior changes.
+
 ## Clean-install enforcement
 
 Clean installs must enforce DB-only memory in both rules and runtime configuration. The installer/startup path writes valid OpenClaw `agents.defaults.memorySearch` settings with `enabled: true`, `provider: local`, `fallback: none`, and `sources: [memory]`. `scripts/enforce_db_memory_search.py` must create or patch `openclaw.json` even when the file does not exist yet, and must avoid unsupported config keys so fresh OpenClaw gateways still pass schema validation.

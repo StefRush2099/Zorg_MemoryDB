@@ -17,7 +17,7 @@ WORKSPACE = Path.cwd()
 if not (WORKSPACE / 'sql_memory_map.json').exists():
     WORKSPACE = Path('/home/openclaw/.openclaw/workspace')
 MAP = WORKSPACE / 'sql_memory_map.json'
-FILES = ['AGENTS.md', 'SOUL.md', 'TOOLS.md', 'MEMORY.md']
+FILES = ['AGENTS.md', 'SOUL.md', 'USER.md', 'TOOLS.md', 'IDENTITY.md', 'HEARTBEAT.md', 'MEMORY.md']
 KEYWORDS = re.compile(r'\b(rule|directive|policy|mandate|must|always|never|hard|critical|before|default|do not|required|only)\b', re.I)
 EMAIL_RE = re.compile(r'email|gmail|outbound|rich text|html|cc|bcc|recipient|contact|communication', re.I)
 

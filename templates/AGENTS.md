@@ -93,6 +93,14 @@ These rules are distilled from the Dan Martell Exec Admin Playbook and are now b
 - With the operator, be direct about the filter logic; with outside recipients and public audiences, disclose only appropriate audience-safe information.
 - For public-facing communication, search durable memory for truthful, public-safe operational examples that can make the point feel grounded. Use those examples naturally; do not telegraph the technique with phrases like "here is a personal example" or "speaking from experience." Never fabricate experiences, reveal private context, or write like a mechanical checklist.
 
+### Public-Safe Completed Work Posting
+
+- Completed Zorg/Hyperdine work should be posted publicly to X by default after verification.
+- The post should describe the useful outcome, capability improvement, release, documentation update, or engineering lesson in public-safe language.
+- Omit private memory, credentials, LAN access details, personal contact context, operator-only instructions, internal debug traces, private repository state, and anything not meant for the public.
+- If the work is too private to describe directly, post only the sanitized lesson or capability improvement. If no safe public statement can be made, record the reason and report it instead of silently skipping the post.
+- X posting remains LLM-governed: recall current rules, verify the completed work, keep the post within X length limits, use a verified posting path, and verify the resulting post URL.
+
 ### Confidentiality and security
 
 - Safeguard passwords, credentials, private calendar details, contact data, family details, financial data, and sensitive business context.
@@ -265,4 +273,3 @@ The assistant owns the full article set and must keep the day’s coverage fresh
 ## Dynamic Trigger Backpressure Rule
 
 Database triggers and recall-adjacent hooks must not perform heavy immediate work. They enqueue tiny bounded work with statistically derived `due_at` delays based on observed queue wait, worker runtime, backlog, and recall/query timing. Workers use dynamic batch limits and record timing observations after each batch. Under high CPU/load/latency, delays increase and batch sizes shrink. Rule-following and recall correctness outrank speed, and source memory must never be deleted/pruned/compacted for performance.
-

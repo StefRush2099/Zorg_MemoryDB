@@ -69,6 +69,20 @@ Every meaningful tuning change must record the research basis, before/after benc
 
 Weighted semantic recall changes must be measured. A tuning pass should begin with research and a hypothesis, then compare before/after results on representative recall queries. If no research-backed design change is justified, tune raw performance additively: indexes, edges, hints, materialized views, token/FTS/trigram support, and ranking improvements. Do not prune source memory for speed.
 
+## 2026-05-25 recency/token/supersession repair
+
+Recall ranking must not let an older high-priority row hide newer matching instructions about the same subject. The 2026-05-25 repair adds timestamp-aware scoring, meaningful query-token overlap, and supersession cues to the weighted recall path while preserving all source rows.
+
+The migration is `db/recency_token_supersession_recall_2026_05_25.sql`. It updates:
+
+- `zorg_search_memory(query, limit)` so important non-stopword tokens are used to build candidates before broad priority ordering dominates.
+- `zorg_recall_context(query, limit)` so exact phrase and token overlap rank ahead of generic priority when selecting candidates.
+- `zorg_weighted_recall_context(query, limit)` so returned weight breakdowns include `event_ts`, `category`, `token_overlap`, `recency`, and `supersession` components.
+
+Operational rule: when two memories describe the same preference or instruction, compare timestamp, priority, category, and query-token overlap. Newer matching preference rows can supersede older preference rows without deleting either record.
+
+Before applying this migration in production, create and verify the local PostgreSQL backup plus private recovery backup. After applying, refresh materialized recall surfaces and verify with stale-vs-newer test queries.
+
 <!-- GO_ONLY_APPROVAL_RULE -->
 ## GO-Only Approval Rule
 
@@ -124,4 +138,3 @@ Research basis used for v1 implementation:
 ## Dynamic Trigger Backpressure Rule
 
 Database triggers and recall-adjacent hooks must not perform heavy immediate work. They enqueue tiny bounded work with statistically derived `due_at` delays based on observed queue wait, worker runtime, backlog, and recall/query timing. Workers use dynamic batch limits and record timing observations after each batch. Under high CPU/load/latency, delays increase and batch sizes shrink. Rule-following and recall correctness outrank speed, and source memory must never be deleted/pruned/compacted for performance.
-

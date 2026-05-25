@@ -3,7 +3,7 @@
 set -euo pipefail
 
 REPO_URL="${REPO_URL:-https://github.com/StefRush2099/Zorg_MemoryDB.git}"
-REPO_REF="${REPO_REF:-zorg-memorydb-overlay-repair-20260525}"
+REPO_REF="${REPO_REF:-zorg-memorydb-additive-overlay}"
 TARGET_DIR="${1:-Zorg_MemoryDB}"
 OVERLAY_SUBDIR="overlays/zorg-memorydb/Zorg_MemoryDB"
 

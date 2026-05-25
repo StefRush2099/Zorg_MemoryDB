@@ -6,7 +6,7 @@ set -euo pipefail
 # Installs OpenClaw latest + local PostgreSQL + sanitized Zorg MemoryDB template.
 
 REPO_URL="${REPO_URL:-https://github.com/StefRush2099/Zorg_MemoryDB.git}"
-REPO_REF="${REPO_REF:-zorg-memorydb-overlay-repair-20260525}"
+REPO_REF="${REPO_REF:-zorg-memorydb-additive-overlay}"
 INSTALL_DIR="${INSTALL_DIR:-$HOME/Zorg_MemoryDB}"
 OVERLAY_SUBDIR="overlays/zorg-memorydb/Zorg_MemoryDB"
 DB_NAME="${DB_NAME:-openclaw_memory}"

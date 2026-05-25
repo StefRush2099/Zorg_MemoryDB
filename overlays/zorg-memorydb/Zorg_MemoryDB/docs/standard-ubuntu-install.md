@@ -5,7 +5,7 @@ This path installs original upstream OpenClaw natively on Ubuntu, then wires Zor
 ## One-line install
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/StefRush2099/Zorg_MemoryDB/zorg-memorydb-overlay-repair-20260525/scripts/install_standard_ubuntu.sh | bash
+curl -fsSL https://raw.githubusercontent.com/StefRush2099/Zorg_MemoryDB/zorg-memorydb-additive-overlay/scripts/install_standard_ubuntu.sh | bash
 ```
 
 What it does:

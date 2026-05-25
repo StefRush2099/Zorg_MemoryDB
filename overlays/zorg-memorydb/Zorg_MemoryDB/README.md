@@ -110,7 +110,7 @@ Docs: [`docs/dockge-install.md`](docs/dockge-install.md)
 ## 4. Standard Ubuntu
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/StefRush2099/Zorg_MemoryDB/zorg-memorydb-overlay-repair-20260525/scripts/install_standard_ubuntu.sh | bash
+curl -fsSL https://raw.githubusercontent.com/StefRush2099/Zorg_MemoryDB/zorg-memorydb-additive-overlay/scripts/install_standard_ubuntu.sh | bash
 ```
 
 Docs: [`docs/standard-ubuntu-install.md`](docs/standard-ubuntu-install.md)

@@ -27,7 +27,7 @@ The overlay is intentionally isolated from upstream OpenClaw source paths. It do
 Use the established root wrapper commands or the overlay scripts directly. The wrapper commands preserve older public install paths while delegating to this isolated overlay:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/StefRush2099/Zorg_MemoryDB/zorg-memorydb-overlay-repair-20260525/scripts/install_standard_ubuntu.sh | bash
+curl -fsSL https://raw.githubusercontent.com/StefRush2099/Zorg_MemoryDB/zorg-memorydb-additive-overlay/scripts/install_standard_ubuntu.sh | bash
 OPENCLAW_WORKSPACE=/path/to/openclaw/workspace ./scripts/upgrade_existing_openclaw.sh
 ```
 

@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="520" viewBox="0 0 900 520">
+  <rect width="900" height="520" fill="#0b1020"/>
+  <text x="40" y="48" fill="#f8fafc" font-family="Arial" font-size="26" font-weight="700">Zorg Memory Recall Benchmark</text>
+  <text x="40" y="78" fill="#cbd5e1" font-family="Arial" font-size="15">Confirmed memory/recall correction incidents by period — lower is better</text>
+  <line x1="90" y1="420" x2="820" y2="420" stroke="#64748b"/>
+  <line x1="90" y1="120" x2="90" y2="420" stroke="#64748b"/>
+  <text x="64" y="425" fill="#94a3b8" font-family="Arial" font-size="12">0</text>
+  <text x="64" y="325" fill="#94a3b8" font-family="Arial" font-size="12">1</text>
+  <text x="64" y="225" fill="#94a3b8" font-family="Arial" font-size="12">2</text>
+  <text x="64" y="125" fill="#94a3b8" font-family="Arial" font-size="12">3</text>
+  <rect x="135" y="220" width="110" height="200" fill="#ef4444" rx="8"/>
+  <rect x="310" y="320" width="110" height="100" fill="#f97316" rx="8"/>
+  <rect x="485" y="220" width="110" height="200" fill="#eab308" rx="8"/>
+  <rect x="660" y="320" width="110" height="100" fill="#22c55e" rx="8"/>
+  <text x="178" y="210" fill="#f8fafc" font-family="Arial" font-size="22" font-weight="700">2</text>
+  <text x="353" y="310" fill="#f8fafc" font-family="Arial" font-size="22" font-weight="700">1</text>
+  <text x="528" y="210" fill="#f8fafc" font-family="Arial" font-size="22" font-weight="700">2</text>
+  <text x="703" y="310" fill="#f8fafc" font-family="Arial" font-size="22" font-weight="700">1</text>
+  <text x="132" y="450" fill="#cbd5e1" font-family="Arial" font-size="13">Feb–Mar</text>
+  <text x="325" y="450" fill="#cbd5e1" font-family="Arial" font-size="13">Apr</text>
+  <text x="482" y="450" fill="#cbd5e1" font-family="Arial" font-size="13">May 1–9</text>
+  <text x="657" y="450" fill="#cbd5e1" font-family="Arial" font-size="13">May 10–14</text>
+  <text x="40" y="492" fill="#94a3b8" font-family="Arial" font-size="13">Minimum confirmed incidents: 6. Session user messages scanned: 498. Durable memory rows scanned: 5,731.</text>
+</svg>

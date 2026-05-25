@@ -9,7 +9,7 @@ The public repository is sanitized. It includes structure, scripts, schema, docs
 
 ## Base-install permanent engineering rules
 
-System changes, code writing, and software changes are governed by permanent base-install rules, not personal operator preferences. They are documented in [`docs/base-install-permanent-engineering-rules.md`](overlays/zorg-memorydb/Zorg_MemoryDB/docs/base-install-permanent-engineering-rules.md), included in clean-install templates, and synchronized into structured DB recall.
+System changes, code writing, and software changes are governed by permanent base-install rules, not personal operator preferences. They are documented in [`docs/base-install-permanent-engineering-rules.md`](docs/base-install-permanent-engineering-rules.md), included in clean-install templates, and synchronized into structured DB recall.
 
 Zorg MemoryDB is packaged as an add-on overlay to upstream OpenClaw. Overlay installs and upgrades must preserve existing OpenClaw behavior/user data unless an explicit migration documents otherwise. Keep Zorg-specific docs, DB scripts, templates, and LAN command chat files under the overlay path so upstream OpenClaw updates do not overwrite them.
 
@@ -17,30 +17,30 @@ Zorg MemoryDB is packaged as an add-on overlay to upstream OpenClaw. Overlay ins
 
 Zorg MemoryDB is the OpenClaw base with a durable PostgreSQL-backed memory spine, structured operating rules, privacy-aware communication filters, adaptive recovery patterns, automatic DB-only recall repair, private/off-host backup guidance, and public-safe templates. It is designed as a clean add-on layer so you can keep the upside of upstream OpenClaw while gaining operational continuity.
 
-- Why install Zorg MemoryDB over plain OpenClaw? [`docs/why-zorg-memorydb.md`](overlays/zorg-memorydb/Zorg_MemoryDB/docs/why-zorg-memorydb.md)
-- Before you get started: [`docs/before-you-get-started.md`](overlays/zorg-memorydb/Zorg_MemoryDB/docs/before-you-get-started.md)
-- Recommended baseline for a fully useful assistant install: [`docs/base-setup.md`](overlays/zorg-memorydb/Zorg_MemoryDB/docs/base-setup.md)
-- How docs/releases stay current: [`docs/documentation-maintenance.md`](overlays/zorg-memorydb/Zorg_MemoryDB/docs/documentation-maintenance.md)
-- Dynamic trigger backpressure: [`docs/dynamic-trigger-backpressure.md`](overlays/zorg-memorydb/Zorg_MemoryDB/docs/dynamic-trigger-backpressure.md)
-- Built-in LAN/local command console: [`docs/lan-console.md`](overlays/zorg-memorydb/Zorg_MemoryDB/docs/lan-console.md)
+- Why install Zorg MemoryDB over plain OpenClaw? [`docs/why-zorg-memorydb.md`](docs/why-zorg-memorydb.md)
+- Before you get started: [`docs/before-you-get-started.md`](docs/before-you-get-started.md)
+- Recommended baseline for a fully useful assistant install: [`docs/base-setup.md`](docs/base-setup.md)
+- How docs/releases stay current: [`docs/documentation-maintenance.md`](docs/documentation-maintenance.md)
+- Dynamic trigger backpressure: [`docs/dynamic-trigger-backpressure.md`](docs/dynamic-trigger-backpressure.md)
+- Built-in LAN/local command console: [`docs/lan-console.md`](docs/lan-console.md)
 
-![Zorg MemoryDB LAN command console](overlays/zorg-memorydb/Zorg_MemoryDB/docs/assets/lan-console-in-use-2026-05-14.png)
+![Zorg MemoryDB LAN command console](docs/assets/lan-console-in-use-2026-05-14.png)
 
 ## Packages and releases
 
 - GitHub Releases: https://github.com/StefRush2099/Zorg_MemoryDB/releases
 - GHCR image: `ghcr.io/stefrush2099/zorg-memorydb`
-- Release/process docs: [`docs/release-process.md`](overlays/zorg-memorydb/Zorg_MemoryDB/docs/release-process.md)
+- Release/process docs: [`docs/release-process.md`](docs/release-process.md)
 
 Every meaningful structural/install/runtime update should be documented, committed, tagged, released, and published as a GHCR container image so users can see what changed.
 
 ## Before you get started
 
-Before installing, collect the model-provider API key, messaging token, email OAuth/app credentials, GitHub/private-backup access, and hosting details for the path you plan to use. See [`docs/before-you-get-started.md`](overlays/zorg-memorydb/Zorg_MemoryDB/docs/before-you-get-started.md).
+Before installing, collect the model-provider API key, messaging token, email OAuth/app credentials, GitHub/private-backup access, and hosting details for the path you plan to use. See [`docs/before-you-get-started.md`](docs/before-you-get-started.md).
 
 ## Install paths
 
-This branch keeps upstream OpenClaw source updateable while the Zorg implementation lives under `overlays/zorg-memorydb/Zorg_MemoryDB/`. Root-level install wrapper scripts are kept only so established public commands continue to work.
+This branch keeps upstream OpenClaw source updateable while the Zorg implementation source lives under `overlays/zorg-memorydb/Zorg_MemoryDB/`. Public Zorg MemoryDB documentation lives at top-level `docs/`, and root-level install wrapper scripts are kept so established public commands continue to work.
 
 Choose one:
 
@@ -60,7 +60,7 @@ Open OpenClaw on the selected host port. Docker tries `18789` first, then the ne
 
 The built-in LAN command console is available on `http://127.0.0.1:3001/` by default.
 
-Docs: [`docs/docker-run.md`](overlays/zorg-memorydb/Zorg_MemoryDB/docs/docker-run.md)
+Docs: [`docs/docker-run.md`](docs/docker-run.md)
 
 ## 2. Docker Compose
 
@@ -76,7 +76,7 @@ This creates `./openclaw-home` inside the current folder and keeps that install'
 
 Open OpenClaw on the selected host port. Docker tries `18789` first, then the next free port through `18889`; run `docker ps` to confirm the published port.
 
-Docs: [`docs/docker-install.md`](overlays/zorg-memorydb/Zorg_MemoryDB/docs/docker-install.md)
+Docs: [`docs/docker-install.md`](docs/docker-install.md)
 
 ### Open the OpenClaw TUI or chat from Docker Compose
 
@@ -108,7 +108,7 @@ cp .env.example .env
 
 Then import/start that folder's `overlays/zorg-memorydb/Zorg_MemoryDB/docker-compose.yml` in Dockge. The stack will keep state in `./openclaw-home` under the same folder.
 
-Docs: [`docs/dockge-install.md`](overlays/zorg-memorydb/Zorg_MemoryDB/docs/dockge-install.md)
+Docs: [`docs/dockge-install.md`](docs/dockge-install.md)
 
 ## 4. Standard Ubuntu
 
@@ -116,7 +116,7 @@ Docs: [`docs/dockge-install.md`](overlays/zorg-memorydb/Zorg_MemoryDB/docs/dockg
 curl -fsSL https://raw.githubusercontent.com/StefRush2099/Zorg_MemoryDB/zorg-memorydb-additive-overlay/scripts/install_standard_ubuntu.sh | bash
 ```
 
-Docs: [`docs/standard-ubuntu-install.md`](overlays/zorg-memorydb/Zorg_MemoryDB/docs/standard-ubuntu-install.md)
+Docs: [`docs/standard-ubuntu-install.md`](docs/standard-ubuntu-install.md)
 
 ## Recommended base setup
 
@@ -130,7 +130,7 @@ A fully useful OpenClaw + Zorg MemoryDB install should have more than the memory
 - a Cloudflare Tunnel/connector so Zorg can publish operator-approved web URLs without exposing origin services directly
 - Dockerized services on the same host where practical, with Dockge as the recommended web UI for visibility and stop/start control
 
-See [`docs/base-setup.md`](overlays/zorg-memorydb/Zorg_MemoryDB/docs/base-setup.md).
+See [`docs/base-setup.md`](docs/base-setup.md).
 
 ## What starts in Docker/Dockge
 
@@ -198,7 +198,7 @@ Use that only for migration/repair. New installs should use Docker run, Docker C
 
 ## Database recovery
 
-Zorg MemoryDB includes a hard database backup/repair/recovery rule: backups should live in predictable local locations, safe repair is attempted first, backup candidates are tested if repair fails, and recovery is not complete until DB health/recall tests pass. See [`docs/database-recovery.md`](overlays/zorg-memorydb/Zorg_MemoryDB/docs/database-recovery.md).
+Zorg MemoryDB includes a hard database backup/repair/recovery rule: backups should live in predictable local locations, safe repair is attempted first, backup candidates are tested if repair fails, and recovery is not complete until DB health/recall tests pass. See [`docs/database-recovery.md`](docs/database-recovery.md).
 
 ## Core rule
 
@@ -206,15 +206,15 @@ Zorg MemoryDB preserves original/source memory data and improves recall additive
 
 ## Executive assistant behavior
 
-Zorg MemoryDB also includes built-in executive-assistant operating rules for inbox triage, email formatting, calendar discipline, proactive follow-through, confidentiality, and revenue/time-priority filtering. Current public-safe rules emphasize LLM-governed operation: scheduled triggers should queue model judgment, not hide policy in scripts; duplicate meetings should be updated rather than recreated; and paired publishing should verify exact article anchors before posting short-form links. See [`docs/executive-assistant-operating-rules.md`](overlays/zorg-memorydb/Zorg_MemoryDB/docs/executive-assistant-operating-rules.md).
+Zorg MemoryDB also includes built-in executive-assistant operating rules for inbox triage, email formatting, calendar discipline, proactive follow-through, confidentiality, and revenue/time-priority filtering. Current public-safe rules emphasize LLM-governed operation: scheduled triggers should queue model judgment, not hide policy in scripts; duplicate meetings should be updated rather than recreated; and paired publishing should verify exact article anchors before posting short-form links. See [`docs/executive-assistant-operating-rules.md`](docs/executive-assistant-operating-rules.md).
 
 ## Project files
 
-- [`CHANGELOG.md`](overlays/zorg-memorydb/Zorg_MemoryDB/CHANGELOG.md)
-- [`CONTRIBUTING.md`](overlays/zorg-memorydb/Zorg_MemoryDB/CONTRIBUTING.md)
-- [`SECURITY.md`](overlays/zorg-memorydb/Zorg_MemoryDB/SECURITY.md)
-- [`SUPPORT.md`](overlays/zorg-memorydb/Zorg_MemoryDB/SUPPORT.md)
-- [`LICENSE`](overlays/zorg-memorydb/Zorg_MemoryDB/LICENSE)
+- [`CHANGELOG.md`](CHANGELOG.md)
+- [`CONTRIBUTING.md`](CONTRIBUTING.md)
+- [`SECURITY.md`](SECURITY.md)
+- [`SUPPORT.md`](SUPPORT.md)
+- [`LICENSE`](LICENSE)
 
 <!-- SCORCHED_MEMORY_RECALL_RULE -->
 ## Absolute Priority 0: Exhaustive Memory Before Response

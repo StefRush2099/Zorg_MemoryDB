@@ -1,22 +1,25 @@
 # Standard Ubuntu Install
 
-This path installs OpenClaw natively on Ubuntu and wires Zorg MemoryDB into the OpenClaw workspace during first run.
+This path installs OpenClaw natively on Ubuntu from a Zorg MemoryDB branch of the original `openclaw/openclaw` repository.
 
-## One-line install
+## Install
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/StefRush2099/Zorg_MemoryDB/main/scripts/install_standard_ubuntu.sh | bash
+git clone https://github.com/<your-account>/openclaw.git "$HOME/openclaw"
+cd "$HOME/openclaw"
+git checkout zorg-memorydb
+./scripts/install_standard_ubuntu.sh
 ```
 
 What it does:
 
 1. installs Ubuntu packages needed for OpenClaw and local memory runtime
-2. installs `openclaw@latest`
-3. clones `Zorg_MemoryDB` into `~/Zorg_MemoryDB`
+2. clones or updates the OpenClaw fork/branch into `$HOME/openclaw`
+3. installs OpenClaw from that same git checkout with OpenClaw's official `--install-method git` path
 4. starts local PostgreSQL
 5. creates the local OpenClaw memory role/database with local trust access
-6. writes `sql_memory_map.json` into the OpenClaw workspace
-7. applies the Zorg MemoryDB schema and recall surfaces
+6. writes `sql_memory_map.json` into `$HOME/.openclaw/workspace`
+7. applies the Zorg MemoryDB schema and recall surfaces from the OpenClaw branch
 8. installs and builds the built-in LAN command console from `./lan-chat`
 9. registers `lan-chat.service` as a user-level systemd service on port `3001`
 10. starts OpenClaw with memory already wired
@@ -24,7 +27,7 @@ What it does:
 ## Start OpenClaw after install
 
 ```bash
-cd ~/Zorg_MemoryDB
+cd "$HOME/.openclaw/workspace"
 source .env.native
 OPENCLAW_WORKSPACE=$PWD SQL_MEMORY_MAP=$PWD/sql_memory_map.json openclaw gateway run --allow-unconfigured --bind "$OPENCLAW_GATEWAY_BIND" --port "$OPENCLAW_GATEWAY_PORT" --auth "$OPENCLAW_GATEWAY_AUTH"
 ```
@@ -46,7 +49,7 @@ http://127.0.0.1:3001/
 ## Verify
 
 ```bash
-cd ~/Zorg_MemoryDB
+cd "$HOME/.openclaw/workspace"
 .venv-sqlmem/bin/python scripts/memory_sql_tool.py tables
 .venv-sqlmem/bin/python scripts/memory_recall_router.py "database memory" --limit 5
 curl -fsS http://127.0.0.1:${LAN_CHAT_PORT:-3001}/ | grep -i '<title>'
@@ -97,4 +100,3 @@ The assistant owns the full article set and must keep the day’s coverage fresh
 ## Permanent engineering rules
 
 System changes, code writing, and software changes are governed by permanent base-install rules, not personal preferences. See [`base-install-permanent-engineering-rules.md`](base-install-permanent-engineering-rules.md). Zorg MemoryDB must be installed/upgraded as an additive OpenClaw overlay that preserves existing OpenClaw behavior and user data unless an explicit migration says otherwise.
-

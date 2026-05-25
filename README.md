@@ -1,8 +1,8 @@
 # Zorg MemoryDB OpenClaw Build
 
-Zorg MemoryDB is a clean OpenClaw build with DB-backed memory integrated into the normal OpenClaw home and workspace layout.
+Zorg MemoryDB is an additive OpenClaw overlay with DB-backed memory integrated directly into the normal OpenClaw home and workspace layout.
 
-It installs and runs the latest OpenClaw package (`openclaw@latest`) with Zorg MemoryDB already sewn into startup. A fresh install should feel like starting OpenClaw from scratch: clone, start, open OpenClaw. The database is an internal implementation detail, stored inside OpenClaw's own folders, and should not require separate setup or user-facing credentials.
+The install flow follows OpenClaw's own git-checkout install path. Start from the original upstream `openclaw/openclaw` repository, create a Zorg MemoryDB branch or fork of that repository, and install OpenClaw from that same checkout. Zorg MemoryDB files live in the OpenClaw source tree and runtime workspace, not in a second `Zorg_MemoryDB` application folder. A fresh install should feel like starting OpenClaw from scratch: run the same public installer in git mode, open OpenClaw, and get the normal startup behavior after DB-backed recall has been wired and verified. The database is an internal implementation detail, stored inside OpenClaw's own folders, and should not require separate setup or user-facing credentials.
 
 The public repository is sanitized. It includes structure, scripts, schema, docs, and templates only — no private rows, transcripts, account data, or operator context.
 
@@ -11,7 +11,7 @@ The public repository is sanitized. It includes structure, scripts, schema, docs
 
 System changes, code writing, and software changes are governed by permanent base-install rules, not personal operator preferences. They are documented in [`docs/base-install-permanent-engineering-rules.md`](docs/base-install-permanent-engineering-rules.md), included in clean-install templates, and synchronized into structured DB recall.
 
-Zorg MemoryDB is packaged as an add-on overlay to upstream OpenClaw. Overlay installs and upgrades must preserve existing OpenClaw behavior/user data unless an explicit migration documents otherwise.
+Zorg MemoryDB is packaged as an add-on overlay to upstream OpenClaw. Overlay installs and upgrades must preserve existing OpenClaw behavior/user data unless an explicit migration documents otherwise. Keep Zorg-specific docs, DB scripts, templates, and LAN command chat files under the overlay path so upstream OpenClaw updates do not overwrite them.
 
 ## Why Zorg MemoryDB?
 
@@ -20,106 +20,65 @@ Zorg MemoryDB is the OpenClaw base with a durable PostgreSQL-backed memory spine
 - Why install Zorg MemoryDB over plain OpenClaw? [`docs/why-zorg-memorydb.md`](docs/why-zorg-memorydb.md)
 - Before you get started: [`docs/before-you-get-started.md`](docs/before-you-get-started.md)
 - Recommended baseline for a fully useful assistant install: [`docs/base-setup.md`](docs/base-setup.md)
-- How docs/releases stay current: [`docs/documentation-maintenance.md`](docs/documentation-maintenance.md)
 - Dynamic trigger backpressure: [`docs/dynamic-trigger-backpressure.md`](docs/dynamic-trigger-backpressure.md)
 - Built-in LAN/local command console: [`docs/lan-console.md`](docs/lan-console.md)
-- One-step self-recovery from private backup: [`docs/self-recovery.md`](docs/self-recovery.md)
-- Master recovery rules for upgrade/regression lockout: [`docs/master-recovery-rules.md`](docs/master-recovery-rules.md)
 
-![Zorg MemoryDB LAN command console](docs/assets/lan-console-in-use-2026-05-14.png)
+![Zorg MemoryDB LAN command console in desktop light mode](docs/assets/lan-console-desktop-light-2026-05-25.png)
 
-## Packages and releases
-
-- GitHub Releases: https://github.com/StefRush2099/Zorg_MemoryDB/releases
-- GHCR image: `ghcr.io/stefrush2099/zorg-memorydb`
-- Release/process docs: [`docs/release-process.md`](docs/release-process.md)
-
-Every meaningful structural/install/runtime update should be documented, committed, tagged, released, and published as a GHCR container image so users can see what changed.
+![Zorg MemoryDB LAN command console in desktop dark mode](docs/assets/lan-console-desktop-dark-2026-05-25.png)
 
 ## Before you get started
 
-Before installing, collect the model-provider API key, messaging token, email OAuth/app credentials, GitHub/private-backup access, and hosting details for the path you plan to use. See [`docs/before-you-get-started.md`](docs/before-you-get-started.md).
+Install OpenClaw from a Zorg MemoryDB branch of the original OpenClaw repository. Do not treat Zorg MemoryDB as a separate application stack, a replacement OpenClaw distribution, or a second assistant folder.
 
-## Install paths
+Before installing, collect the model-provider API key, messaging token, email OAuth/app credentials, GitHub/private-backup access, and hosting details for the OpenClaw install you plan to use. See [`docs/before-you-get-started.md`](docs/before-you-get-started.md).
 
-Choose one:
+## Install OpenClaw From the Zorg Branch
 
-1. **Docker run** — simplest packaged OpenClaw start.
-2. **Docker Compose** — clone the repo and start the integrated OpenClaw build.
-3. **Dockge** — Dockge-managed stack using the lowercase `zorg_memorydb` folder.
-4. **Standard Ubuntu** — native OpenClaw + local integrated memory runtime.
+Use OpenClaw's official git install mode. The branch must be made from `openclaw/openclaw`, then Zorg MemoryDB changes are committed into that branch.
 
-## 1. Docker run
+Create or update the branch:
 
 ```bash
-INSTALL_ID="${PWD##*/}"
-docker run -d --name "${INSTALL_ID}-zorg-memorydb" --restart unless-stopped -p 18789-18889:18789 -p 3001:3001 -v "$PWD/openclaw-home:/home/openclaw/.openclaw" ghcr.io/stefrush2099/zorg-memorydb:latest
+git clone https://github.com/openclaw/openclaw.git "$HOME/openclaw"
+cd "$HOME/openclaw"
+git checkout -b zorg-memorydb origin/main
 ```
 
-Open OpenClaw on the selected host port. Docker tries `18789` first, then the next free port through `18889`; run `docker ps` to confirm the published port.
-
-The built-in LAN command console is available on `http://127.0.0.1:3001/` by default.
-
-Docs: [`docs/docker-run.md`](docs/docker-run.md)
-
-## 2. Docker Compose
+After the Zorg MemoryDB changes are in that same OpenClaw checkout, install from it:
 
 ```bash
-git clone https://github.com/StefRush2099/Zorg_MemoryDB.git my-zorg-memorydb
-cd my-zorg-memorydb
-cp .env.example .env
-docker compose up -d --build
+curl -fsSL https://openclaw.ai/install.sh | bash -s -- --install-method git --git-dir "$HOME/openclaw" --version zorg-memorydb --no-onboard
 ```
 
-This creates `./openclaw-home` inside the current folder and keeps that install's OpenClaw state, workspace, embedded PostgreSQL data, and memory DB there. Docker Compose publishes OpenClaw on the first free host port in `OPENCLAW_GATEWAY_PUBLISHED_PORTS` — default `18789-18889`. Run `docker compose ps` after startup to see the selected external port.
-
-Open OpenClaw on the selected host port. Docker tries `18789` first, then the next free port through `18889`; run `docker ps` to confirm the published port.
-
-Docs: [`docs/docker-install.md`](docs/docker-install.md)
-
-### Open the OpenClaw TUI or chat from Docker Compose
-
-After the Compose stack is running, open the terminal UI from the same checkout folder:
+For a published fork, clone the fork into the same OpenClaw checkout folder first:
 
 ```bash
-docker compose run --rm openclaw-cli tui --local
+git clone https://github.com/<your-account>/openclaw.git "$HOME/openclaw"
+cd "$HOME/openclaw"
+git checkout zorg-memorydb
+curl -fsSL https://openclaw.ai/install.sh | bash -s -- --install-method git --git-dir "$HOME/openclaw" --version zorg-memorydb --no-onboard
 ```
 
-Or start OpenClaw chat mode:
+OpenClaw's installer also supports `OPENCLAW_INSTALL_METHOD=git`, `OPENCLAW_GIT_DIR=<path>`, and `OPENCLAW_GIT_UPDATE=0|1`. The important rule is that the checkout is OpenClaw itself.
+
+## Runtime Workspace
+
+OpenClaw's runtime home and workspace stay in the normal OpenClaw location, usually `~/.openclaw` and `~/.openclaw/workspace`. Zorg MemoryDB runtime files and database configuration must be placed there by the branch install, not under `~/.openclaw/workspace/Zorg_MemoryDB` or `~/Zorg_MemoryDB`.
+
+Verify OpenClaw after installing from the branch:
 
 ```bash
-docker compose run --rm openclaw-cli chat
+openclaw --version
+openclaw doctor
+openclaw gateway status
 ```
 
-The `openclaw-cli` helper service uses the same `./openclaw-home` folder as the running OpenClaw/Zorg container, so it sees the same local OpenClaw configuration and workspace state.
-
-## 3. Dockge
-
-Choose any install folder name. State stays inside that folder under `./openclaw-home`; if you run multiple copies, set a unique port in each `.env`.
-
-```bash
-cd /opt/stacks
-sudo git clone https://github.com/StefRush2099/Zorg_MemoryDB.git my-zorg-memorydb
-sudo chown -R "$USER:$USER" /opt/stacks/my-zorg-memorydb
-cd /opt/stacks/my-zorg-memorydb
-cp .env.example .env
-```
-
-Then import/start that folder's `docker-compose.yml` in Dockge. The stack will keep state in `./openclaw-home` under the same folder.
-
-Docs: [`docs/dockge-install.md`](docs/dockge-install.md)
-
-## 4. Standard Ubuntu
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/StefRush2099/Zorg_MemoryDB/main/scripts/install_standard_ubuntu.sh | bash
-```
-
-Docs: [`docs/standard-ubuntu-install.md`](docs/standard-ubuntu-install.md)
+The target state is still a normal OpenClaw install: `openclaw gateway status`, `openclaw doctor`, and `openclaw tui` remain the user-facing OpenClaw controls.
 
 ## Recommended base setup
 
-A fully useful OpenClaw + Zorg MemoryDB install should have more than the memory container alone:
+A fully useful OpenClaw + Zorg MemoryDB install should have more than the memory layer alone:
 
 - the built-in LAN/local command chat for private local access to the agent without an outside chat provider
 - an optional fast instant messaging control channel such as Telegram, WhatsApp, Signal, Discord, or Slack for remote/mobile convenience
@@ -127,54 +86,27 @@ A fully useful OpenClaw + Zorg MemoryDB install should have more than the memory
 - optional, separately governed access to the operator's personal email for triage/search/drafting
 - a private GitHub repo or other private off-host target for PostgreSQL memory backups
 - a Cloudflare Tunnel/connector so Zorg can publish operator-approved web URLs without exposing origin services directly
-- Dockerized services on the same host where practical, with Dockge as the recommended web UI for visibility and stop/start control
 
 See [`docs/base-setup.md`](docs/base-setup.md).
 
-## What starts in Docker/Dockge
+## Verify Zorg MemoryDB
 
-- one OpenClaw/Zorg container
-- latest OpenClaw CLI/Gateway installed in the image
-- internal PostgreSQL running only inside the same container
-- OpenClaw state, workspace, and memory data in the install folder at `./openclaw-home` (mounted inside the container at `/home/openclaw/.openclaw`)
-- first-run bootstrap that wires memory recall before OpenClaw Gateway starts
-- built-in LAN/local command chat (`lan-chat`; Compose/Dockge also includes nginx) so the operator and authorized local agents have a default web back channel if external messaging is unavailable
-- local-first communication path so private prompts do not have to traverse an outside chat provider before reaching the agent
-
-## First-run behavior
-
-When the container starts, `docker/entrypoint.sh`:
-
-1. starts internal PostgreSQL inside the OpenClaw/Zorg container
-2. seeds `/home/openclaw/.openclaw/workspace` from this sanitized template if needed
-3. creates `.venv-sqlmem`
-4. writes `sql_memory_map.json` into the OpenClaw workspace
-5. applies `db/schema.sql`
-6. archives any legacy retired `memory/` directory into DB if present
-7. imports public template/rule markdown
-8. refreshes recall/search surfaces
-9. writes DB-only OpenClaw memory settings so clean installs do not fall back to markdown memory files
-10. enforces OpenClaw built-in `memory_search` routing through Zorg MemoryDB
-11. starts `openclaw gateway run`
-
-## Verify
+After applying the overlay, verify both OpenClaw and DB-backed recall from the OpenClaw workspace:
 
 ```bash
-docker compose ps
-docker compose exec openclaw bash -lc 'pg_isready -h 127.0.0.1 -p 5432'
-docker compose exec openclaw bash -lc 'cd /home/openclaw/.openclaw/workspace && .venv-sqlmem/bin/python scripts/memory_sql_tool.py tables'
-docker compose exec openclaw bash -lc 'cd /home/openclaw/.openclaw/workspace && .venv-sqlmem/bin/python scripts/memory_recall_router.py "database memory" --limit 5'
+openclaw doctor
+openclaw gateway status
+cd ~/.openclaw/workspace
+.venv-sqlmem/bin/python memory_sql_tool.py tables
+.venv-sqlmem/bin/python memory_recall_router.py "database memory" --limit 5
 ```
 
-Expected recall mode: `database-direct-structured`.
+Expected recall mode: `database-direct-structured` or `database-direct-structured-deep`.
 
-## Sanitized full template
+## Sanitized template
 
 Included:
 
-- full OpenClaw latest install/start path
-- Dockerfile, Compose/Dockge stack, and GHCR package workflow
-- native Ubuntu install script
 - PostgreSQL schema, functions, indexes, materialized views, structured logic rules, recall tooling, backup/auto-heal helpers, and bootstrap scripts
 - public markdown templates and operating rules
 
@@ -183,16 +115,6 @@ Not included:
 - live DB rows/dumps
 - private `MEMORY.md` content or private legacy `memory/*.md` contents
 - account data, cookies, OAuth material, API keys, SSH keys, contacts, emails, transcripts, or private operator context
-
-## Existing OpenClaw installs
-
-The primary path is a clean integrated OpenClaw build. If you intentionally need to attach Zorg MemoryDB to an already-installed OpenClaw workspace, the migration helper remains available:
-
-```bash
-OPENCLAW_WORKSPACE=/path/to/existing/openclaw/workspace ./scripts/upgrade_existing_openclaw.sh
-```
-
-Use that only for migration/repair. New installs should use Docker run, Docker Compose, Dockge, or standard Ubuntu.
 
 ## Database recovery
 
@@ -255,4 +177,4 @@ The assistant owns the full article set and must keep the day’s coverage fresh
 <!-- /SAME_DAY_NEWS_FRESHNESS_RULE -->
 ## Dynamic Trigger Backpressure Rule
 
-Database triggers and recall-adjacent hooks must not perform heavy immediate work. They enqueue tiny bounded work with statistically derived `due_at` delays based on at least a 90-day rolling activity window when available, observed request timestamps/durations, idle gaps, queue wait, worker runtime, backlog, CPU/load, and recall/query timing. Workers use dynamic batch limits and record timing observations after each batch. Deeper indexing, trigger, and recall tuning should be delayed into statistically idle/off-hours windows; during historically active periods, only short bounded tuning bursts may run when latency/load permits. Under high CPU/load/latency, delays increase and batch sizes shrink. Rule-following and recall correctness outrank speed, and source memory must never be deleted/pruned/compacted for performance.
+Database triggers and recall-adjacent hooks must not perform heavy immediate work. They enqueue tiny bounded work with statistically derived `due_at` delays based on observed queue wait, worker runtime, backlog, and recall/query timing. Workers use dynamic batch limits and record timing observations after each batch. Under high CPU/load/latency, delays increase and batch sizes shrink. Rule-following and recall correctness outrank speed, and source memory must never be deleted/pruned/compacted for performance.

@@ -65,9 +65,12 @@ copy_files(){
   cp "$REPO_ROOT/scripts/archive_retired_memory_dir.py" "$TARGET_WORKSPACE/scripts/archive_retired_memory_dir.py"
   cp "$REPO_ROOT/scripts/db_only_memory_autoheal.py" "$TARGET_WORKSPACE/scripts/db_only_memory_autoheal.py"
   cp "$REPO_ROOT/scripts/postgres_memory_backup.sh" "$TARGET_WORKSPACE/scripts/postgres_memory_backup.sh"
+  cp "$REPO_ROOT/scripts/install_lan_chat.sh" "$TARGET_WORKSPACE/scripts/install_lan_chat.sh"
   cp "$REPO_ROOT/db/schema.sql" "$TARGET_WORKSPACE/db/schema.sql"
   cp "$REPO_ROOT/db/memory_file_archive_schema.sql" "$TARGET_WORKSPACE/db/memory_file_archive_schema.sql"
-  chmod +x "$TARGET_WORKSPACE/memory_sql_tool.py" "$TARGET_WORKSPACE/memory_recall_router.py" "$TARGET_WORKSPACE/memory_speed_test.py" "$TARGET_WORKSPACE/scripts/enforce_db_memory_search.py" "$TARGET_WORKSPACE/scripts/import_markdown_memory.py" "$TARGET_WORKSPACE/scripts/archive_retired_memory_dir.py" "$TARGET_WORKSPACE/scripts/db_only_memory_autoheal.py" "$TARGET_WORKSPACE/scripts/postgres_memory_backup.sh"
+  mkdir -p "$TARGET_WORKSPACE/lan-chat"
+  cp -R "$REPO_ROOT/lan-chat/." "$TARGET_WORKSPACE/lan-chat/"
+  chmod +x "$TARGET_WORKSPACE/memory_sql_tool.py" "$TARGET_WORKSPACE/memory_recall_router.py" "$TARGET_WORKSPACE/memory_speed_test.py" "$TARGET_WORKSPACE/scripts/enforce_db_memory_search.py" "$TARGET_WORKSPACE/scripts/import_markdown_memory.py" "$TARGET_WORKSPACE/scripts/archive_retired_memory_dir.py" "$TARGET_WORKSPACE/scripts/db_only_memory_autoheal.py" "$TARGET_WORKSPACE/scripts/postgres_memory_backup.sh" "$TARGET_WORKSPACE/scripts/install_lan_chat.sh"
 }
 
 write_config(){

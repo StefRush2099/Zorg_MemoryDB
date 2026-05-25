@@ -3,10 +3,13 @@
 set -euo pipefail
 
 # Native all-in-one install for the latest Ubuntu release (currently Ubuntu 26.04 LTS).
-# Installs OpenClaw latest + local PostgreSQL + sanitized Zorg MemoryDB template.
+# Installs OpenClaw from a Zorg MemoryDB branch of the original OpenClaw source checkout.
 
-REPO_URL="${REPO_URL:-https://github.com/StefRush2099/Zorg_MemoryDB.git}"
-INSTALL_DIR="${INSTALL_DIR:-$HOME/Zorg_MemoryDB}"
+OPENCLAW_GIT_REPO="${OPENCLAW_GIT_REPO:-https://github.com/openclaw/openclaw.git}"
+OPENCLAW_GIT_REF="${OPENCLAW_GIT_REF:-zorg-memorydb}"
+OPENCLAW_GIT_DIR="${OPENCLAW_GIT_DIR:-$HOME/openclaw}"
+OPENCLAW_HOME="${OPENCLAW_HOME:-$HOME/.openclaw}"
+OPENCLAW_WORKSPACE="${OPENCLAW_WORKSPACE:-$OPENCLAW_HOME/workspace}"
 DB_NAME="${DB_NAME:-openclaw_memory}"
 DB_USER="${DB_USER:-openclaw_memory}"
 OPENCLAW_GATEWAY_PORT="${OPENCLAW_GATEWAY_PORT:-18789}"
@@ -31,11 +34,14 @@ export DB_HOST=127.0.0.1 DB_PORT=5432 DB_NAME DB_USER
 
 run_priv apt-get update
 run_priv apt-get install -y ca-certificates curl git nodejs npm python3 python3-pip python3-venv postgresql postgresql-contrib build-essential
-run_priv npm install -g openclaw@latest
 
-if [ ! -d "$INSTALL_DIR/.git" ]; then
-  if git clone "$REPO_URL" "$INSTALL_DIR" 2>/dev/null; then :; else run_priv git clone "$REPO_URL" "$INSTALL_DIR"; run_priv chown -R "${USER:-$(id -un)}:${USER:-$(id -un)}" "$INSTALL_DIR" 2>/dev/null || true; fi
+mkdir -p "$OPENCLAW_HOME" "$OPENCLAW_WORKSPACE"
+if [ ! -d "$OPENCLAW_GIT_DIR/.git" ]; then
+  if git clone "$OPENCLAW_GIT_REPO" "$OPENCLAW_GIT_DIR" 2>/dev/null; then :; else run_priv git clone "$OPENCLAW_GIT_REPO" "$OPENCLAW_GIT_DIR"; run_priv chown -R "${USER:-$(id -un)}:${USER:-$(id -un)}" "$OPENCLAW_GIT_DIR" 2>/dev/null || true; fi
 fi
+git -C "$OPENCLAW_GIT_DIR" fetch --all --prune
+git -C "$OPENCLAW_GIT_DIR" checkout "$OPENCLAW_GIT_REF"
+curl -fsSL https://openclaw.ai/install.sh | OPENCLAW_INSTALL_METHOD=git OPENCLAW_GIT_DIR="$OPENCLAW_GIT_DIR" bash -s -- --install-method git --git-dir "$OPENCLAW_GIT_DIR" --version "$OPENCLAW_GIT_REF" --no-onboard
 
 run_priv systemctl enable --now postgresql
 PG_HBA="$(run_postgres psql -Atc "show hba_file;")"
@@ -61,11 +67,12 @@ WHERE NOT EXISTS (SELECT 1 FROM pg_database WHERE datname = :'db_name')\gexec
 SELECT format('ALTER DATABASE %I OWNER TO %I', :'db_name', :'db_user')\gexec
 SQL
 
-cd "$INSTALL_DIR"
-DB_HOST=127.0.0.1 DB_PORT=5432 DB_NAME="$DB_NAME" DB_USER="$DB_USER" ./scripts/first_run.sh
+cd "$OPENCLAW_GIT_DIR"
+DB_HOST=127.0.0.1 DB_PORT=5432 DB_NAME="$DB_NAME" DB_USER="$DB_USER" OPENCLAW_WORKSPACE="$OPENCLAW_WORKSPACE" ./scripts/upgrade_existing_openclaw.sh
 
-OPENCLAW_HOME="$HOME/.openclaw" \
-OPENCLAW_WORKSPACE="$INSTALL_DIR" \
+cd "$OPENCLAW_WORKSPACE"
+OPENCLAW_HOME="$OPENCLAW_HOME" \
+OPENCLAW_WORKSPACE="$OPENCLAW_WORKSPACE" \
 GATEWAY_HOST=127.0.0.1 \
 GATEWAY_SESSION_KEY=agent:main:main \
 CHAT_SOURCE_LABEL="LAN Console" \
@@ -73,7 +80,7 @@ CHAT_HISTORY_LIMIT=20 \
 LAN_CHAT_PORT="$LAN_CHAT_PORT" \
 ./scripts/install_lan_chat.sh
 
-cat > .env.native <<ENV
+cat > "$OPENCLAW_WORKSPACE/.env.native" <<ENV
 DB_HOST=127.0.0.1
 DB_PORT=5432
 DB_NAME=$DB_NAME
@@ -83,11 +90,11 @@ OPENCLAW_GATEWAY_BIND=$OPENCLAW_GATEWAY_BIND
 OPENCLAW_GATEWAY_AUTH=$OPENCLAW_GATEWAY_AUTH
 LAN_CHAT_PORT=$LAN_CHAT_PORT
 ENV
-chmod 600 .env.native
+chmod 600 "$OPENCLAW_WORKSPACE/.env.native"
 
 python3 - <<PY
 import json, pathlib
-home=pathlib.Path.home()/'.openclaw'
+home=pathlib.Path('$OPENCLAW_HOME')
 path=home/'openclaw.json'
 try:
     cfg=json.loads(path.read_text()) if path.exists() else {}
@@ -114,8 +121,8 @@ path.write_text(json.dumps(cfg, indent=2)+'\n')
 PY
 
 echo "Native Ubuntu OpenClaw + Zorg MemoryDB install complete."
-echo "Config saved to $INSTALL_DIR/.env.native"
+echo "Config saved to $OPENCLAW_WORKSPACE/.env.native"
 echo "LAN command console installed at http://127.0.0.1:$LAN_CHAT_PORT/"
 echo "Service status: systemctl --user status lan-chat.service"
 echo "Start gateway with:"
-echo "  cd $INSTALL_DIR && source .env.native && OPENCLAW_WORKSPACE=$INSTALL_DIR SQL_MEMORY_MAP=$INSTALL_DIR/sql_memory_map.json openclaw gateway run --allow-unconfigured --bind \$OPENCLAW_GATEWAY_BIND --port \$OPENCLAW_GATEWAY_PORT --auth \$OPENCLAW_GATEWAY_AUTH"
+echo "  cd $OPENCLAW_WORKSPACE && source .env.native && OPENCLAW_WORKSPACE=$OPENCLAW_WORKSPACE SQL_MEMORY_MAP=$OPENCLAW_WORKSPACE/sql_memory_map.json openclaw gateway run --allow-unconfigured --bind \$OPENCLAW_GATEWAY_BIND --port \$OPENCLAW_GATEWAY_PORT --auth \$OPENCLAW_GATEWAY_AUTH"

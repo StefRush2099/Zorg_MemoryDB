@@ -25,8 +25,9 @@ sudo usermod -aG docker "$USER"
 ## Start OpenClaw
 
 ```bash
-git clone https://github.com/StefRush2099/Zorg_MemoryDB.git my-zorg-memorydb
+git clone -b zorg-memorydb-additive-overlay https://github.com/StefRush2099/Zorg_MemoryDB.git my-zorg-memorydb
 cd my-zorg-memorydb
+cd overlays/zorg-memorydb/Zorg_MemoryDB
 cp .env.example .env
 docker compose up -d --build
 ```

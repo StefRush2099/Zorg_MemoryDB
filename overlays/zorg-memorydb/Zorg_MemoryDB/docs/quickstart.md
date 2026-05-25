@@ -14,8 +14,9 @@ Open OpenClaw on the selected host port; run `docker ps` or `docker compose ps` 
 ## Option 2: Docker Compose
 
 ```bash
-git clone https://github.com/StefRush2099/Zorg_MemoryDB.git my-zorg-memorydb
+git clone -b zorg-memorydb-additive-overlay https://github.com/StefRush2099/Zorg_MemoryDB.git my-zorg-memorydb
 cd my-zorg-memorydb
+cd overlays/zorg-memorydb/Zorg_MemoryDB
 cp .env.example .env
 docker compose up -d --build
 ```
@@ -42,9 +43,9 @@ Use the lowercase target folder `zorg_memorydb` so Dockge does not create a seco
 
 ```bash
 cd /opt/stacks
-sudo git clone https://github.com/StefRush2099/Zorg_MemoryDB.git my-zorg-memorydb
+sudo git clone -b zorg-memorydb-additive-overlay https://github.com/StefRush2099/Zorg_MemoryDB.git my-zorg-memorydb
 sudo chown -R "$USER:$USER" /opt/stacks/my-zorg-memorydb
-cd /opt/stacks/my-zorg-memorydb
+cd /opt/stacks/my-zorg-memorydb/overlays/zorg-memorydb/Zorg_MemoryDB
 cp .env.example .env
 ```
 
@@ -81,7 +82,7 @@ docker compose exec openclaw bash -lc 'cd /home/openclaw/.openclaw/workspace && 
 Native:
 
 ```bash
-cd ~/Zorg_MemoryDB
+cd ~/.openclaw/workspace
 .venv-sqlmem/bin/python scripts/memory_sql_tool.py tables
 .venv-sqlmem/bin/python scripts/memory_recall_router.py "openclaw database memory" --limit 5
 ```

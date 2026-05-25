@@ -12,19 +12,20 @@ What it does:
 
 1. installs Ubuntu packages needed for OpenClaw and local memory runtime, including Node/npm when absent
 2. installs original upstream `openclaw@latest`
-3. clones `Zorg_MemoryDB` into `~/Zorg_MemoryDB` and uses the overlay path under `overlays/zorg-memorydb/`
+3. caches the Zorg_MemoryDB source under `~/.openclaw/overlays/zorg-memorydb-source`
 4. starts local PostgreSQL
 5. creates the local OpenClaw memory role/database with local trust access
-6. writes `sql_memory_map.json` into the OpenClaw workspace
-7. applies the Zorg MemoryDB schema and recall surfaces
-8. installs and builds the built-in LAN command console from `./lan-chat`
-9. registers `lan-chat.service` as a user-level systemd service on port `3001`
-10. leaves OpenClaw ready to start with memory already wired and verified before the assistant responds
+6. copies Zorg MemoryDB into the default OpenClaw workspace at `~/.openclaw/workspace`
+7. writes `sql_memory_map.json` into that OpenClaw workspace
+8. applies the Zorg MemoryDB schema and recall surfaces
+9. installs and builds the built-in LAN command console from `~/.openclaw/workspace/lan-chat`
+10. registers `lan-chat.service` as a user-level systemd service on port `3001`
+11. leaves OpenClaw ready to start with memory already wired and verified before the assistant responds
 
 ## Start OpenClaw after install
 
 ```bash
-cd ~/Zorg_MemoryDB
+cd ~/.openclaw/workspace
 source .env.native
 OPENCLAW_WORKSPACE=$PWD SQL_MEMORY_MAP=$PWD/sql_memory_map.json openclaw gateway run --allow-unconfigured --bind "$OPENCLAW_GATEWAY_BIND" --port "$OPENCLAW_GATEWAY_PORT" --auth "$OPENCLAW_GATEWAY_AUTH"
 ```
@@ -46,7 +47,7 @@ http://127.0.0.1:3001/
 ## Verify
 
 ```bash
-cd ~/Zorg_MemoryDB
+cd ~/.openclaw/workspace
 .venv-sqlmem/bin/python scripts/memory_sql_tool.py tables
 .venv-sqlmem/bin/python scripts/memory_recall_router.py "database memory" --limit 5
 curl -fsS http://127.0.0.1:${LAN_CHAT_PORT:-3001}/ | grep -i '<title>'

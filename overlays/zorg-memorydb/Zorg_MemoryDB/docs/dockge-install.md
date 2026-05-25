@@ -23,9 +23,9 @@ sudo apt-get install -y git docker.io docker-compose-plugin
 sudo systemctl enable --now docker
 
 cd /opt/stacks
-sudo git clone https://github.com/StefRush2099/Zorg_MemoryDB.git my-zorg-memorydb
+sudo git clone -b zorg-memorydb-additive-overlay https://github.com/StefRush2099/Zorg_MemoryDB.git my-zorg-memorydb
 sudo chown -R "$USER:$USER" /opt/stacks/my-zorg-memorydb
-cd /opt/stacks/my-zorg-memorydb
+cd /opt/stacks/my-zorg-memorydb/overlays/zorg-memorydb/Zorg_MemoryDB
 cp .env.example .env
 ```
 
@@ -59,13 +59,13 @@ For two installs, use two folders. Both can keep the default external port range
 
 ```bash
 cd /opt/stacks
-git clone https://github.com/StefRush2099/Zorg_MemoryDB.git zorg-memory-a
-git clone https://github.com/StefRush2099/Zorg_MemoryDB.git zorg-memory-b
+git clone -b zorg-memorydb-additive-overlay https://github.com/StefRush2099/Zorg_MemoryDB.git zorg-memory-a
+git clone -b zorg-memorydb-additive-overlay https://github.com/StefRush2099/Zorg_MemoryDB.git zorg-memory-b
 
-cd /opt/stacks/zorg-memory-a
+cd /opt/stacks/zorg-memory-a/overlays/zorg-memorydb/Zorg_MemoryDB
 cp .env.example .env
 
-cd /opt/stacks/zorg-memory-b
+cd /opt/stacks/zorg-memory-b/overlays/zorg-memorydb/Zorg_MemoryDB
 cp .env.example .env
 ```
 

@@ -6,7 +6,8 @@ set -euo pipefail
 
 REPO_URL="${REPO_URL:-https://github.com/StefRush2099/Zorg_MemoryDB.git}"
 REPO_REF="${REPO_REF:-zorg-memorydb-additive-overlay}"
-INSTALL_DIR="${INSTALL_DIR:-$HOME/Zorg_MemoryDB}"
+OPENCLAW_HOME="${OPENCLAW_HOME:-$HOME/.openclaw}"
+INSTALL_DIR="${INSTALL_DIR:-$OPENCLAW_HOME/overlays/zorg-memorydb-source}"
 OVERLAY_DIR="overlays/zorg-memorydb/Zorg_MemoryDB"
 
 have(){ command -v "$1" >/dev/null 2>&1; }
@@ -21,6 +22,7 @@ if ! have git; then
 fi
 
 if [ ! -d "$INSTALL_DIR/.git" ]; then
+  mkdir -p "$(dirname "$INSTALL_DIR")"
   git clone --branch "$REPO_REF" --depth 1 "$REPO_URL" "$INSTALL_DIR" 2>/dev/null || {
     git clone "$REPO_URL" "$INSTALL_DIR"
     git -C "$INSTALL_DIR" checkout "$REPO_REF"

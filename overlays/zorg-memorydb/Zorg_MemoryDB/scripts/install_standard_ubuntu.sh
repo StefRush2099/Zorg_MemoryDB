@@ -7,7 +7,9 @@ set -euo pipefail
 
 REPO_URL="${REPO_URL:-https://github.com/StefRush2099/Zorg_MemoryDB.git}"
 REPO_REF="${REPO_REF:-zorg-memorydb-additive-overlay}"
-INSTALL_DIR="${INSTALL_DIR:-$HOME/Zorg_MemoryDB}"
+OPENCLAW_HOME="${OPENCLAW_HOME:-$HOME/.openclaw}"
+OPENCLAW_WORKSPACE="${OPENCLAW_WORKSPACE:-$OPENCLAW_HOME/workspace}"
+INSTALL_DIR="${INSTALL_DIR:-$OPENCLAW_HOME/overlays/zorg-memorydb-source}"
 OVERLAY_SUBDIR="overlays/zorg-memorydb/Zorg_MemoryDB"
 DB_NAME="${DB_NAME:-openclaw_memory}"
 DB_USER="${DB_USER:-openclaw_memory}"
@@ -29,7 +31,7 @@ if ! have sudo && [ "$(id -u)" -ne 0 ]; then
   exit 1
 fi
 
-export DB_HOST=127.0.0.1 DB_PORT=5432 DB_NAME DB_USER
+export OPENCLAW_HOME OPENCLAW_WORKSPACE DB_HOST=127.0.0.1 DB_PORT=5432 DB_NAME DB_USER
 
 run_priv apt-get update
 run_priv apt-get install -y ca-certificates curl git nodejs npm python3 python3-pip python3-venv postgresql postgresql-contrib build-essential
@@ -40,6 +42,7 @@ fi
 run_priv npm install -g openclaw@latest
 
 if [ ! -d "$INSTALL_DIR/.git" ]; then
+  mkdir -p "$(dirname "$INSTALL_DIR")"
   if git clone --branch "$REPO_REF" --depth 1 "$REPO_URL" "$INSTALL_DIR" 2>/dev/null; then
     :
   else
@@ -50,10 +53,11 @@ if [ ! -d "$INSTALL_DIR/.git" ]; then
 fi
 
 if [ -d "$INSTALL_DIR/$OVERLAY_SUBDIR" ]; then
-  ZORG_RUNTIME_DIR="$INSTALL_DIR/$OVERLAY_SUBDIR"
+  ZORG_SOURCE_DIR="$INSTALL_DIR/$OVERLAY_SUBDIR"
 else
-  ZORG_RUNTIME_DIR="$INSTALL_DIR"
+  ZORG_SOURCE_DIR="$INSTALL_DIR"
 fi
+ZORG_RUNTIME_DIR="$OPENCLAW_WORKSPACE"
 
 run_priv systemctl enable --now postgresql
 PG_HBA="$(run_postgres psql -Atc "show hba_file;")"
@@ -79,10 +83,12 @@ WHERE NOT EXISTS (SELECT 1 FROM pg_database WHERE datname = :'db_name')\gexec
 SELECT format('ALTER DATABASE %I OWNER TO %I', :'db_name', :'db_user')\gexec
 SQL
 
+mkdir -p "$ZORG_RUNTIME_DIR"
+cp -a "$ZORG_SOURCE_DIR"/. "$ZORG_RUNTIME_DIR"/
 cd "$ZORG_RUNTIME_DIR"
 DB_HOST=127.0.0.1 DB_PORT=5432 DB_NAME="$DB_NAME" DB_USER="$DB_USER" ./scripts/first_run.sh
 
-OPENCLAW_HOME="$HOME/.openclaw" \
+OPENCLAW_HOME="$OPENCLAW_HOME" \
 OPENCLAW_WORKSPACE="$ZORG_RUNTIME_DIR" \
 GATEWAY_HOST=127.0.0.1 \
 GATEWAY_SESSION_KEY=agent:main:main \
@@ -104,8 +110,8 @@ ENV
 chmod 600 .env.native
 
 python3 - <<PY
-import json, pathlib
-home=pathlib.Path.home()/'.openclaw'
+import json, os, pathlib
+home=pathlib.Path(os.environ.get('OPENCLAW_HOME', pathlib.Path.home()/'.openclaw')).expanduser()
 path=home/'openclaw.json'
 try:
     cfg=json.loads(path.read_text()) if path.exists() else {}
@@ -132,6 +138,7 @@ path.write_text(json.dumps(cfg, indent=2)+'\n')
 PY
 
 echo "Native Ubuntu OpenClaw + Zorg MemoryDB install complete."
+echo "Zorg source cached under $INSTALL_DIR"
 echo "Config saved to $ZORG_RUNTIME_DIR/.env.native"
 echo "LAN command console installed at http://127.0.0.1:$LAN_CHAT_PORT/"
 echo "Service status: systemctl --user status lan-chat.service"

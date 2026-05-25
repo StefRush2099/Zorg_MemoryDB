@@ -63,8 +63,9 @@ Docs: [`docs/docker-run.md`](docs/docker-run.md)
 ## 2. Docker Compose
 
 ```bash
-git clone https://github.com/StefRush2099/Zorg_MemoryDB.git my-zorg-memorydb
+git clone -b zorg-memorydb-additive-overlay https://github.com/StefRush2099/Zorg_MemoryDB.git my-zorg-memorydb
 cd my-zorg-memorydb
+cd overlays/zorg-memorydb/Zorg_MemoryDB
 cp .env.example .env
 docker compose up -d --build
 ```
@@ -97,9 +98,9 @@ Choose any install folder name. State stays inside that folder under `./openclaw
 
 ```bash
 cd /opt/stacks
-sudo git clone https://github.com/StefRush2099/Zorg_MemoryDB.git my-zorg-memorydb
+sudo git clone -b zorg-memorydb-additive-overlay https://github.com/StefRush2099/Zorg_MemoryDB.git my-zorg-memorydb
 sudo chown -R "$USER:$USER" /opt/stacks/my-zorg-memorydb
-cd /opt/stacks/my-zorg-memorydb
+cd /opt/stacks/my-zorg-memorydb/overlays/zorg-memorydb/Zorg_MemoryDB
 cp .env.example .env
 ```
 
@@ -135,9 +136,10 @@ See [`docs/base-setup.md`](docs/base-setup.md).
 - latest OpenClaw CLI/Gateway installed in the image
 - internal PostgreSQL running only inside the same container
 - OpenClaw state, workspace, and memory data in the install folder at `./openclaw-home` (mounted inside the container at `/home/openclaw/.openclaw`)
-- first-run bootstrap that wires and verifies DB memory recall before OpenClaw Gateway starts
+- first-run bootstrap that installs DB memory, rule templates, and LAN command chat under the default OpenClaw home/workspace before OpenClaw Gateway starts
 - built-in LAN/local command chat (`lan-chat`; Compose/Dockge also includes nginx) so the operator and authorized local agents have a default web back channel if external messaging is unavailable
 - local-first communication path so private prompts do not have to traverse an outside chat provider before reaching the agent
+- LAN command chat assets and screenshots are included in this Zorg MemoryDB repository under `docs/assets/`, including `lan-console-in-use-2026-05-14.png`.
 
 ## First-run behavior
 
@@ -187,7 +189,7 @@ Not included:
 The primary path is upstream OpenClaw plus the Zorg MemoryDB overlay. If you intentionally need to attach Zorg MemoryDB to an already-installed OpenClaw workspace, the migration helper remains available:
 
 ```bash
-OPENCLAW_WORKSPACE=/path/to/existing/openclaw/workspace ./scripts/upgrade_existing_openclaw.sh
+OPENCLAW_WORKSPACE="$HOME/.openclaw/workspace" ./scripts/upgrade_existing_openclaw.sh
 ```
 
 Use that only for migration/repair. New installs should use Docker run, Docker Compose, Dockge, or standard Ubuntu.

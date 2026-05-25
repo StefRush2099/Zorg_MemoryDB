@@ -83,6 +83,17 @@ Operational rule: when two memories describe the same preference or instruction,
 
 Before applying this migration in production, create and verify the local PostgreSQL backup plus private recovery backup. After applying, refresh materialized recall surfaces and verify with stale-vs-newer test queries.
 
+## 2026-05-25 temporary deep-scan enforcement window
+
+When an operator identifies avoidable recall misses and orders a temporary deep-scan period, the DB recall router can force every non-wiki/non-session memory lookup through the weighted recall path with a higher minimum candidate limit. This is intentionally temporary and evidence-driven: it increases recall depth long enough to collect query observations and tune weights without permanently adding latency to every response.
+
+Set:
+
+- `ZORG_DEEP_RECALL_UNTIL` to an ISO timestamp, for example `2026-05-27T07:56:00Z`.
+- `ZORG_DEEP_RECALL_MIN_LIMIT` to the largest value that completes inside the live memory-search timeout on representative queries. On the 2026-05-25 incident, `18` was the verified setting; larger values such as `40` or `120` exceeded the live route timeout.
+
+The router reports `mode: database-direct-structured-deep`, `requested_limit`, `effective_limit`, and `deep_scan_until` while the window is active. Verification must include the exact query that previously failed and a timing measurement that proves the route still completes before the caller timeout.
+
 <!-- GO_ONLY_APPROVAL_RULE -->
 ## GO-Only Approval Rule
 

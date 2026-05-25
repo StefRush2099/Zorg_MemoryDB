@@ -30,7 +30,7 @@ def deep_scan_active() -> bool:
 
 
 def deep_scan_min_limit() -> int:
-    return max(1, int(os.environ.get('ZORG_DEEP_RECALL_MIN_LIMIT', '18')))
+    return max(1, int(os.environ.get('ZORG_DEEP_RECALL_MIN_LIMIT', '12')))
 
 
 def load_sql_cfg():

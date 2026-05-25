@@ -90,7 +90,7 @@ When an operator identifies avoidable recall misses and orders a temporary deep-
 Set:
 
 - `ZORG_DEEP_RECALL_UNTIL` to an ISO timestamp, for example `2026-05-27T07:56:00Z`.
-- `ZORG_DEEP_RECALL_MIN_LIMIT` to the largest value that completes inside the live memory-search timeout on representative queries. On the 2026-05-25 incident, `18` was the verified setting; larger values such as `40` or `120` exceeded the live route timeout.
+- `ZORG_DEEP_RECALL_MIN_LIMIT` to the largest value that completes inside the live memory-search timeout on representative queries. On the 2026-05-25 incident, `18` worked for the original screenshot-dimension query but failed on a broader cron-repair query, so the enforced live default was reduced to `12`. Larger values such as `40` or `120` exceeded the live route timeout.
 
 The router reports `mode: database-direct-structured-deep`, `requested_limit`, `effective_limit`, and `deep_scan_until` while the window is active. Verification must include the exact query that previously failed and a timing measurement that proves the route still completes before the caller timeout.
 

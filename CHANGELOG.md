@@ -13,6 +13,7 @@ All meaningful changes to this project are documented here and released with a G
 
 ### Changed
 
+- Clarified Dynamic Trigger Backpressure so defer/batch decisions use at least a 90-day rolling activity window when available, chart request timing and idle gaps, postpone deeper tuning into statistically idle/off-hours windows, and allow only short bounded tuning bursts during historically active periods.
 - Updated Docker run examples to publish the built-in LAN command console on port 3001.
 - Updated install docs so the LAN console is documented alongside database memory as base Zorg MemoryDB infrastructure.
 - Updated the packaged Docker entrypoint to start an internal LAN console for single-container `docker run` installs while disabling that internal process in Compose, where `lan-chat` runs as its own service.

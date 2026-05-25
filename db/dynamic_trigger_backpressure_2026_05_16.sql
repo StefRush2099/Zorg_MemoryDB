@@ -302,13 +302,13 @@ $$;insert into public.zorg_logic_rules(rule_key,title,rule_text,rule_type,priori
 values (
   'dynamic-trigger-backpressure-2026-05-16',
   'Dynamic Trigger Backpressure / Deferred Work Rule',
-  'Database triggers and recall-adjacent hooks must not perform heavy immediate work. They should enqueue at most tiny bounded work, assign due_at using statistically derived delay from observed queue wait, worker runtime, backlog, and recall/query timing, and let workers process bounded batches. Dynamic delay and batch limits must protect immediate operator function under high CPU load while preserving the higher-priority rule that correctness/rule-following outranks speed. Source memory may not be pruned for performance.',
+  'Database triggers and recall-adjacent hooks must not perform heavy immediate work. They should enqueue at most tiny bounded work, assign due_at using statistically derived delay from at least a 90-day rolling activity window when available, observed request timestamps/durations, idle gaps, queue wait, worker runtime, backlog, CPU/load, and recall/query timing, and let workers process bounded batches. Deeper indexing, trigger, and recall tuning should be delayed into statistically idle/off-hours windows; during historically active periods, only short bounded tuning bursts may run when latency/load permits. Dynamic delay and batch limits must protect immediate operator function under high CPU load while preserving the higher-priority rule that correctness/rule-following outranks speed. Source memory may not be pruned for performance.',
   'operating_rule',
   'critical',
   'public_safe',
   'operator_instruction_2026_05_16',
-  array['database','triggers','recall','semantic_worker','performance','cpu_load','rules_first'],
-  array['Triggers enqueue/defer instead of doing heavy work','Due times derive from observed queue/task/recall timing and backlog, not a fixed sleep','Workers use bounded dynamic batch limits','High CPU/latency increases delay and reduces batch size','Rule-following and recall correctness outrank performance','Never prune source memory for speed'],
+  array['database','triggers','recall','semantic_worker','performance','cpu_load','rules_first','request_activity','idle_windows'],
+  array['Triggers enqueue/defer instead of doing heavy work','Due times derive from at least a 90-day rolling activity window when available, observed request timing, idle gaps, queue/task/recall timing, CPU/load, and backlog, not a fixed sleep','Workers use bounded dynamic batch limits','Deep tuning/indexing is postponed into statistically idle/off-hours windows','Historically active periods allow only short bounded tuning bursts when latency/load permits','High CPU/latency increases delay and reduces batch size','Rule-following and recall correctness outrank performance','Never prune source memory for speed'],
   true,
   now(),
   now()

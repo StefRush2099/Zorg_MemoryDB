@@ -10,16 +10,23 @@ All meaningful changes to this project are documented here and released with a G
 - Promoted the LAN command console to a built-in install component across the packaged Docker image, Docker Compose/Dockge stack, and native Ubuntu path.
 - Added `scripts/install_lan_chat.sh` to build and register the native `lan-chat.service` on port 3001.
 - Added a public-safe LAN console screenshot asset for documentation.
+- Added public-safe docs for recency-aware recall weighting, temporary deep-recall enforcement windows, task replay/dynamic DB benchmarks, vector/neural recall architecture, and markdown statement import.
+- Added public-safe docs for completed-work posting, X posting live-access/quota guards, Hyperdine canonical link handling, and restart guards.
+- Added public-safe upgrade and first-use pages for native Ubuntu, existing OpenClaw overlays, Docker Compose, Dockge, Docker run, and host Docker/Dockge maintenance.
 
 ### Changed
 
+- Clarified that the preferred install/update shape is an additive Zorg MemoryDB branch or fork of upstream `openclaw/openclaw`, installed through OpenClaw's official git install path, with runtime state remaining in the normal OpenClaw home/workspace.
+- Documented that public release and install docs must stay sanitized: no private DB rows, dumps, contacts, transcripts, credentials, account data, emails, or operator-private context.
 - Clarified Dynamic Trigger Backpressure so defer/batch decisions use at least a 90-day rolling activity window when available, chart request timing and idle gaps, postpone deeper tuning into statistically idle/off-hours windows, and allow only short bounded tuning bursts during historically active periods.
 - Updated Docker run examples to publish the built-in LAN command console on port 3001.
 - Updated install docs so the LAN console is documented alongside database memory as base Zorg MemoryDB infrastructure.
 - Updated the packaged Docker entrypoint to start an internal LAN console for single-container `docker run` installs while disabling that internal process in Compose, where `lan-chat` runs as its own service.
+- Updated recall docs so DB-only durable memory, dynamic logic-rule ranking, recency-aware weighting, vector/neural retrieval, source preservation, and bounded background maintenance are described as current MemoryDB behavior rather than optional future work.
 
 ### Verified
 
+- Verified this maintenance pass used backend DB recall first and kept updates public-safe.
 - Verified the live `lan-chat` app builds after the unified command-stream and dynamic tab-title changes.
 
 ## [v1.2.11] - 2026-05-14

@@ -1,0 +1,23 @@
+{
+  "description": "Public-safe real-world recall benchmark corpus for DB-vs-flat-file timing. Includes simple lookups plus deep historical multi-condition and join-heavy/ranked-search-style prompts without private operator data.",
+  "updated": "2026-05-03",
+  "queries": [
+    "OpenClaw",
+    "memory",
+    "directive",
+    "project",
+    "database",
+    "backup",
+    "policy",
+    "rule",
+    "cron",
+    "email oauth authorized contact reply approval",
+    "posting runbook credentials path public update GitHub memory database",
+    "agent browser direct headless Chrome verification screenshot rule backup browser",
+    "database memory preserve source data additive indexes vector neural semantic recall rules",
+    "memory database performance deep historical multi condition join ranked search materialized view",
+    "news feed append-only publish rebuild redeploy verify public site",
+    "session bridge chat with agent jump host runbook",
+    "successful task query index outcome summary reusable solution ranked recall"
+  ]
+}

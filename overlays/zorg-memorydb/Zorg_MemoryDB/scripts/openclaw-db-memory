@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+set -euo pipefail
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT"
+./scripts/first_run.sh
+export OPENCLAW_WORKSPACE="$ROOT"
+export SQL_MEMORY_MAP="$ROOT/sql_memory_map.json"
+exec openclaw "$@"

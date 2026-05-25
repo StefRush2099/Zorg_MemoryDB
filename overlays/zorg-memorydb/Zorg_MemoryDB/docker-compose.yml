@@ -1,0 +1,83 @@
+services:
+  openclaw:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        OPENCLAW_VERSION: ${OPENCLAW_VERSION:-latest}
+    image: ghcr.io/stefrush2099/zorg-memorydb:latest
+    restart: unless-stopped
+    environment:
+      OPENCLAW_HOME: /home/openclaw/.openclaw
+      OPENCLAW_WORKSPACE: /home/openclaw/.openclaw/workspace
+      PGDATA: /home/openclaw/.openclaw/postgresql/data
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-openclaw_memory}
+      DB_USER: ${DB_USER:-openclaw_memory}
+      # Internal container listen port. The external host port is selected
+      # from OPENCLAW_GATEWAY_PUBLISHED_PORTS below.
+      OPENCLAW_GATEWAY_PORT: ${OPENCLAW_GATEWAY_CONTAINER_PORT:-18789}
+      OPENCLAW_GATEWAY_BIND: ${OPENCLAW_GATEWAY_BIND:-lan}
+      OPENCLAW_GATEWAY_AUTH: trusted-proxy
+      # Compose runs lan-chat as a dedicated service below; keep the
+      # single-container/docker-run internal LAN console disabled here.
+      ENABLE_LAN_CHAT_INTERNAL: "false"
+    ports:
+      # Docker automatically selects the first free host port in this range.
+      # Default tries 18789, then 18790, and so on through 18889.
+      - "${OPENCLAW_GATEWAY_PUBLISHED_PORTS:-18789-18889}:${OPENCLAW_GATEWAY_CONTAINER_PORT:-18789}"
+    volumes:
+      # Folder-local persistence: each clone/stack stores its OpenClaw state,
+      # workspace, embedded PostgreSQL data, and memory DB under this checkout.
+      # Do not replace this with a global named volume if you want multiple
+      # installs on the same Docker host to stay isolated.
+      - ./openclaw-home:/home/openclaw/.openclaw
+
+  openclaw-cli:
+    profiles: ["cli"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        OPENCLAW_VERSION: ${OPENCLAW_VERSION:-latest}
+    image: ghcr.io/stefrush2099/zorg-memorydb:latest
+    depends_on:
+      - openclaw
+    environment:
+      OPENCLAW_HOME: /home/openclaw/.openclaw
+      OPENCLAW_WORKSPACE: /home/openclaw/.openclaw/workspace
+    volumes:
+      - ./openclaw-home:/home/openclaw/.openclaw
+    entrypoint: ["openclaw"]
+
+
+  lan-chat:
+    build:
+      context: ./lan-chat
+      dockerfile: Dockerfile
+    image: ghcr.io/stefrush2099/zorg-memorydb-lan-chat:latest
+    restart: unless-stopped
+    depends_on:
+      - openclaw
+    environment:
+      HOME: /home/openclaw
+      GATEWAY_HOST: openclaw
+      GATEWAY_SESSION_KEY: ${GATEWAY_SESSION_KEY:-agent:main:main}
+      CHAT_SOURCE_LABEL: ${CHAT_SOURCE_LABEL:-LAN Console}
+      CHAT_HISTORY_LIMIT: ${CHAT_HISTORY_LIMIT:-20}
+      PORT: 3001
+      GATEWAY_CALL_TIMEOUT_MS: ${GATEWAY_CALL_TIMEOUT_MS:-15000}
+    volumes:
+      - ./openclaw-home:/home/openclaw/.openclaw:ro
+      - ./lan-chat/uploads:/app/public/uploads
+
+  lan-chat-nginx:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    depends_on:
+      - lan-chat
+    ports:
+      - "${LAN_CHAT_HTTP_PORT:-80}:80"
+    volumes:
+      - ./lan-chat/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro

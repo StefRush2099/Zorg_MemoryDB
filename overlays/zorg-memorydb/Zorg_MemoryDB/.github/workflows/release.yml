@@ -1,0 +1,126 @@
+name: Release and publish container
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing semver tag to release, e.g. v1.1.0'
+        required: true
+        type: string
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ghcr.io/stefrush2099/zorg-memorydb
+
+permissions:
+  contents: write
+  packages: write
+  attestations: write
+  id-token: write
+
+jobs:
+  build-publish-release:
+    name: Build GHCR image and publish GitHub Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref }}
+
+      - name: Resolve tag
+        id: version
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            tag="${{ inputs.tag }}"
+          else
+            tag="${GITHUB_REF_NAME}"
+          fi
+          echo "tag=${tag}" >> "$GITHUB_OUTPUT"
+          echo "version=${tag#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Validate template before publishing
+        run: |
+          bash -n scripts/*.sh docker/entrypoint.sh
+          python3 -m py_compile scripts/*.py
+          docker compose config >/tmp/zorg-memorydb-compose.yml
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          tags: |
+            type=semver,pattern={{version}},value=${{ steps.version.outputs.tag }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ steps.version.outputs.tag }}
+            type=raw,value=latest
+          labels: |
+            org.opencontainers.image.title=Zorg MemoryDB OpenClaw Template
+            org.opencontainers.image.description=Self-contained OpenClaw plus PostgreSQL-backed Zorg MemoryDB template
+            org.opencontainers.image.vendor=Hyperdine Systems
+            org.opencontainers.image.source=https://github.com/StefRush2099/Zorg_MemoryDB
+
+      - name: Build and push GHCR image
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            OPENCLAW_VERSION=latest
+
+      - name: Generate artifact attestation
+        uses: actions/attest-build-provenance@v3
+        with:
+          subject-name: ${{ env.IMAGE_NAME }}
+          subject-digest: ${{ steps.build.outputs.digest }}
+          push-to-registry: true
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.version.outputs.tag }}
+          IMAGE: ${{ env.IMAGE_NAME }}
+          DIGEST: ${{ steps.build.outputs.digest }}
+        shell: bash
+        run: |
+          notes="docs/releases/${TAG}.md"
+          extra="/tmp/release-extra.md"
+          {
+            echo ""
+            echo "## Container image"
+            echo ""
+            echo "- \`${IMAGE}:${TAG#v}\`"
+            echo "- \`${IMAGE}:latest\`"
+            echo "- Digest: \`${DIGEST}\`"
+            echo ""
+            echo "## Docker run one-liner"
+            echo ""
+            echo '```bash'
+            echo 'INSTALL_ID="${PWD##*/}"; docker run -d --name "${INSTALL_ID}-zorg-memorydb" --restart unless-stopped -p 18789-18889:18789 -v "$PWD/openclaw-home:/home/openclaw/.openclaw" ${IMAGE}:${TAG#v}'
+            echo '```'
+          } > "$extra"
+          if [ -f "$notes" ]; then
+            cat "$notes" "$extra" > /tmp/release-notes.md
+            gh release create "$TAG" --title "$TAG" --notes-file /tmp/release-notes.md --verify-tag
+          else
+            gh release create "$TAG" --title "$TAG" --generate-notes --verify-tag
+            gh release edit "$TAG" --notes-file "$extra"
+          fi

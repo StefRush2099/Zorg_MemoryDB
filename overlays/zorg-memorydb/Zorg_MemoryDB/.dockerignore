@@ -1,0 +1,11 @@
+.git
+.gitignore
+.venv-sqlmem
+__pycache__
+*.pyc
+sql_memory_map.json
+memory/*.md
+backups
+*.log
+.env
+openclaw-home

@@ -2,9 +2,11 @@
 
 Zorg MemoryDB includes a LAN web console (`lan-chat`) as a built-in local command chat and fallback communication path for OpenClaw. It is installed with the base Zorg MemoryDB distribution in the Docker Compose/Dockge and native Ubuntu install paths, the same way database memory is installed as base infrastructure. This is a minimum usability feature: an operator should be able to open a normal web page on the same LAN and talk to the local agent without logging into a terminal, knowing CLI commands, or sending private prompts through an outside chat provider first.
 
-![LAN command console in use](assets/lan-console-in-use-2026-05-14.png)
+![LAN command console login in light mode](assets/lan-console-live-light-2026-05-25.png)
 
-_Public-safe documentation screenshot. The live console should show the local agent identity, runtime/database readouts, and the unified latest-20 command stream without exposing private messages in public docs._
+![LAN command console login in dark mode](assets/lan-console-live-dark-2026-05-25.png)
+
+_Public-safe documentation screenshots captured fresh from the live LAN command chat on 2026-05-25. They show the light and dark login states without exposing private messages in public docs._
 
 Purpose:
 

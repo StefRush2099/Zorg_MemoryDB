@@ -24,7 +24,9 @@ Zorg MemoryDB is the OpenClaw base with a durable PostgreSQL-backed memory spine
 - Dynamic trigger backpressure: [`docs/dynamic-trigger-backpressure.md`](docs/dynamic-trigger-backpressure.md)
 - Built-in LAN/local command console: [`docs/lan-console.md`](docs/lan-console.md)
 
-![Zorg MemoryDB LAN command console](docs/assets/lan-console-in-use-2026-05-14.png)
+![Zorg MemoryDB LAN command console in light mode](docs/assets/lan-console-live-light-2026-05-25.png)
+
+![Zorg MemoryDB LAN command console in dark mode](docs/assets/lan-console-live-dark-2026-05-25.png)
 
 ## Packages and releases
 
@@ -141,7 +143,7 @@ See [`docs/base-setup.md`](docs/base-setup.md).
 - first-run bootstrap that installs DB memory, rule templates, and LAN command chat under the default OpenClaw home/workspace before OpenClaw Gateway starts
 - built-in LAN/local command chat (`lan-chat`; Compose/Dockge also includes nginx) so the operator and authorized local agents have a default web back channel if external messaging is unavailable
 - local-first communication path so private prompts do not have to traverse an outside chat provider before reaching the agent
-- LAN command chat assets and screenshots are included in this Zorg MemoryDB repository under `docs/assets/`, including `lan-console-in-use-2026-05-14.png`.
+- LAN command chat assets and fresh light/dark screenshots are included in this Zorg MemoryDB repository under `docs/assets/`, including `lan-console-live-light-2026-05-25.png` and `lan-console-live-dark-2026-05-25.png`.
 
 ## First-run behavior
 

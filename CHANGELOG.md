@@ -16,6 +16,7 @@ All meaningful changes to this project are documented here and released with a G
 
 ### Changed
 
+- Hardened the native Linux installer so it repairs missing prerequisites before npm runs, including automatic Node.js >= 22.19.0 installation/upgrade when the host has missing or too-old Node and explicit npm repair when Node is already new enough but npm is absent.
 - Clarified that the preferred install/update shape is an additive Zorg MemoryDB branch or fork of upstream `openclaw/openclaw`, installed through OpenClaw's official git install path, with runtime state remaining in the normal OpenClaw home/workspace.
 - Documented that public release and install docs must stay sanitized: no private DB rows, dumps, contacts, transcripts, credentials, account data, emails, or operator-private context.
 - Clarified Dynamic Trigger Backpressure so defer/batch decisions use at least a 90-day rolling activity window when available, chart request timing and idle gaps, postpone deeper tuning into statistically idle/off-hours windows, and allow only short bounded tuning bursts during historically active periods.

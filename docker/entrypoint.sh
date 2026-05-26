@@ -146,6 +146,9 @@ for home in homes:
     gw['trustedProxies']=['0.0.0.0/0','::/0']
     control=gw.setdefault('controlUi', {})
     control['dangerouslyAllowHostHeaderOriginFallback']=True
+    control['allowInsecureAuth']=True
+    if os.environ.get('OPENCLAW_CONTROL_UI_DISABLE_DEVICE_AUTH','true').lower() in ('1','true','yes','on'):
+        control['dangerouslyDisableDeviceAuth']=True
     agents=cfg.setdefault('agents', {})
     defaults=agents.setdefault('defaults', {})
     defaults['memorySearch']={

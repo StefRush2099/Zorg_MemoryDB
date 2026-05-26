@@ -1,6 +1,6 @@
-# Standard Ubuntu Install
+# Native Linux Install
 
-This path installs original upstream OpenClaw natively on Ubuntu, then wires Zorg MemoryDB into the OpenClaw workspace during first run.
+This path installs original upstream OpenClaw natively, then wires Zorg MemoryDB into the OpenClaw workspace during first run. The installer repairs missing prerequisites before it runs OpenClaw or npm, so a host with missing or too-old base software is corrected before the install reaches the npm step.
 
 ## One-line install
 
@@ -10,17 +10,20 @@ curl -fsSL https://raw.githubusercontent.com/StefRush2099/Zorg_MemoryDB/zorg-mem
 
 What it does:
 
-1. installs Ubuntu packages needed for OpenClaw and local memory runtime, including Node/npm when absent
-2. installs original upstream `openclaw@latest`
-3. caches the Zorg_MemoryDB source under `~/.openclaw/overlays/zorg-memorydb-source`
-4. starts local PostgreSQL
-5. creates the local OpenClaw memory role/database with local trust access
-6. copies Zorg MemoryDB into the default OpenClaw workspace at `~/.openclaw/workspace`
-7. writes `sql_memory_map.json` into that OpenClaw workspace
-8. applies the Zorg MemoryDB schema and recall surfaces
-9. installs and builds the built-in LAN command console from `~/.openclaw/workspace/lan-chat`
-10. registers `lan-chat.service` as a user-level systemd service on port `3001`
-11. leaves OpenClaw ready to start with memory already wired and verified before the assistant responds
+1. detects the host package manager and installs packages needed for OpenClaw, PostgreSQL-backed memory, and the LAN command console
+2. checks Node.js before npm is used, upgrades missing or too-old Node to Node >= 22.19.0 where the OS package manager can support it, and fails early with a clear message if the OS cannot provide a compatible Node runtime
+3. installs original upstream `openclaw@latest`
+4. caches the Zorg_MemoryDB source under `~/.openclaw/overlays/zorg-memorydb-source`
+5. starts local PostgreSQL using the available service manager
+6. creates the local OpenClaw memory role/database with local trust access
+7. copies Zorg MemoryDB into the default OpenClaw workspace at `~/.openclaw/workspace`
+8. writes `sql_memory_map.json` into that OpenClaw workspace
+9. applies the Zorg MemoryDB schema and recall surfaces
+10. installs and builds the built-in LAN command console from `~/.openclaw/workspace/lan-chat`
+11. registers `lan-chat.service` as a user-level systemd service on port `3001`
+12. leaves OpenClaw ready to start with memory already wired and verified before the assistant responds
+
+The automatic prerequisite path currently recognizes `apt`, `dnf`, `yum`, `zypper`, `apk`, `pacman`, and `brew`. Debian and Ubuntu hosts use NodeSource for Node 22 when the distribution package is missing or too old.
 
 ## Start OpenClaw after install
 

@@ -12,6 +12,7 @@ All meaningful changes to this project are documented here and released with a G
 
 ### Changed
 
+- Hardened the native Linux installer so it repairs missing prerequisites before npm runs, including automatic Node.js >= 22.19.0 installation/upgrade when the host has missing or too-old Node.
 - Updated Docker run examples to publish the built-in LAN command console on port 3001.
 - Updated install docs so the LAN console is documented alongside database memory as base Zorg MemoryDB infrastructure.
 - Updated the packaged Docker entrypoint to start an internal LAN console for single-container `docker run` installs while disabling that internal process in Compose, where `lan-chat` runs as its own service.

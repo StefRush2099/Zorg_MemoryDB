@@ -37,6 +37,26 @@ zorg-memorydb-YYYYMMDD-HHMMSS.pgcustom
 
 Backups may be PostgreSQL custom-format dumps, compressed SQL dumps, or implementation-specific snapshots, but they should be named clearly and stored under the predictable directories above.
 
+## Scripted recovery requirement
+
+Backups are not considered useful until a scripted recovery drill can prove that at least one dump restores into an isolated test database and passes schema/row-count checks. The canonical public-safe script is:
+
+```bash
+bash scripts/postgres_memory_recovery.sh list
+bash scripts/postgres_memory_recovery.sh drill
+bash scripts/postgres_memory_recovery.sh drill /path/to/zorgdb-YYYY-MM-DD_HHMMSS.sql.gz
+```
+
+The drill creates a temporary PostgreSQL database inside the configured container, restores the selected dump, verifies that `public.zorg_memory` exists and has rows, then drops the temporary database. It does not replace the live database.
+
+Live restore is intentionally gated:
+
+```bash
+CONFIRM_RESTORE_ACTIVE=YES bash scripts/postgres_memory_recovery.sh restore-active /path/to/zorgdb-YYYY-MM-DD_HHMMSS.sql.gz
+```
+
+The live restore path first runs the drill against the selected dump. If the drill passes, it renames the current live database to a safety database, creates a fresh live database, restores the selected dump, and verifies the restored live database. This still requires operator approval because it replaces active service state.
+
 ## Before production DB tuning or schema changes
 
 Before any production DB structural, indexing, materialized-view, recall-routing, vector/embedding, weighted-association, neural-memory, or schema change:
@@ -87,7 +107,7 @@ If repair fails:
 1. Search predictable backup locations.
 2. Sort backups newest-first unless there is a known reason to prefer another order.
 3. For each candidate backup:
-   - restore into a temporary test database or isolated test container first when possible
+   - run `scripts/postgres_memory_recovery.sh drill <candidate>` to restore into a temporary test database
    - run health and recall verification
    - reject backups that fail to restore, fail schema checks, or cannot answer recall tests
 4. Restore/promote the first verified working backup to the active DB.
@@ -186,4 +206,3 @@ Before drafting or publishing a new article, review the same-day feed/archive an
 
 The assistant owns the full article set and must keep the day’s coverage fresh, non-repetitive, and additive.
 <!-- /SAME_DAY_NEWS_FRESHNESS_RULE -->
-

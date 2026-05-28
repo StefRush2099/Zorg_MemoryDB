@@ -23,9 +23,7 @@ Zorg MemoryDB is the OpenClaw base with a durable PostgreSQL-backed memory spine
 - Dynamic trigger backpressure: [`docs/dynamic-trigger-backpressure.md`](docs/dynamic-trigger-backpressure.md)
 - Built-in LAN/local command console: [`docs/lan-console.md`](docs/lan-console.md)
 
-![Zorg MemoryDB LAN command console in desktop light mode](docs/assets/lan-console-desktop-light-2026-05-25.png)
-
-![Zorg MemoryDB LAN command console in desktop dark mode](docs/assets/lan-console-desktop-dark-2026-05-25.png)
+![Zorg MemoryDB LAN command console in use](docs/assets/lan-console-in-use-2026-05-14.png)
 
 ## Before you get started
 

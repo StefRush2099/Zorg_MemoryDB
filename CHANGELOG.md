@@ -4,31 +4,271 @@ All meaningful changes to this project are documented here and released with a G
 
 ## [Unreleased]
 
-### Added
+No pending public-safe release notes.
 
-- Added a public-safe one-step self-recovery entrypoint, `scripts/zorg_self_recover.sh`, and documented the private-backup recovery process in `docs/self-recovery.md`.
-- Promoted the LAN command console to a built-in install component across the packaged Docker image, Docker Compose/Dockge stack, and native Ubuntu path.
-- Added `scripts/install_lan_chat.sh` to build and register the native `lan-chat.service` on port 3001.
-- Added a public-safe LAN console screenshot asset for documentation.
-- Added public-safe docs for recency-aware recall weighting, temporary deep-recall enforcement windows, task replay/dynamic DB benchmarks, vector/neural recall architecture, and markdown statement import.
-- Added public-safe docs for completed-work posting, X posting live-access/quota guards, Hyperdine canonical link handling, and restart guards.
-- Added public-safe upgrade and first-use pages for native Ubuntu, existing OpenClaw overlays, Docker Compose, Dockge, Docker run, and host Docker/Dockge maintenance.
+## [v1.2.54] - 2026-05-28
 
-### Changed
+### Fixed
 
-- Hardened the native Linux installer so it repairs missing prerequisites before npm runs, including automatic Node.js >= 22.19.0 installation/upgrade when the host has missing or too-old Node and explicit npm repair when Node is already new enough but npm is absent.
-- Clarified that the preferred install/update shape is an additive Zorg MemoryDB branch or fork of upstream `openclaw/openclaw`, installed through OpenClaw's official git install path, with runtime state remaining in the normal OpenClaw home/workspace.
-- Documented that public release and install docs must stay sanitized: no private DB rows, dumps, contacts, transcripts, credentials, account data, emails, or operator-private context.
-- Clarified Dynamic Trigger Backpressure so defer/batch decisions use at least a 90-day rolling activity window when available, chart request timing and idle gaps, postpone deeper tuning into statistically idle/off-hours windows, and allow only short bounded tuning bursts during historically active periods.
-- Updated Docker run examples to publish the built-in LAN command console on port 3001.
-- Updated install docs so the LAN console is documented alongside database memory as base Zorg MemoryDB infrastructure.
-- Updated the packaged Docker entrypoint to start an internal LAN console for single-container `docker run` installs while disabling that internal process in Compose, where `lan-chat` runs as its own service.
-- Updated recall docs so DB-only durable memory, dynamic logic-rule ranking, recency-aware weighting, vector/neural retrieval, source preservation, and bounded background maintenance are described as current MemoryDB behavior rather than optional future work.
+- Repaired README LAN console screenshot references so the public README points at the checked-in public-safe image asset.
+- Refreshed the changelog so the released v1.2.12 through v1.2.53 documentation catch-up is reflected in the public release index instead of remaining under Unreleased.
 
 ### Verified
 
-- Verified this maintenance pass used backend DB recall first and kept updates public-safe.
-- Verified the live `lan-chat` app builds after the unified command-stream and dynamic tab-title changes.
+- Reviewed structured DB-backed documentation/release rules before editing.
+- Verified release-note coverage through docs/releases/v1.2.53.md and kept this update public-safe.
+
+## [v1.2.53] - 2026-05-28
+
+### Added
+
+- Added scripted PostgreSQL memory recovery support with list, drill, and explicitly gated live restore modes.
+
+## [v1.2.52] - 2026-05-28
+
+### Changed
+
+- Clarified that a verified full backup is enough precaution for pruning bad generated memory rows; do not create extra tombstones or retained audit rows solely as an added precaution.
+
+## [v1.2.51] - 2026-05-28
+
+### Changed
+
+- Documented the bad generated-row quarantine and prune rule for wrong, broken, superseded, or bad-path generated memory rows.
+
+## [v1.2.50] - 2026-05-28
+
+### Changed
+
+- Documented that memory health means end-to-end ingestion and recall, including recent Telegram/chat ingestion, durable operational records, absence of retired markdown memory output, and natural-language recall verification.
+
+## [v1.2.49] - 2026-05-28
+
+### Added
+
+- Added a Telegram-to-PostgreSQL memory bridge and systemd user timer units for compact chat-ingest rows.
+
+## [v1.2.48] - 2026-05-26
+
+### Fixed
+
+- Hardened native Linux install prerequisite repair before OpenClaw/npm work, including Node.js >= 22.19.0 validation and npm repair.
+
+## [v1.2.47] - 2026-05-26
+
+### Fixed
+
+- Updated Docker gateway bootstrap so host-side TUI connections to the published gateway port work with token authentication.
+
+## [v1.2.46] - 2026-05-25
+
+### Changed
+
+- Documented the additive OpenClaw branch-overlay design and repaired first-use guide formatting.
+
+## [v1.2.45] - 2026-05-21
+
+### Added
+
+- Added public-safe tail-latency tuning for DB recall while preserving all source memory.
+
+## [v1.2.44] - 2026-05-21
+
+### Fixed
+
+- Hardened the native Ubuntu first-run install path from live install findings.
+
+## [v1.2.43] - 2026-05-21
+
+### Changed
+
+- Published accumulated public-safe recall design updates including pgvector ANN recall, real model embedding recall, continuous neural maintenance, markdown statement recall, dynamic logic-rule ranking, benchmark guidance, public-safe rule seeds, and bootstrap cleanup.
+
+## [v1.2.42] - 2026-05-20
+
+### Added
+
+- Added a public-safe logic-rule seed for clean installs and upgrades.
+
+## [v1.2.41] - 2026-05-20
+
+### Changed
+
+- Added lower-priority rule migration and recall-noise filtering for structured logic-rule recall.
+
+## [v1.2.40] - 2026-05-20
+
+### Added
+
+- Added bounded continuous neural recall maintenance for local ANN and related recall surfaces.
+
+## [v1.2.39] - 2026-05-18
+
+### Added
+
+- Added a separate host Docker Engine and Dockge manager upgrade runbook.
+
+## [v1.2.38] - 2026-05-18
+
+### Fixed
+
+- Corrected Docker Compose and Dockge upgrade docs to force a clean image rebuild and verify the version inside the running container.
+
+## [v1.2.37] - 2026-05-18
+
+### Added
+
+- Added the real-model embedding ANN layer and query embedding cache.
+
+## [v1.2.36] - 2026-05-18
+
+### Added
+
+- Added the pgvector ANN recall layer with HNSW cosine indexing and deterministic local hash embeddings as a rebuildable bridge.
+
+## [v1.2.35] - 2026-05-18
+
+### Added
+
+- Added idle bootstrap and follow-up context pruning rules for DB-backed recall sessions.
+
+## [v1.2.34] - 2026-05-18
+
+### Changed
+
+- Moved Docker LAN command chat publication to LAN_CHAT_PUBLISHED_PORTS, defaulting to 8080-8180.
+
+## [v1.2.33] - 2026-05-18
+
+### Fixed
+
+- Corrected release-note and base setup LAN port examples before the v1.2.34 port-range model superseded them.
+
+## [v1.2.32] - 2026-05-18
+
+### Added
+
+- Added the neural recall feedback layer public-safe structural update.
+
+## [v1.2.31] - 2026-05-18
+
+### Changed
+
+- Updated fresh-Ubuntu Dockge terminal fallback commands to use sudo docker compose.
+
+## [v1.2.30] - 2026-05-18
+
+### Changed
+
+- Updated Standard Ubuntu upgrade docs to refresh the overlay with sudo git pull --ff-only before verification.
+
+## [v1.2.29] - 2026-05-18
+
+### Added
+
+- Added absolute-beginner terminal and SSH documentation.
+
+## [v1.2.28] - 2026-05-18
+
+### Added
+
+- Added first-use and LAN chat password documentation.
+
+## [v1.2.27] - 2026-05-18
+
+### Added
+
+- Added existing OpenClaw overlay upgrade documentation.
+
+## [v1.2.26] - 2026-05-18
+
+### Changed
+
+- Split upgrade documentation into a chooser plus separate Standard Ubuntu, Docker Compose, Dockge, and Docker run pages.
+
+## [v1.2.25] - 2026-05-18
+
+### Changed
+
+- Rechecked documentation for remaining install/upgrade folder examples that implied repository- or database-named assistant folders.
+
+## [v1.2.24] - 2026-05-18
+
+### Changed
+
+- Updated upgrade documentation to use assistant-named folders such as front-desk-assistant and my-ai-assistant.
+
+## [v1.2.23] - 2026-05-18
+
+### Changed
+
+- Added beginner-facing labels for install folder, Dockge stack folder, container/service, container name, image, and state folder.
+
+## [v1.2.22] - 2026-05-18
+
+### Changed
+
+- Finished the Dockge naming pass in active setup docs.
+
+## [v1.2.21] - 2026-05-18
+
+### Changed
+
+- Replaced MemoryDB-flavored folder examples with assistant-facing install names.
+
+## [v1.2.20] - 2026-05-18
+
+### Changed
+
+- Reordered install and upgrade docs so readers see native Ubuntu first, then Docker Compose, Dockge, and Docker run.
+
+## [v1.2.19] - 2026-05-18
+
+### Fixed
+
+- Corrected Docker Compose TUI instructions to attach to the running OpenClaw/Zorg container with docker compose exec -it openclaw openclaw tui.
+
+## [v1.2.18] - 2026-05-18
+
+### Fixed
+
+- Removed remaining incorrect Docker Compose local-mode chat guidance from current docs and release notes.
+
+## [v1.2.17] - 2026-05-18
+
+### Fixed
+
+- Corrected Docker Compose Control UI and TUI documentation around discovered published ports.
+
+## [v1.2.16] - 2026-05-18
+
+### Fixed
+
+- Distinguished Gateway-connected Docker TUI startup from embedded local mode and added the missing upgrade runbook.
+
+## [v1.2.15] - 2026-05-18
+
+### Changed
+
+- Corrected Docker TUI startup documentation and promoted the upstream/existing-implementation-first rule into the public-safe distribution.
+
+## [v1.2.14] - 2026-05-18
+
+### Changed
+
+- Caught up public package documentation after rule, recall, LAN console, recovery, and verification hardening.
+
+## [v1.2.13] - 2026-05-15
+
+### Changed
+
+- Updated the LAN command console WebSocket client for OpenClaw Gateway protocol v4.
+
+## [v1.2.12] - 2026-05-15
+
+### Fixed
+
+- Hardened DB-only memory recall startup when OpenClaw launches from a home-directory working directory instead of the workspace.
 
 ## [v1.2.11] - 2026-05-14
 

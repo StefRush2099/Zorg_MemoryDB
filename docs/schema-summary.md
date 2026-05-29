@@ -61,6 +61,18 @@ Tables/views/functions:
 
 Privacy boundary: live contact rows, phone numbers, email addresses, raw People API JSON, credentials, and sync outputs are private operator data and must not be published in public docs, examples, issues, or release notes. Public repos may include only schema, scripts, and sanitized operational guidance.
 
+### Google Contact Notes Update Path
+
+People/contact research jobs should use the real Google People API path instead of reporting that no safe note-write path exists. The safe sequence is:
+
+1. Refresh the private CRM inventory with `scripts/sync_google_contacts_to_memory_db.py`.
+2. Use `zorg_contacts_crm`, `zorg_contact_points_crm`, `zorg_contact_canonical_crm`, and `zorg_contact_canonical_members` to choose a positively identified contact.
+3. Store public/professional research summaries and source URLs in DB memory/CRM first.
+4. When a concise Google Contacts biography marker is appropriate, append it with `scripts/update_google_contact_biography_note.py` by `--canonical-id`, `--email`, or `--resource-name`.
+5. Re-run the Google Contacts sync and verify the marker appears back in CRM notes/search surfaces.
+
+The helper uses the same OAuth environment and token-refresh pattern as the sync script. It only updates the People API `biographies` field for one identified contact, preserves existing biography text, and does not create, merge, delete, or dedupe contacts.
+
 ## Contacts CRM Deduplication / Distillation
 
 The contacts layer is intentionally non-destructive. Provider rows remain in `zorg_contacts_crm`, while distilled recall should use canonical contacts.

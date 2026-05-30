@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import List
 import psycopg2
 from psycopg2.extras import RealDictCursor
+from memory_recall_router import search_structured_db
 
 BASE = Path(os.environ.get("OPENCLAW_WORKSPACE", Path.cwd()))
 MAP_PATH = Path(os.environ.get("SQL_MEMORY_MAP", BASE / "sql_memory_map.json"))
@@ -13,25 +14,13 @@ def load_cfg(path: Path = MAP_PATH):
 
 def connect(cfg):
     p = cfg["postgres"]
-    return psycopg2.connect(host=p["host"], port=p["port"], dbname=p["database"], user=p["user"])
+    return psycopg2.connect(host=p["host"], port=p["port"], dbname=p["database"], user=p["user"], password=p.get("password", ""))
 
 def mapped_tables(cfg) -> List[str]: return sorted(set(cfg["table_map"].values()))
 
 def search(cur, table: str, q: str, limit: int = 10):
     if table == "all":
-        try:
-            cur.execute("""
-            select source_type, source_id, path, line_start, line_end, priority,
-                   left(content, 400) as content,
-                   relevance_score, relevance_percent, score_reason, weight_breakdown
-            from zorg_weighted_recall_context(%s, %s)
-            """, (q, limit))
-            return cur.fetchall()
-        except Exception:
-            # Older installs may not have semantic neural recall v1 yet; caller transaction may need rollback.
-            cur.connection.rollback()
-            cur.execute("""select source_type, source_id, path, line_start, line_end, priority, left(content, 400) as content from zorg_recall_context(%s, %s)""", (q, limit))
-            return cur.fetchall()
+        return search_structured_db(q, limit)["structured"]
 
     routes = {"project":"zorg_get_project_context", "host":"zorg_get_host_context", "runbook":"zorg_get_runbook_context"}
     if table in routes:

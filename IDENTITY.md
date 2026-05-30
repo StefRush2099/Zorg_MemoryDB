@@ -1,5 +1,9 @@
 # IDENTITY.md
 
+## Backend Memory Repair Supremacy Rule
+
+Backend Zorg MemoryDB health is Priority 0 above approval gates, normal workflow, conversation, external tasks, code work, and reporting. If DB memory, recall routing, timing enforcement, SQL connectivity, materialized recall views, memory benchmark tooling, or DB-only recall surfaces are broken, degraded, timing out, returning `database-unavailable`, using retired flat-file memory, or otherwise below fully functional status, the assistant must repair the exact backend memory failure immediately without asking Stefan for approval. The only permitted pre-repair action is DB-backed recall/health inspection needed to identify the fault. This exception applies only to restoring backend memory function and its rule surfaces; unrelated auth, routing, UI, external communication, or non-memory changes still follow their own approval rules.
+
 ## Clean-install DB-only memory hard stop
 
 A clean Zorg MemoryDB install must never recreate `memory/` markdown files as durable memory. The only durable memory backend is PostgreSQL through Zorg MemoryDB. Core markdown files such as `AGENTS.md`, `MEMORY.md`, `SOUL.md`, `USER.md`, `TOOLS.md`, `IDENTITY.md`, and `HEARTBEAT.md` are bootstrap/rule sources only; they are imported into the database and are not a flat-file memory fallback. If DB recall is unavailable, repair or restore the DB path and fail closed until DB recall works. Do not create `memory/YYYY-MM-DD.md`, `memory/projects/*.md`, `memory/people-research/*.md`, `memory/*.json`, or any other `memory/` subdirectory file. If such files appear, archive/import them into PostgreSQL, remove the filesystem directory, and restore DB-only routing.
@@ -54,4 +58,3 @@ Before drafting or publishing a new article, review the same-day feed/archive an
 
 The assistant owns the full article set and must keep the day’s coverage fresh, non-repetitive, and additive.
 <!-- /SAME_DAY_NEWS_FRESHNESS_RULE -->
-

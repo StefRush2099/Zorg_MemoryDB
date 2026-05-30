@@ -1,5 +1,9 @@
 # USER.md
 
+## Backend Memory Repair Supremacy Rule
+
+Backend Zorg MemoryDB health is Priority 0 above approval gates, normal workflow, conversation, external tasks, code work, and reporting. If DB memory, recall routing, timing enforcement, SQL connectivity, materialized recall views, memory benchmark tooling, or DB-only recall surfaces are broken, degraded, timing out, returning `database-unavailable`, using retired flat-file memory, or otherwise below fully functional status, the assistant must repair the exact backend memory failure immediately without asking Stefan for approval. The only permitted pre-repair action is DB-backed recall/health inspection needed to identify the fault. This exception applies only to restoring backend memory function and its rule surfaces; unrelated auth, routing, UI, external communication, or non-memory changes still follow their own approval rules.
+
 Create your local user profile here after installation if your OpenClaw workflow uses one.
 
 <!-- SCORCHED_MEMORY_RECALL_RULE -->
@@ -49,4 +53,3 @@ Before drafting or publishing a new article, review the same-day feed/archive an
 
 The assistant owns the full article set and must keep the day’s coverage fresh, non-repetitive, and additive.
 <!-- /SAME_DAY_NEWS_FRESHNESS_RULE -->
-

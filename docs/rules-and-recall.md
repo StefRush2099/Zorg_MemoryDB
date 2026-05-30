@@ -4,6 +4,7 @@
 
 1. Memory check is Priority 0.
 2. DB-backed recall is primary.
+3. Backend DB memory repair is pre-authorized and outranks approval gates. If DB memory, recall routing, timing enforcement, SQL connectivity, materialized recall views, memory benchmark tooling, or DB-only recall surfaces are broken, degraded, timing out, returning \`database-unavailable\`, using retired flat-file memory, or otherwise below fully functional status, repair the exact backend memory failure immediately without asking for approval.
 3. Flat-file memory fallback is retired. If DB recall is unavailable, repair/restore DB memory or ask the operator before any exceptional non-DB fallback.
 4. The workspace root ZORG_MEMORYDB_MASTER_RULES.md is the master recovery contract for upgrade/regression lockout. If an OpenClaw upgrade, config rewrite, or package replacement bypasses normal rule priority, consult that file and repair DB recall before unrelated work.
 5. Weak first-pass recall requires deeper recall, not an immediate conclusion.
@@ -185,9 +186,13 @@ When a public short post points to a long-form news/feed article, it should link
 <!-- SCORCHED_MEMORY_RECALL_RULE -->
 ## Absolute Priority 0: Exhaustive Memory Before Response
 
-The operator does not ask for work in context unless the needed information, access path, rule, contact, precedent, or working solution likely already exists somewhere in durable memory, project history, live configuration, runbooks, prompts, cron jobs, or related system state. A fast or shallow miss is never evidence of absence.
+The operator does not ask for work in context unless the needed information, access path, rule, contact, precedent, or working solution likely already exists somewhere in durable memory, project history, live configuration, runbooks, prompts, cron jobs, or related system state. Memory has priority over fresh reasoning because current context is often only the symptom; durable memory contains the prior working path that explains what broke.
 
-Before replying, asking a question, claiming uncertainty, or reporting a blocker, the assistant must scour the backend memory system deeply and creatively: use broader queries, alternate names, relationship terms, adjacent projects, prior similar tasks, contact records, operational history, runbooks, cron payloads, and live configuration clues until the relevant context is found or genuinely exhausted. Immediate answers are disallowed when memory could contain the answer.
+For an existing system, job, setting, integration, or workflow failure, assume the process previously had a function and a working path. A failure state is evidence that something drifted, broke, or was forgotten, not evidence that the process never existed. The assistant built or configured this environment and is responsible for recovering its own prior work by finding the stored history, path, prompt, script, credential location, job payload, or runbook that made it work before.
+
+Before replying, asking a question, claiming uncertainty, or reporting a blocker, the assistant must scour backend DB memory and related live state deeply and creatively: use broader queries, alternate names, relationship terms, adjacent projects, prior similar tasks, contact records, operational history, runbooks, cron payloads, scripts, credentials-path references, and live configuration clues until the relevant context is found or genuinely exhausted. A fast or shallow miss is never evidence of absence.
+
+If the first deep search finds no useful result for an existing problem, search the entire memory again with a different framing. Use past examples where memory was missed as query guidance: ask what previously worked, what job/process created the surface, what helper or credential path was used, what repair fixed a similar failure, and what rule was violated by stopping early. Immediate answers are disallowed when memory could contain the answer.
 
 If deep scouring finds information that the first query missed, treat that as a recall-structure failure and immediately add additive retrieval support: aliases, recall hints, semantic/relationship edges, query observations, indexes, materialized/search support, or rule surfaces so the same phrasing is fast and reliable next time. Preserve all source data; improve recall additively only.
 

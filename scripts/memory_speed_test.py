@@ -14,6 +14,8 @@ if not CORPUS.exists():
     repo_corpus = Path(__file__).resolve().parents[1] / 'config' / 'db_benchmark_queries.example.json'
     CORPUS = repo_corpus if repo_corpus.exists() else CORPUS
 RUNS = int(os.environ.get('MEMORY_SPEED_RUNS', '10'))
+STATEMENT_TIMEOUT_MS = int(os.environ.get('MEMORY_SPEED_STATEMENT_TIMEOUT_MS', '5000'))
+REFRESH_BEFORE_TEST = os.environ.get('MEMORY_SPEED_REFRESH', '').lower() in {'1', 'true', 'yes'}
 
 DEFAULT_QUERIES = ['OpenClaw', 'memory', 'directive', 'project', 'database']
 def load_queries():
@@ -50,7 +52,9 @@ def main():
     with psycopg2.connect(host=cfg['host'], port=cfg['port'], dbname=cfg['database'], user=cfg['user']) as conn:
         conn.autocommit = True
         with conn.cursor() as cur:
-            cur.execute('select public.refresh_zorg_memory_search_fast_mv()')
+            cur.execute('set statement_timeout = %s', (STATEMENT_TIMEOUT_MS,))
+            if REFRESH_BEFORE_TEST:
+                cur.execute('select public.refresh_zorg_memory_search_fast_mv()')
             for obj in ['zorg_memory_search_fast_mv', 'zorg_memory_search_mv', 'zorg_master_context_mv', 'zorg_success_query_index']:
                 try:
                     cur.execute('analyze ' + obj)
@@ -80,7 +84,14 @@ def main():
                     'db_ms_avg': round(db_avg, 3),
                     'db_ms_p95': round(percentile(db_times, 0.95), 3),
                 }
-    print(json.dumps({'runs_per_query': RUNS, 'query_count': len(queries), 'corpus': str(CORPUS), 'results': results}, indent=2))
+    print(json.dumps({
+        'runs_per_query': RUNS,
+        'query_count': len(queries),
+        'corpus': str(CORPUS),
+        'statement_timeout_ms': STATEMENT_TIMEOUT_MS,
+        'refresh_before_test': REFRESH_BEFORE_TEST,
+        'results': results
+    }, indent=2))
 
 
 if __name__ == '__main__':

@@ -13,6 +13,7 @@ BASE = Path(os.environ.get('OPENCLAW_WORKSPACE', Path.cwd())).resolve()
 SQL_CFG = Path(os.environ.get('SQL_MEMORY_MAP', BASE / 'sql_memory_map.json')).resolve()
 PRIMARY_STATEMENT_TIMEOUT_MS = int(os.environ.get('ZORG_RECALL_PRIMARY_TIMEOUT_MS', '2500'))
 FALLBACK_STATEMENT_TIMEOUT_MS = int(os.environ.get('ZORG_RECALL_FALLBACK_TIMEOUT_MS', '8000'))
+WEIGHTED_FIRST = os.environ.get('ZORG_RECALL_WEIGHTED_FIRST', '').lower() in {'1', 'true', 'yes'}
 
 STOP_WORDS = {
     'what', 'when', 'where', 'which', 'while', 'with', 'from', 'that', 'this',
@@ -95,6 +96,34 @@ def normalize_source_type(source_table: str) -> str:
     }.get(source_table, 'memory')
 
 
+def search_emergency_fts(cur, query: str, limit: int):
+    cur.execute('set local statement_timeout = %s', (FALLBACK_STATEMENT_TIMEOUT_MS,))
+    cur.execute(
+        """
+        select source_table, source_id, priority, left(content, 4000) as content
+        from public.zorg_memory_search_fast_mv
+        where content_fts_simple @@ plainto_tsquery('simple', %s)
+           or content_lc like %s
+        order by case when source_table = 'recall_hint' then 0 else 1 end,
+                 priority_rank, source_rank, event_ts desc nulls last
+        limit %s
+        """,
+        (query, f"%{query.lower()[:80]}%", limit),
+    )
+    return [
+        {
+            'source_type': normalize_source_type(row['source_table']),
+            'source_id': row['source_id'],
+            'path': None,
+            'line_start': None,
+            'line_end': None,
+            'priority': row['priority'] or 'medium',
+            'content': row['content'],
+        }
+        for row in cur.fetchall()
+    ]
+
+
 def search_fast_fallback(cur, query: str, limit: int):
     tokens = query_tokens(query)
     if not tokens and query:
@@ -167,6 +196,17 @@ def search_structured_db(query: str, limit: int):
     fallback_error = None
     with db_connect() as conn:
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
+            if deep_scan_active() and not WEIGHTED_FIRST:
+                rows = search_fast_fallback(cur, query, effective_limit)
+                mode += '-fast-mv'
+                return {
+                    'mode': mode,
+                    'requested_limit': requested_limit,
+                    'effective_limit': effective_limit,
+                    'deep_scan_until': deep_scan_until().isoformat() if deep_scan_active() else None,
+                    'fallback_error': None,
+                    'structured': rows,
+                }
             try:
                 cur.execute('set local statement_timeout = %s', (PRIMARY_STATEMENT_TIMEOUT_MS,))
                 cur.execute(
@@ -181,8 +221,15 @@ def search_structured_db(query: str, limit: int):
                 fallback_error = str(e)[:500]
                 conn.rollback()
                 with conn.cursor(cursor_factory=RealDictCursor) as fallback_cur:
-                    rows = search_fast_fallback(fallback_cur, query, effective_limit)
-                    mode += '-fallback-fast-mv'
+                    try:
+                        rows = search_fast_fallback(fallback_cur, query, effective_limit)
+                        mode += '-fallback-fast-mv'
+                    except errors.QueryCanceled as fallback_exc:
+                        fallback_error = (fallback_error + ' | fallback: ' + str(fallback_exc))[:500]
+                        conn.rollback()
+                        with conn.cursor(cursor_factory=RealDictCursor) as emergency_cur:
+                            rows = search_emergency_fts(emergency_cur, query, effective_limit)
+                            mode += '-fallback-fast-mv-emergency-fts'
     return {
         'mode': mode,
         'requested_limit': requested_limit,

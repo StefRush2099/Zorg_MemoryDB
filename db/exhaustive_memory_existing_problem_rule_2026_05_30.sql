@@ -45,3 +45,26 @@ ON CONFLICT (rule_key) DO UPDATE SET
   updated_at = now(),
   active = true;
 
+INSERT INTO public.memory_recall_hints (
+  source_type,
+  source_key,
+  hint_kind,
+  hint_text,
+  related_keys,
+  weight,
+  source_model,
+  metadata,
+  active
+)
+VALUES (
+  'logic_rule',
+  'exhaustive-memory-existing-problem-recovery',
+  'operator_phrase_alias',
+  'Existing systems, jobs, settings, integrations, workflows, cron jobs, email/calendar flows, scripts, credential paths, and prior assistant-built processes must be recovered from backend DB memory and live state before asking the operator for help. Search prior working path, what previously worked, job payload, helper script, credential path, runbook, similar repair, and rule violation from stopping early.',
+  ARRAY['scorched-memory-before-response','backend-memory-repair-supremacy','db-memory-first','prior-working-path','existing-system-recovery'],
+  10,
+  'manual-rule-publication-2026-05-30',
+  jsonb_build_object('public_safe', true, 'repo_file', 'db/exhaustive_memory_existing_problem_rule_2026_05_30.sql'),
+  true
+)
+ON CONFLICT DO NOTHING;

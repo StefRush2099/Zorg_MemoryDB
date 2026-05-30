@@ -169,6 +169,12 @@ Primary objects:
 
 This layer follows PostgreSQL queue best practice by using `FOR UPDATE SKIP LOCKED` in the worker and keeping triggers lightweight. It does not execute generated code inside PostgreSQL triggers and does not remove original memory data.
 
+## 2026-05-30 recall-router timeout fallback
+
+The OpenClaw-facing `scripts/memory_recall_router.py` must not report the database as unavailable just because the weighted/deep recall query path is slow. The router now applies a short local `statement_timeout` to the primary `zorg_weighted_recall_context(...)` / `zorg_recall_context(...)` call and, only when PostgreSQL cancels that statement for timeout, falls back to a bounded query against `zorg_memory_search_fast_mv`.
+
+The fallback is intentionally read-only and additive: it uses the already-materialized fast search surface, returns normal structured recall rows, marks the mode with `fallback-fast-mv`, and preserves the timeout text in `fallback_error` for diagnostics. It does not prune, delete, compact, or bypass source memory. This keeps the runtime memory wrapper available while deeper weighted/vector recall tuning can be repaired separately.
+
 ## 2026-05-14 non-destructive index tuning
 
 `db/non_destructive_index_tuning_2026_05_14.sql` adds trigram and sort-support indexes for existing recall/context tables without pruning or reshaping source memory. The indexes target the existing lookup predicates used by `zorg_get_logic_context`, `zorg_get_runbook_context`, `zorg_get_project_context`, `zorg_get_host_context`, and related context surfaces:

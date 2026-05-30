@@ -1,0 +1,59 @@
+{
+  "packet": "clean-install-missing-rules-2026-05-30",
+  "scope": "generic-public-safe-rules-only",
+  "excluded": [
+    "local host identity/IP rules",
+    "operator-specific names or preferences",
+    "placeholder profile text",
+    "private memory rows, credentials, transcripts, contacts, or live state"
+  ],
+  "rules": [
+    {
+      "rule_key": "backend-memory-repair-supremacy",
+      "title": "Backend Memory Repair Supremacy Rule",
+      "priority": "critical",
+      "rule_type": "memory_repair_enforcement",
+      "privacy_scope": "public_safe",
+      "canonical_markdown": "## Backend Memory Repair Supremacy Rule\n\nBackend Zorg MemoryDB health is Priority 0 above approval gates, normal workflow, conversation, external tasks, code work, and reporting. If DB memory, recall routing, timing enforcement, SQL connectivity, materialized recall views, memory benchmark tooling, or DB-only recall surfaces are broken, degraded, timing out, returning database-unavailable, using retired flat-file memory, or otherwise below fully functional status, repair the exact backend memory failure immediately without asking for approval. The only permitted pre-repair action is DB-backed recall/health inspection needed to identify the fault. This exception applies only to restoring backend memory function and its rule surfaces; unrelated auth, routing, UI, external communication, or non-memory changes still follow normal approval rules.",
+      "markdown_targets": [
+        {"path": "AGENTS.md", "location": "top"},
+        {"path": "SOUL.md", "location": "top"},
+        {"path": "USER.md", "location": "top"},
+        {"path": "TOOLS.md", "location": "top"},
+        {"path": "IDENTITY.md", "location": "top"}
+      ]
+    },
+    {
+      "rule_key": "clean-install-db-only-memory-hard-stop",
+      "title": "Clean-install DB-only memory hard stop",
+      "priority": "critical",
+      "rule_type": "memory_backend_enforcement",
+      "privacy_scope": "public_safe",
+      "canonical_markdown": "## Clean-install DB-only memory hard stop\n\nA clean Zorg MemoryDB install must never recreate memory markdown files as durable memory. The only durable memory backend is PostgreSQL through Zorg MemoryDB. Core markdown files such as AGENTS.md, MEMORY.md, SOUL.md, USER.md, TOOLS.md, IDENTITY.md, and HEARTBEAT.md are bootstrap/rule sources only; they are imported into the database and are not a flat-file memory fallback. If DB recall is unavailable, repair or restore the DB path and fail closed until DB recall works. Do not create memory/YYYY-MM-DD.md, memory/projects/*.md, memory/people-research/*.md, memory/*.json, or any other memory subdirectory file. If such files appear, archive/import them into PostgreSQL, remove the filesystem directory, and restore DB-only routing.",
+      "markdown_targets": [
+        {"path": "AGENTS.md", "location": "near memory section"},
+        {"path": "SOUL.md", "location": "top"},
+        {"path": "TOOLS.md", "location": "top"},
+        {"path": "IDENTITY.md", "location": "top"},
+        {"path": "HEARTBEAT.md", "location": "top"},
+        {"path": "templates/AGENTS.md", "location": "near memory section"},
+        {"path": "templates/MEMORY.md", "location": "top"}
+      ]
+    },
+    {
+      "rule_key": "base-install-permanent-engineering-rules",
+      "title": "Base Install Permanent Engineering Rules",
+      "priority": "critical",
+      "rule_type": "engineering_enforcement",
+      "privacy_scope": "public_safe",
+      "canonical_markdown": "## Base Install Permanent Engineering Rules\n\nThese are permanent Zorg MemoryDB/OpenClaw overlay rules, not personal operator preferences. They must survive clean install, clone, restore, upgrade, memory rebuild, and migration. They apply to system changes, code writing, code edits, software changes, service/routing/auth/browser/UI/database/cron/recall/indexing/documentation/deployment/screenshot changes, and changes to skills, templates, runbooks, installers, and project overlays.\n\nPermanent requirements:\n\n1. Summarize exact intended changes and affected surfaces before non-memory mutation unless directly correcting a prior failed scope.\n2. Change only the requested scope; do not widen into adjacent auth, routing, HTTPS, login, UI, service, or cleanup work without authorization.\n3. Use real implementation only: no fake, placeholder, mock, display-only, or disconnected UI/code.\n4. Verify the real affected runtime surface before claiming done, fixed, working, or restored.\n5. Publish public-safe system/project/rule/recall/docs changes to the correct repository and update docs/runbooks/templates/skills at the same time.\n6. For visible UI changes, deliver desktop light, desktop dark, mobile light, and mobile dark screenshots unless genuinely blocked.\n7. Sync rule/process changes into structured DB recall, refresh search/materialized surfaces, and verify natural-language recall returns the rule near the top.\n8. Package Zorg MemoryDB custom behavior as an overlay/add-on that preserves existing OpenClaw behavior and user data unless an explicit migration says otherwise.\n9. Promote system/code/software behavior rules into base install templates, public-safe docs, installer/upgrade paths, and structured DB rules so they survive clean installs.",
+      "markdown_targets": [
+        {"path": "AGENTS.md", "location": "top"},
+        {"path": "templates/AGENTS.md", "location": "top"},
+        {"path": "docs/base-install-permanent-engineering-rules.md", "location": "document body"},
+        {"path": "docs/rules-and-recall.md", "location": "system rules section"}
+      ]
+    }
+  ]
+}
+

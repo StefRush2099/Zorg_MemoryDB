@@ -83,3 +83,17 @@ Database triggers and recall-adjacent hooks enqueue tiny bounded work only. Heav
 ## Verification
 
 Use `docs/verification.md#full-vectorneural-recall-stack-verification` after clean installs and upgrades. A passing install proves the vector extension, semantic queue, weighted edges, ANN tables, model embedding tables, query cache, markdown statement tables, dynamic rule weights, and recall functions exist.
+
+## Live Maintenance Notes
+
+2026-06-01 live ANN maintenance filled a local-hash coverage gap by
+backfilling every eligible unified search-surface row into
+`memory_ann_embeddings`, including logic-rule rows that were missing from the
+derived ANN layer. The same maintenance pass refreshed planner statistics,
+added a bounded batch of `ann_nearest_neighbor` semantic edges, and marked
+low-information derived ANN rows inactive when the ANN payload was only a
+standalone HTML marker or date fragment.
+
+This is source-preserving maintenance: source memory, rules, search views, and
+legacy embedding slots remain intact. The inactive ANN rows can be rebuilt from
+source if the low-information filter changes later.

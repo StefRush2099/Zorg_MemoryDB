@@ -4,7 +4,20 @@ All meaningful changes to this project are documented here and released with a G
 
 ## [Unreleased]
 
-No pending public-safe release notes.
+### Changed
+
+- Backfilled the live pgvector ANN layer to full eligible local-hash coverage,
+  including missing logic-rule embeddings, and refreshed planner statistics for
+  ANN, model-embedding, query-cache, semantic-edge, and neural-result tables.
+
+- Marked low-information derived ANN rows inactive when the vector payload was
+  only a standalone HTML marker or date fragment, preserving source memory while
+  reducing noisy nearest-neighbor candidates.
+
+### Verified
+
+- Confirmed the live ANN surface has zero missing eligible local-hash rows after
+  the maintenance pass.
 
 ## [v1.2.54] - 2026-05-28
 

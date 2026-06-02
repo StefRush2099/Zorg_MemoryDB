@@ -98,6 +98,18 @@ Tables/views/functions:
 - `zorg_logic_rule_applications` — optional audit trail when a rule/check is applied to a task.
 - `zorg_logic_rules_recall_v` — recall projection for logic rules.
 - `zorg_get_logic_context(query, limit)` — logic-specific recall path.
+- `zorg_logic_rule_dynamic_weights` — additive neural/feedback-style weights
+  for promoting or demoting existing rules without creating duplicate rule rows.
+- `zorg_logic_rule_dynamic_ranking_v` — active rule view that combines static
+  priority with dynamic weights.
+
+Active rule recall should use `zorg_logic_rules` plus dynamic weights. The older
+`zorg_rules` and `zorg_rule_catalog` compatibility tables should have zero active
+rows after canonical migration. For existing installs, apply
+`db/public_canonical_rules_update_2026_06_02.sql` to seed the current public-safe
+canonical rules, disable compatibility-table active rows, and raise the existing
+operator-visible chat timing rules so bottom time-summary formatting ranks ahead
+of ordinary rules.
 
 The CRM dedupe miss is the model lesson: when a new database/list/import/CRM/memory feature is built, duplicate detection, canonicalization, count reconciliation, source preservation, recall integration, privacy checks, representative searches, and performance checks are standard final checks before declaring completion.
 

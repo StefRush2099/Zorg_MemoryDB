@@ -91,6 +91,23 @@ Recommended order:
 
 Fresh downloads start with empty tables. Populate core markdown rules into DB and, for legacy workspaces, archive any retired `memory/` directory into `public.zorg_memory_file_archive` plus line-indexed `zorg_memory` rows before removing the filesystem directory. Then refresh materialized views. Do not recreate `memory/` as a durable memory surface.
 
+## Canonical rule update path
+
+Active operating rules belong in `public.zorg_logic_rules`. Older compatibility
+surfaces such as `public.zorg_rules` and `public.zorg_rule_catalog` may remain in
+the schema for upgrade compatibility, but they must not remain active recall
+sources after a canonical migration. Use
+`db/public_canonical_rules_update_2026_06_02.sql` as the public-safe upgrade path
+for installs that need the current canonical-rule cleanup: it seeds sanitized
+public rules into `zorg_logic_rules`, disables active rows in the compatibility
+tables, and raises existing chat-response timing rule weights through
+`zorg_logic_rule_dynamic_weights` without creating replacement timing rules.
+
+This update is structural and public-safe. It publishes rule shape, sanitized
+rule text, and dynamic-weight behavior only. It does not publish private memory
+rows, contacts, transcripts, credentials, account data, live database dumps, or
+operator-private context.
+
 ## Additive semantic evolution
 
 The DB-memory structure should evolve like a vector/semantic memory graph while preserving all source rows. New recall layers should be additive only:

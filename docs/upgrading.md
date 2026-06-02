@@ -73,6 +73,22 @@ database recall check returns `database-direct-vector-neural-weighted`
 
 `openclaw doctor` or the containerized equivalent completes
 
+## SQL-Only Rule Updates
+
+Some releases include an additive SQL update that can be applied to an existing
+MemoryDB without replacing the whole OpenClaw install. For the canonical public
+rule cleanup and chat-response timing weight update, apply:
+
+```bash
+psql "$DATABASE_URL" -f db/public_canonical_rules_update_2026_06_02.sql
+```
+
+Use the equivalent container or local PostgreSQL command for your install type.
+The update is public-safe and structural: it seeds sanitized rules into
+`zorg_logic_rules`, disables active rows in `zorg_rules` and
+`zorg_rule_catalog`, and updates existing dynamic timing weights. It does not
+publish or install private database rows.
+
 ## Rollback
 
 For Docker Compose and Dockge installs, rollback means checking out a previous Git tag and rebuilding the same stack while keeping `openclaw-home/` in place.

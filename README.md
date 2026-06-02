@@ -106,6 +106,9 @@ Expected recall mode: `database-direct-structured` or `database-direct-structure
 Included:
 
 - PostgreSQL schema, functions, indexes, materialized views, structured logic rules, recall tooling, backup/auto-heal helpers, and bootstrap scripts
+- Public-safe canonical rule update SQL for installs that need active rules
+  migrated into `zorg_logic_rules`, compatibility rule tables disabled, and
+  existing chat-response timing weights raised without duplicate rules
 - public markdown templates and operating rules
 
 Not included:

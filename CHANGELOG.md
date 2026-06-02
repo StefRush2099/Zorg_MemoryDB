@@ -6,6 +6,14 @@ All meaningful changes to this project are documented here and released with a G
 
 ### Changed
 
+- Added a public-safe canonical rule update SQL path for existing installs:
+  active rule enforcement is consolidated into `zorg_logic_rules`,
+  compatibility rule tables are disabled as active sources, and existing
+  chat-response timing rule weights are raised without creating duplicate rules.
+
+- Zorg MemoryDB: document the root-level `RESURRECTION.md` recovery pointer so
+  backups remain useful even when DB recall is unavailable.
+
 - Backfilled the live pgvector ANN layer to full eligible local-hash coverage,
   including missing logic-rule embeddings, and refreshed planner statistics for
   ANN, model-embedding, query-cache, semantic-edge, and neural-result tables.
@@ -15,6 +23,9 @@ All meaningful changes to this project are documented here and released with a G
   reducing noisy nearest-neighbor candidates.
 
 ### Verified
+
+- Validated the canonical-rule update SQL with PostgreSQL parsing and checked
+  the repository docs describe the public-safe upgrade path.
 
 - Confirmed the live ANN surface has zero missing eligible local-hash rows after
   the maintenance pass.

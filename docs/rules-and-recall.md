@@ -89,6 +89,23 @@ Recommended order:
 
 Fresh downloads start with empty tables. Populate core markdown rules into DB and, for legacy workspaces, archive any retired `memory/` directory into `public.zorg_memory_file_archive` plus line-indexed `zorg_memory` rows before removing the filesystem directory. Then refresh materialized views. Do not recreate `memory/` as a durable memory surface.
 
+## Canonical rule update path
+
+Active operating rules belong in `public.zorg_logic_rules`. Older compatibility
+surfaces such as `public.zorg_rules` and `public.zorg_rule_catalog` may remain in
+the schema for upgrade compatibility, but they must not remain active recall
+sources after a canonical migration. Use
+`db/public_canonical_rules_update_2026_06_02.sql` as the public-safe upgrade path
+for installs that need the current canonical-rule cleanup: it seeds sanitized
+public rules into `zorg_logic_rules`, disables active rows in the compatibility
+tables, and raises existing chat-response timing rule weights through
+`zorg_logic_rule_dynamic_weights` without creating replacement timing rules.
+
+This update is structural and public-safe. It publishes rule shape, sanitized
+rule text, and dynamic-weight behavior only. It does not publish private memory
+rows, contacts, transcripts, credentials, account data, live database dumps, or
+operator-private context.
+
 ## Additive semantic evolution
 
 The DB-memory structure should evolve like a vector/semantic memory graph while preserving all source rows. New recall layers should be additive only:
@@ -158,7 +175,7 @@ A DB-backed memory system should be treated as mission-critical state. Before an
 
 Performance/tuning cron jobs should be worded LLM instruction jobs. They may apply production DB/index changes only after a concrete recall failure where data existed in the DB but did not return in first-pass recall and was recovered only by deeper search, alternate query, direct inspection, or operator correction. Without that failure signal, they should restrict themselves to benchmarks, research, sandbox/temp experiments, and additive design work such as vector structures, neural-style weights, cue associations, and recall scoring prototypes.
 
-Baseline recovery locations should be documented in local operator markdown. In Stefan's install they are: local `/home/openclaw/.openclaw/backups/postgres/local/`, private GitHub `Zorg_Hive/backups/postgres/openclaw/`, and optional shared mirror `/Zorg/backups/openclaw/postgres` or established jump-box mirror.
+Baseline rollback is handled with temporary local PostgreSQL dumps only. In Stefan's install the temporary path is `/home/openclaw/.openclaw/backups/postgres/tmp/`. Do not commit, mirror, or push database backups to GitHub; purge temporary backup artifacts after verification.
 
 Fresh-install note: if no private GitHub/offsite DB backup target exists, local backup is the minimum, but the agent should explicitly recommend setting up a private GitHub repository because private repos are free and off-host recovery is critical for durable memory.
 

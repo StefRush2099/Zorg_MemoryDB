@@ -3,7 +3,8 @@
 -- Purpose:
 -- 1. Keep active rule enforcement on public.zorg_logic_rules.
 -- 2. Disable older compatibility rule tables if they exist.
--- 3. Seed/update sanitized public-safe rules only.
+-- 3. Seed/update sanitized public-safe rules, including DB-primary rule
+--    survival and recursive recall-improvement behavior.
 -- 4. Raise existing operator-visible chat timing rule weights without creating
 --    replacement timing rules.
 --
@@ -87,6 +88,16 @@ values
   'zorg/db/public_canonical_rules_update_2026_06_02.sql',
   'When an install carries operator-visible chat timing rules, raise their existing dynamic weights in zorg_logic_rule_dynamic_weights instead of creating replacement timing rules.',
   array['chat','timing','dynamic-weight','rules']
+),
+(
+  'recursive-db-memory-primary-source-improvement-loop-2026-06-04',
+  'Recursive DB memory primary-source improvement loop',
+  'operating_rule',
+  'critical',
+  'public_safe',
+  'zorg/db/public_canonical_rules_update_2026_06_02.sql',
+  'PostgreSQL Zorg MemoryDB is the primary source for durable rules, processes, and operating memory. Markdown files are bootstrap and recovery pointers only; they may redirect an agent to DB memory, but must not become the durable rule store or a flat-file memory fallback. Before any response, tool use, file edit, external action, or completion claim, query DB memory through the configured gateway; if the first recall misses and deeper DB recall finds the rule, add aliases, recall hints, relationships, indexes, materialized/search support, or structured rule rows so the same phrasing is fast next time. When the operator gives a system/process/rule directive that must survive clean installs, upgrades, migrations, or memory rebuilds, store it in structured DB recall and publish the public-safe structure/templates/install seed changes to the Zorg MemoryDB add-on without private rows, credentials, contacts, transcripts, or operator-private context.',
+  array['zorg_memorydb','database_memory','markdown_bootstrap','clean_install','upgrade','recall_hints','recursive_improvement','rule_survival','OpenClaw']
 )
 on conflict (rule_key) do update
 set rule_title = excluded.rule_title,

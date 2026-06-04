@@ -2,9 +2,30 @@
 
 These are public-safe production rules for the Zorg MemoryDB package.
 
+## PostgreSQL Is The Primary Source
+
+PostgreSQL Zorg MemoryDB is the primary source for durable rules, processes,
+and operating memory. Markdown files are bootstrap and recovery pointers only.
+They may redirect an agent to DB memory, but they must not become the durable
+rule store or a flat-file memory fallback.
+
 ## DB-Only Durable Memory
 
 Zorg MemoryDB uses PostgreSQL-backed memory as the durable memory surface. `MEMORY.md` and `memory/` markdown files are not active memory. If retired memory markdown files are discovered, import them into the database with the markdown import tool and stop using the files for active recall.
+
+## Recursive Recall Improvement
+
+Before any response, tool use, file edit, external action, or completion claim,
+query DB memory through the configured gateway. If first-pass recall misses and
+deeper DB recall finds the rule, improve retrieval additively with aliases,
+recall hints, relationships, indexes, materialized/search support, or structured
+rule rows so the same phrasing is fast next time.
+
+When the operator gives a system, process, or rule directive that must survive
+clean installs, upgrades, migrations, or memory rebuilds, store it in structured
+DB recall and publish the public-safe structure, templates, and install seed
+changes to the Zorg MemoryDB add-on. Never publish private rows, credentials,
+contacts, transcripts, or operator-private context.
 
 ## Preserve Structure And Rule Data
 

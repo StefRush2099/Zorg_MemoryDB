@@ -326,7 +326,7 @@ marker = "<!-- ZORG_MEMORYDB_AGENT_USAGE -->"
 block = """<!-- ZORG_MEMORYDB_AGENT_USAGE -->
 ## Zorg MemoryDB Agent Memory Usage
 
-Zorg MemoryDB is the active durable memory backend for this OpenClaw workspace. The agent must use the PostgreSQL-backed memory path for continuity, not MEMORY.md or memory/ markdown files as active memory.
+PostgreSQL Zorg MemoryDB is the primary source for durable rules, processes, and operating memory in this OpenClaw workspace. Markdown files are bootstrap and recovery pointers only. The agent must use the PostgreSQL-backed memory path for continuity, not MEMORY.md or memory/ markdown files as active memory.
 
 ### Required Agent Behavior
 
@@ -336,6 +336,8 @@ Zorg MemoryDB is the active durable memory backend for this OpenClaw workspace. 
 4. If legacy markdown memory files exist, import them into Zorg MemoryDB, then treat them as retired source files rather than active memory.
 5. If DB recall is unavailable, repair or restore the DB path and fail closed instead of silently falling back to files.
 6. Preserve original memory data. Improve recall with additive DB structures such as indexes, source chunks, entities, associations, observations, and rule rows.
+7. If first-pass recall misses but deeper DB recall finds the rule, improve retrieval additively with aliases, hints, relationships, indexes, or structured rules so the same phrasing is fast next time.
+8. When the operator gives a system/process/rule directive that must survive clean installs or upgrades, store it in structured DB recall and publish the public-safe seed/template/install changes to the Zorg MemoryDB add-on without private rows or operator-private context.
 
 ### Local DB Memory Files
 

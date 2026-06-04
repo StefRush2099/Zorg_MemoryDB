@@ -199,6 +199,15 @@ compatibility tables when those tables exist, and raises existing chat-response
 timing rule weights through `zorg_logic_rule_dynamic_weights` without creating
 replacement timing rules.
 
+The canonical public seed also carries the DB-primary recursive improvement
+rule. PostgreSQL Zorg MemoryDB is the primary durable source for rules,
+processes, and operating memory; markdown is a bootstrap/recovery pointer. If
+deeper DB recall finds a rule missed by first-pass recall, add aliases, recall
+hints, relationships, indexes, materialized/search support, or structured rule
+rows so the same phrasing is fast next time. Public-safe rule/process
+directives that must survive clean installs or upgrades belong in the DB rule
+seed and add-on templates, never in private rows or oversized markdown memory.
+
 ## LLM-governed operations, not scripted policy
 
 Zorg MemoryDB's operating pattern should keep judgment in the LLM and durable rules, not buried in helper scripts. Internal assistant routines should be represented as natural-language instructions, DB-backed rules, runbooks, cron payloads, and explicit commands. The LLM should recall current rules, inspect current state, and decide the safe next action live.

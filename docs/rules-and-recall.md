@@ -208,6 +208,19 @@ rows so the same phrasing is fast next time. Public-safe rule/process
 directives that must survive clean installs or upgrades belong in the DB rule
 seed and add-on templates, never in private rows or oversized markdown memory.
 
+The database-first gate should evaluate all active DB rules before normal
+response generation through a prioritized and dynamically weighted rule graph.
+Rule evaluation must update branch/structural hierarchy signals so future checks
+reach relevant rules faster without skipping the complete rule set. The public
+schema includes additive telemetry tables, `zorg_rule_evaluation_runs` and
+`zorg_rule_evaluation_items`, for future ranking or reinforcement-learning
+training data. Store query text, agent identity, recipient/channel, trigger,
+matched and skipped rules, rank order, priority, effective weight before/after,
+branch path, relevance score, decision, latency, outcome, repair state,
+response allowed/blocked, result hash, and later operator feedback when
+available. Preserve source rules and source memory forever; telemetry is
+additive and must not replace or prune durable rule data.
+
 ## LLM-governed operations, not scripted policy
 
 Zorg MemoryDB's operating pattern should keep judgment in the LLM and durable rules, not buried in helper scripts. Internal assistant routines should be represented as natural-language instructions, DB-backed rules, runbooks, cron payloads, and explicit commands. The LLM should recall current rules, inspect current state, and decide the safe next action live.

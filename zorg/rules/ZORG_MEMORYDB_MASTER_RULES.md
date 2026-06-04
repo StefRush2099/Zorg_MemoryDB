@@ -27,6 +27,17 @@ DB recall and publish the public-safe structure, templates, and install seed
 changes to the Zorg MemoryDB add-on. Never publish private rows, credentials,
 contacts, transcripts, or operator-private context.
 
+## Weighted Rule Evaluation Telemetry
+
+Before normal response generation, evaluate all active DB rules through a
+prioritized and dynamically weighted rule graph. The rule-check process should
+update branch and structural hierarchy signals so future checks move faster
+toward relevant rules without dropping the complete rule set. Store additive
+telemetry for future ranking or reinforcement-learning training, including
+matched and skipped rules, rank order, weights before and after, branch path,
+decision, latency, repair state, response allowed or blocked, and later operator
+feedback when available. Preserve source rules forever.
+
 ## Preserve Structure And Rule Data
 
 Active rules belong in `zorg_logic_rules`. Older compatibility surfaces such as

@@ -29,6 +29,57 @@ create table if not exists public.zorg_logic_rule_dynamic_weights (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists public.zorg_rule_evaluation_runs (
+  id uuid primary key default gen_random_uuid(),
+  started_at timestamptz not null default now(),
+  completed_at timestamptz,
+  trigger_source text not null,
+  agent_name text,
+  agent_id text,
+  responds_to text,
+  channel text,
+  provider text,
+  query_text text,
+  status text not null default 'started',
+  response_allowed boolean,
+  repair_mode boolean not null default false,
+  rule_count integer,
+  duration_ms integer,
+  result_hash text,
+  metadata jsonb not null default '{}'::jsonb
+);
+
+create table if not exists public.zorg_rule_evaluation_items (
+  id uuid primary key default gen_random_uuid(),
+  run_id uuid not null references public.zorg_rule_evaluation_runs(id) on delete cascade,
+  rule_key text not null,
+  rule_rank integer not null,
+  priority text,
+  rule_type text,
+  branch_path text[] not null default '{}'::text[],
+  matched boolean not null default false,
+  relevance_score numeric(12,6),
+  effective_weight numeric(12,6),
+  weight_before numeric(12,6),
+  weight_after numeric(12,6),
+  decision text,
+  latency_ms integer,
+  feedback jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists zorg_rule_eval_runs_started_idx
+  on public.zorg_rule_evaluation_runs(started_at desc);
+
+create index if not exists zorg_rule_eval_runs_status_idx
+  on public.zorg_rule_evaluation_runs(status, started_at desc);
+
+create index if not exists zorg_rule_eval_items_run_rank_idx
+  on public.zorg_rule_evaluation_items(run_id, rule_rank);
+
+create index if not exists zorg_rule_eval_items_rule_idx
+  on public.zorg_rule_evaluation_items(rule_key, created_at desc);
+
 create or replace view public.zorg_logic_rule_dynamic_ranking_v as
 select
   r.rule_key,
@@ -98,6 +149,16 @@ values
   'zorg/db/public_canonical_rules_update_2026_06_02.sql',
   'PostgreSQL Zorg MemoryDB is the primary source for durable rules, processes, and operating memory. Markdown files are bootstrap and recovery pointers only; they may redirect an agent to DB memory, but must not become the durable rule store or a flat-file memory fallback. Before any response, tool use, file edit, external action, or completion claim, query DB memory through the configured gateway; if the first recall misses and deeper DB recall finds the rule, add aliases, recall hints, relationships, indexes, materialized/search support, or structured rule rows so the same phrasing is fast next time. When the operator gives a system/process/rule directive that must survive clean installs, upgrades, migrations, or memory rebuilds, store it in structured DB recall and publish the public-safe structure/templates/install seed changes to the Zorg MemoryDB add-on without private rows, credentials, contacts, transcripts, or operator-private context.',
   array['zorg_memorydb','database_memory','markdown_bootstrap','clean_install','upgrade','recall_hints','recursive_improvement','rule_survival','OpenClaw']
+),
+(
+  'pre-response-all-rules-weighted-telemetry-rl-2026-06-04',
+  'Pre-response all-rules weighted telemetry and RL data capture',
+  'operating_rule',
+  'critical',
+  'public_safe',
+  'zorg/db/public_canonical_rules_update_2026_06_02.sql',
+  'Database-first response design must evaluate all active DB rules before normal response generation through a prioritized and weighted rule graph. The rule-check process should update dynamic weights and branch/structural hierarchy signals so future checks route faster to the relevant rules. Every readiness proof, pre-response rule evaluation, repair-mode evaluation, and response-allow/block decision should store additive telemetry useful for future reinforcement-learning or ranking training: query text, agent identity, recipient/channel, trigger, matched and skipped rules, rank order, priority, effective weight before and after, branch path, relevance score, decision, latency, outcome, repair state, response allowed/blocked, result hash, and later operator feedback when available. Preserve source rules and source memory forever; training telemetry is additive and must not replace or prune durable rule data.',
+  array['database_memory','rule_evaluation','pre_response_gate','dynamic_weights','reinforcement_learning','telemetry','repair_mode','readiness_proof']
 )
 on conflict (rule_key) do update
 set rule_title = excluded.rule_title,

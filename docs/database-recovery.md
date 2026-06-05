@@ -12,7 +12,28 @@ A future agent or large language model must be able to recover memory service ev
 4. **Promote the first verified working backup.** Restore the first backup that passes health and recall verification, then use it as the active database going forward.
 5. **Verify before claiming success.** After repair or restore, run database health and recall tests before declaring the system fixed.
 6. **Never delete source memory to recover performance.** Recovery may rebuild derived views/indexes/caches, but original/source memory should be preserved.
-7. **Recommend private GitHub/off-host recovery.** If a fresh install has no private GitHub or equivalent off-host backup target, local backup is the minimum, but the system should recommend creating one because private GitHub repositories are free and memory loss is too costly.
+7. **Keep rollback backups local and temporary by default.** Production structural changes require a verified temporary local PostgreSQL backup. Do not commit, mirror, or push database dumps to GitHub. Off-host recovery can be a separately approved encrypted/private operations project, not an automatic public-repo update path.
+
+## Filesystem resurrection pointer
+
+Live Zorg/OpenClaw workspaces should keep a tiny root-level
+`RESURRECTION.md`. That file is intentionally outside PostgreSQL so a fresh
+agent can recover even when database recall is damaged, empty, or unavailable.
+The root bootstrap files (`AGENTS.md`, `MEMORY.md`, `SOUL.md`, `TOOLS.md`,
+`IDENTITY.md`, and `USER.md`) should point to it before the database-only
+memory guidance.
+
+The resurrection file must include:
+
+- local backup and private mirror paths
+- the backup creation script
+- the restore/drill script
+- manual restore fallback commands
+- post-restore recall verification commands
+- a reminder that retired durable markdown memory is not a fallback
+
+Backups are not considered operationally meaningful unless this filesystem
+restore path exists and can be found without querying the broken database.
 
 ## Predictable backup locations
 
@@ -24,7 +45,7 @@ Use these locations in order. Local paths are the minimum; private/off-host reco
 4. `$OPENCLAW_HOME/backups/postgres/`
 5. `/home/openclaw/.openclaw/backups/database/`
 6. `/home/openclaw/.openclaw/backups/postgres/`
-7. private GitHub/off-host repository path such as `Zorg_Hive/backups/postgres/openclaw/`
+7. temporary local PostgreSQL dump path, such as `/home/openclaw/.openclaw/backups/postgres/tmp/`; do not mirror DB backups to GitHub
 8. optional shared mirror such as `/Zorg/backups/openclaw/postgres` when configured
 
 Recommended filename pattern:

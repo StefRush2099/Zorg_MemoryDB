@@ -68,6 +68,8 @@ copy_files(){
   cp "$REPO_ROOT/scripts/install_lan_chat.sh" "$TARGET_WORKSPACE/scripts/install_lan_chat.sh"
   cp "$REPO_ROOT/db/schema.sql" "$TARGET_WORKSPACE/db/schema.sql"
   cp "$REPO_ROOT/db/memory_file_archive_schema.sql" "$TARGET_WORKSPACE/db/memory_file_archive_schema.sql"
+  cp "$REPO_ROOT/db/public_canonical_rules_update_2026_06_02.sql" "$TARGET_WORKSPACE/db/public_canonical_rules_update_2026_06_02.sql"
+  cp "$REPO_ROOT/db/runtime_db_only_memory_writer_rules_2026_06_04.sql" "$TARGET_WORKSPACE/db/runtime_db_only_memory_writer_rules_2026_06_04.sql"
   mkdir -p "$TARGET_WORKSPACE/lan-chat"
   cp -R "$REPO_ROOT/lan-chat/." "$TARGET_WORKSPACE/lan-chat/"
   chmod +x "$TARGET_WORKSPACE/memory_sql_tool.py" "$TARGET_WORKSPACE/memory_recall_router.py" "$TARGET_WORKSPACE/memory_speed_test.py" "$TARGET_WORKSPACE/scripts/enforce_db_memory_search.py" "$TARGET_WORKSPACE/scripts/import_markdown_memory.py" "$TARGET_WORKSPACE/scripts/archive_retired_memory_dir.py" "$TARGET_WORKSPACE/scripts/db_only_memory_autoheal.py" "$TARGET_WORKSPACE/scripts/postgres_memory_backup.sh" "$TARGET_WORKSPACE/scripts/install_lan_chat.sh"
@@ -136,15 +138,40 @@ apply_schema(){
 import json, pathlib, psycopg2
 cfg=json.load(open('sql_memory_map.json'))['postgres']
 schema=pathlib.Path('db/schema.sql').read_text(encoding='utf-8')
+public_rules=pathlib.Path('db/public_canonical_rules_update_2026_06_02.sql')
+runtime_rules=pathlib.Path('db/runtime_db_only_memory_writer_rules_2026_06_04.sql')
 conn=psycopg2.connect(host=cfg['host'],port=cfg['port'],dbname=cfg['database'],user=cfg['user'])
 with conn:
     with conn.cursor() as cur:
         cur.execute(schema)
+        if public_rules.exists():
+            cur.execute(public_rules.read_text(encoding='utf-8'))
+        if runtime_rules.exists():
+            cur.execute(runtime_rules.read_text(encoding='utf-8'))
         cur.execute('select refresh_zorg_memory_search_mv();')
         cur.execute('select refresh_zorg_memory_search_fast_mv();')
         cur.execute('select refresh_zorg_master_context();')
 conn.close()
 PY
+}
+
+install_lan_chat(){
+  if [ "${ZORG_SKIP_LAN_CHAT_INSTALL:-0}" = "1" ]; then
+    log "LAN command chat install skipped by ZORG_SKIP_LAN_CHAT_INSTALL=1"
+    return 0
+  fi
+
+  log "installing built-in LAN command chat"
+  OPENCLAW_HOME="${OPENCLAW_HOME:-$HOME/.openclaw}" \
+  OPENCLAW_WORKSPACE="$TARGET_WORKSPACE" \
+  INSTALL_DIR="$TARGET_WORKSPACE" \
+  LAN_CHAT_DIR="$TARGET_WORKSPACE/lan-chat" \
+  LAN_CHAT_PORT="${LAN_CHAT_PORT:-3001}" \
+  GATEWAY_HOST="${GATEWAY_HOST:-127.0.0.1}" \
+  GATEWAY_SESSION_KEY="${GATEWAY_SESSION_KEY:-agent:main:main}" \
+  CHAT_SOURCE_LABEL="${CHAT_SOURCE_LABEL:-LAN Console}" \
+  CHAT_HISTORY_LIMIT="${CHAT_HISTORY_LIMIT:-20}" \
+  "$TARGET_WORKSPACE/scripts/install_lan_chat.sh"
 }
 
 append_rules(){
@@ -217,3 +244,4 @@ apply_schema
 append_rules
 import_and_verify
 enforce_builtin_memory_search
+install_lan_chat

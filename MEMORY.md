@@ -39,8 +39,8 @@ The Dan Martell Exec Admin Playbook is a built-in executive-assistant behavior s
 - Rich Text Email Formatting Hard Rule: outbound emails should be rich text/HTML with a plain-text fallback by default. Hard-coded Gmail/API send paths should build multipart/alternative messages; plain text only is allowed when HTML is technically unsupported, objectively risky, deliverability-risky, or explicitly requested.
 - Hard Outbound Email Operator CC Rule: configure the operator copy address in private runtime config, then visibly CC that operator on all outbound assistant emails by default, including first emails, replies, follow-ups, correction/test messages, scheduled sends, and cron-generated mail. Sending helpers should inject/verify the CC before serialization/API send; BCC requires a newer explicit message-specific exception.
 - DB-Only Memory Recall Auto-Heal Rule: periodically verify recall uses backend PostgreSQL exclusively. If retired `memory/` files or markdown fallback routes appear, archive/import them into DB, remove filesystem files, restore DB-only routing, refresh recall surfaces, and stay silent unless blocked/risky/unrepairable.
-- Database Backup, Recovery, and Tuning Gate Hard Rule: before any production DB structural/index/schema/materialized-view/recall-routing/vector/neural/weighted-memory change, create and verify a full local PostgreSQL backup and private GitHub recovery backup. Production DB tuning changes are allowed only after a real recall failure where existing DB data was missed until deeper/alternate/manual search; otherwise only sandbox/benchmark/design additive memory structures. Preserve source data forever.
-- Fresh-install private GitHub backup clarification: if no private GitHub backup store exists, local DB backup remains mandatory minimum, but the system should proactively recommend creating a private GitHub repository because private repos are free and off-host recovery is essential for durable memory.
+- Database Backup, Recovery, and Tuning Gate Hard Rule: before any production DB structural/index/schema/materialized-view/recall-routing/vector/neural/weighted-memory change, create and verify a temporary local PostgreSQL backup only. Do not commit, mirror, or push database dumps to GitHub. Production DB tuning changes are allowed only after a real recall failure where existing DB data was missed until deeper/alternate/manual search; otherwise only sandbox/benchmark/design additive memory structures. Preserve source data forever.
+- Fresh-install backup clarification: local temporary DB backups are mandatory minimum rollback protection. Off-host or encrypted recovery can be recommended as a separately approved private operational setup, but public MemoryDB updates must never push live DB dumps, rows, contacts, transcripts, credentials, or private memory to GitHub.
 
 
 ## Individual email-copy hierarchy
@@ -112,4 +112,3 @@ Before drafting or publishing a new article, review the same-day feed/archive an
 
 The assistant owns the full article set and must keep the day’s coverage fresh, non-repetitive, and additive.
 <!-- /SAME_DAY_NEWS_FRESHNESS_RULE -->
-

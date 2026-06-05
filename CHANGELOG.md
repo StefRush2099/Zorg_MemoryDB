@@ -6,10 +6,35 @@ All meaningful changes to this project are documented here and released with a G
 
 ### Changed
 
+- Added public-safe DB-only runtime memory writer rules for
+  DB-before-visible-response, runtime markdown writer shutdown, emergency import
+  of any recreated retired memory files, and real timestamp/duration handling on
+  visible operational replies.
+
+- Updated the DB-memory enforcer so it also patches OpenClaw's bundled
+  `session-memory` and pre-compaction `memoryFlush` writer surfaces on DB-only
+  installs.
+
+- Extended the retired memory-file archive script with direct-file import
+  support and updated templates/docs so clean installs and upgrades inherit the
+  same structural MemoryDB rules.
+
+- Fixed the canonical public rule seed to include all 91 active public rules
+  (`public_safe` plus `public_safe_only`) and to fail if the full public set is
+  not present after application.
+
+- Existing OpenClaw upgrades now apply the public canonical rule SQL and install
+  the built-in LAN command chat automatically after DB-memory verification.
+
 - Added a public-safe canonical rule update SQL path for existing installs:
   active rule enforcement is consolidated into `zorg_logic_rules`,
   compatibility rule tables are disabled as active sources, and existing
   chat-response timing rule weights are raised without creating duplicate rules.
+
+- Superseded older private-GitHub database-backup guidance with the current
+  temporary-local-only rollback rule across docs, templates, schema seeds, and
+  backup script behavior. Public `Zorg_MemoryDB` updates must never publish live
+  DB dumps, rows, contacts, transcripts, credentials, or private memory.
 
 - Zorg MemoryDB: document the root-level `RESURRECTION.md` recovery pointer so
   backups remain useful even when DB recall is unavailable.
@@ -24,8 +49,15 @@ All meaningful changes to this project are documented here and released with a G
 
 ### Verified
 
+- Syntax-checked the changed Python scripts, applied the public-safe runtime
+  writer rule SQL against local PostgreSQL-backed memory, and verified DB recall
+  can retrieve the new runtime DB-only writer rule.
+
 - Validated the canonical-rule update SQL with PostgreSQL parsing and checked
   the repository docs describe the public-safe upgrade path.
+
+- Verified the old private-GitHub backup requirement no longer appears in
+  current rule docs, templates, or schema seed text.
 
 - Confirmed the live ANN surface has zero missing eligible local-hash rows after
   the maintenance pass.

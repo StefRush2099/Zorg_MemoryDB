@@ -8,6 +8,7 @@ import hashlib
 import json
 import os
 import shutil
+import argparse
 from pathlib import Path
 
 import psycopg2
@@ -23,6 +24,14 @@ def rel(p: Path) -> str:
 
 
 def main():
+    parser = argparse.ArgumentParser(description='Archive retired OpenClaw memory files into Zorg MemoryDB.')
+    parser.add_argument('--direct-file', help='Import one runtime-created memory file directly, then remove it after DB import.')
+    parser.add_argument('--source-path', help='Logical source path to store for --direct-file.')
+    parser.add_argument('--category', default='legacy_memory_file_line')
+    parser.add_argument('--priority', default='medium')
+    parser.add_argument('--memory-key-prefix', default='migrated-memory-file')
+    args = parser.parse_args()
+
     cfg = json.loads(MAP.read_text())['postgres']
     conn = psycopg2.connect(
         host=cfg['host'],
@@ -31,7 +40,10 @@ def main():
         user=cfg['user'],
         password=cfg.get('password', ''),
     )
-    files = sorted([p for p in MEMORY_DIR.rglob('*') if p.is_file()]) if MEMORY_DIR.exists() else []
+    if args.direct_file:
+        files = [Path(args.direct_file).expanduser().resolve()]
+    else:
+        files = sorted([p for p in MEMORY_DIR.rglob('*') if p.is_file()]) if MEMORY_DIR.exists() else []
     archived = 0
     lines_inserted = 0
     with conn:
@@ -40,7 +52,7 @@ def main():
             for path in files:
                 data = path.read_bytes()
                 text = data.decode('utf-8', errors='replace')
-                source_path = rel(path)
+                source_path = args.source_path if args.direct_file and args.source_path else rel(path)
                 sha = hashlib.sha256(data).hexdigest()
                 content_json = None
                 if path.suffix.lower() in {'.json'}:
@@ -69,9 +81,9 @@ def main():
                     stripped = line.strip()
                     if not stripped:
                         continue
-                    key = f'migrated-memory-file::{source_path}::{i}'
-                    category = 'legacy_memory_file_line'
-                    priority = 'medium'
+                    key = f'{args.memory_key_prefix}::{source_path}::{i}'
+                    category = args.category
+                    priority = args.priority
                     cur.execute(
                         """
                         update public.zorg_memory
@@ -98,13 +110,17 @@ def main():
                 set deleted_from_filesystem=true, deleted_at=now()
                 where source_path like 'memory/%'
             """)
-            cur.execute("select to_regprocedure('public.refresh_zorg_memory_search_fast_mv()')")
-            if cur.fetchone()[0]:
-                cur.execute('select public.refresh_zorg_memory_search_fast_mv()')
-            cur.execute("select to_regprocedure('public.refresh_zorg_master_context()')")
-            if cur.fetchone()[0]:
-                cur.execute('select public.refresh_zorg_master_context()')
-    if MEMORY_DIR.exists():
+            refresh_allowed = not args.direct_file and os.environ.get('ZORG_SKIP_RECALL_REFRESH') != '1'
+            if refresh_allowed:
+                cur.execute("select to_regprocedure('public.refresh_zorg_memory_search_fast_mv()')")
+                if cur.fetchone()[0]:
+                    cur.execute('select public.refresh_zorg_memory_search_fast_mv()')
+                cur.execute("select to_regprocedure('public.refresh_zorg_master_context()')")
+                if cur.fetchone()[0]:
+                    cur.execute('select public.refresh_zorg_master_context()')
+    if args.direct_file and files and files[0].exists():
+        files[0].unlink()
+    elif MEMORY_DIR.exists():
         shutil.rmtree(MEMORY_DIR)
     print(json.dumps({'files_archived': archived, 'line_rows_upserted': lines_inserted, 'memory_dir_removed': not MEMORY_DIR.exists()}, sort_keys=True))
 

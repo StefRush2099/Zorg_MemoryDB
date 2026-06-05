@@ -52,6 +52,27 @@ Clean installs must enforce DB-only memory in both rules and runtime configurati
 
 The `memory/` subdirectory is retired. It must not be used for daily notes, project notes, people research, source notes, heartbeat state, JSON logs, or any durable memory. If a `memory/` directory appears during or after install, the auto-heal path archives/imports it into PostgreSQL, removes it from the filesystem, and records the repair in DB memory.
 
+Runtime writers must also honor DB-only memory. The bundled OpenClaw
+`session-memory` hook and pre-compaction `memoryFlush` path must not create
+`memory/YYYY-MM-DD.md`, `memory/YYYY-MM-DD-HHMM.md`, or any equivalent markdown
+memory file. DB-only installs patch those writer paths through
+`scripts/enforce_db_memory_search.py`; session summaries should be written to
+PostgreSQL or skipped, and file-backed compaction memory flush should be
+disabled unless a future DB-native writer is wired in. Directory permission
+denials are not the enforcement mechanism: if a retired memory file still
+appears, it is emergency import input and must be archived/imported into
+PostgreSQL before the filesystem copy is removed.
+
+## User-visible timing rule
+
+Operational progress updates, blocker reports, completion claims, and final
+source-channel replies must include concrete timestamps when timing is relevant
+or after timing behavior has been challenged. Use the inbound message timestamp
+as the request time, the actual send time as the response time, and compute
+duration from those two real values only. Do not pre-calculate duration before
+the response is sent, and do not invent rounded timing when exact metadata is
+available.
+
 ## End-to-end ingestion definition
 
 Memory is not healthy merely because the database accepts connections or a recall query returns old rows. A compliant installation must prove that new data is flowing through the memory gates:
@@ -97,8 +118,11 @@ the schema for upgrade compatibility, but they must not remain active recall
 sources after a canonical migration. Use
 `db/public_canonical_rules_update_2026_06_02.sql` as the public-safe upgrade path
 for installs that need the current canonical-rule cleanup: it seeds sanitized
-public rules into `zorg_logic_rules`, disables active rows in the compatibility
-tables, and raises existing chat-response timing rule weights through
+public rules into `zorg_logic_rules`. The expected public seed count is 93
+active rules scoped as `public_safe` or `public_safe_only`; the SQL raises an
+error if that full public set is not present after application. The same update
+disables active rows in the compatibility tables and raises existing
+chat-response timing rule weights through
 `zorg_logic_rule_dynamic_weights` without creating replacement timing rules.
 
 This update is structural and public-safe. It publishes rule shape, sanitized
@@ -171,13 +195,13 @@ Installations should periodically verify that recall uses the PostgreSQL backend
 
 ## Database recovery and tuning gate
 
-A DB-backed memory system should be treated as mission-critical state. Before any production schema/index/materialized-view/recall-routing/vector/weighted-memory change, create a full local PostgreSQL backup and push a full copy to a private recovery repository. Public distribution repos must never contain private database dumps or rows.
+A DB-backed memory system should be treated as mission-critical state. Before any production schema/index/materialized-view/recall-routing/vector/weighted-memory change, create and verify a temporary local PostgreSQL backup only. Do not commit, mirror, or push database dumps to GitHub. Public distribution repos must never contain private database dumps or rows.
 
 Performance/tuning cron jobs should be worded LLM instruction jobs. They may apply production DB/index changes only after a concrete recall failure where data existed in the DB but did not return in first-pass recall and was recovered only by deeper search, alternate query, direct inspection, or operator correction. Without that failure signal, they should restrict themselves to benchmarks, research, sandbox/temp experiments, and additive design work such as vector structures, neural-style weights, cue associations, and recall scoring prototypes.
 
 Baseline rollback is handled with temporary local PostgreSQL dumps only. In Stefan's install the temporary path is `/home/openclaw/.openclaw/backups/postgres/tmp/`. Do not commit, mirror, or push database backups to GitHub; purge temporary backup artifacts after verification.
 
-Fresh-install note: if no private GitHub/offsite DB backup target exists, local backup is the minimum, but the agent should explicitly recommend setting up a private GitHub repository because private repos are free and off-host recovery is critical for durable memory.
+Fresh-install note: local temporary backup remains the minimum rollback requirement. Off-host or encrypted recovery may be recommended as a separately approved private operations setup, but it must not be mixed into the public `Zorg_MemoryDB` update path or used to publish live DB dumps to GitHub.
 
 ## LLM-governed operations, not scripted policy
 

@@ -18,12 +18,16 @@ Required behavior:
 
 ## Clean-install DB-only memory hard stop
 
-A clean Zorg MemoryDB install must never recreate `memory/` markdown files as durable memory. The only durable memory backend is PostgreSQL through Zorg MemoryDB. Core markdown files such as `AGENTS.md`, `MEMORY.md`, `SOUL.md`, `USER.md`, `TOOLS.md`, `IDENTITY.md`, and `HEARTBEAT.md` are bootstrap/rule sources only; they are imported into the database and are not a flat-file memory fallback. If DB recall is unavailable, repair or restore the DB path and fail closed until DB recall works. Do not create `memory/YYYY-MM-DD.md`, `memory/projects/*.md`, `memory/people-research/*.md`, `memory/*.json`, or any other `memory/` subdirectory file. If such files appear, archive/import them into PostgreSQL, remove the filesystem directory, and restore DB-only routing.
+A clean Zorg MemoryDB install must never recreate `memory/` markdown files as durable memory. The only durable memory backend is PostgreSQL through Zorg MemoryDB. Core markdown files such as `AGENTS.md`, `MEMORY.md`, `SOUL.md`, `USER.md`, `TOOLS.md`, `IDENTITY.md`, and `HEARTBEAT.md` are bootstrap/rule sources only; they are imported into the database and are not a flat-file memory fallback. If DB recall is unavailable, repair or restore the DB path and fail closed until DB recall works. Do not create `memory/YYYY-MM-DD.md`, `memory/projects/*.md`, `memory/people-research/*.md`, `memory/*.json`, or any other `memory/` subdirectory file. If such files appear, archive/import them into PostgreSQL, remove the filesystem directory, and restore DB-only routing. Runtime hooks must not create retired memory markdown either: patch or disable file-backed `session-memory` and pre-compaction `memoryFlush` writers on DB-only installs, and treat any file that still appears only as emergency DB-import input.
 
 
 ## Top-level DB Memory Publication Rule
 
 Whenever any meaningful structural, configuration, routing, schema, indexing, recall, benchmark, enforcement, or operational-rule change is made to the memory database or memory recall system, the matching structural change must be published to the GitHub `Zorg_MemoryDB` repository. Update the relevant markdown/runbook files at the same time so future installs reproduce the current behavior. Do not publish personal memory contents, credentials, live database rows, contact data, transcripts, or private operator context — only structure, scripts, schema, templates, and documentation.
+
+## User-visible timestamp / duration rule
+
+After operational work, every progress update, blocker report, completion claim, and source-channel final reply must include concrete timestamps when timing is relevant or when timing behavior was recently challenged. Use the inbound message timestamp as request time, the actual send time as response time, and calculate duration only from those two real values after the response time is known.
 
 ## Priority 0: memory before action
 
@@ -201,12 +205,12 @@ Periodically verify that memory recall is using the backend database exclusively
 
 ## Database Backup, Recovery, and Tuning Gate Hard Rule
 
-The memory database is mission-critical. Before any production DB structural, indexing, materialized-view, recall-routing, vector/embedding, weighted-association, neural-memory, or schema change, create and verify a full local PostgreSQL backup and a private GitHub recovery backup. In Stefan's install the private recovery target is `Zorg_Hive/backups/postgres/openclaw/`; fresh installs should configure an equivalent private recovery repository before enabling memory-dependent work. Never publish private DB dumps, rows, contacts, transcripts, credentials, or operator memory into public `Zorg_MemoryDB`.
+The memory database is mission-critical. Before any production DB structural, indexing, materialized-view, recall-routing, vector/embedding, weighted-association, neural-memory, or schema change, create and verify a temporary local PostgreSQL backup only. Do not commit, mirror, or push database backups to GitHub. Temporary backup artifacts are for immediate rollback and must be purged after verification. Never publish private DB dumps, rows, contacts, transcripts, credentials, or operator memory into public `Zorg_MemoryDB`.
 
 Database tuning/redesign cron jobs must be LLM instruction jobs, not blind mutator scripts. Production DB/index/schema changes are allowed only after a real recall failure: data existed in DB but was not returned immediately and surfaced only after deep/alternate/manual search, or the operator had to tell the agent to search again. If no recall failure exists, tuning jobs may only benchmark, research, design, and test additive structures in sandbox/temp contexts — indexes, vector structures, neural-style weighting, cue associations, and recall scoring — without altering production DB. Preserve all source data forever.
 
 
-Fresh-install/private GitHub clarification: if no private GitHub backup store exists yet, local DB backup remains the mandatory minimum, but the system should proactively recommend creating a private GitHub repository because private repos are free and off-host recovery is essential for durable memory. Brand-new installs should treat private GitHub/offsite DB backup setup as a core recovery recommendation from scratch, not an optional enhancement.
+Fresh-install backup clarification: local temporary DB backups are the mandatory rollback surface for production structural changes. Do not push database dumps or live memory rows to GitHub, even a private repository, from the public MemoryDB update path. If an operator wants off-host recovery, recommend an encrypted/private backup process as a separately approved operational setup, not as part of the public `Zorg_MemoryDB` repo update.
 
 
 ## Individual email-copy hierarchy

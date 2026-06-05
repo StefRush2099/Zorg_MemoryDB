@@ -81,7 +81,7 @@ The migration is `db/recency_token_supersession_recall_2026_05_25.sql`. It updat
 
 Operational rule: when two memories describe the same preference or instruction, compare timestamp, priority, category, and query-token overlap. Newer matching preference rows can supersede older preference rows without deleting either record.
 
-Before applying this migration in production, create and verify the local PostgreSQL backup plus private recovery backup. After applying, refresh materialized recall surfaces and verify with stale-vs-newer test queries.
+Before applying this migration in production, create and verify the temporary local PostgreSQL backup. Do not commit, mirror, or push database dumps to GitHub. After applying, refresh materialized recall surfaces and verify with stale-vs-newer test queries.
 
 ## 2026-05-25 temporary deep-scan enforcement window
 

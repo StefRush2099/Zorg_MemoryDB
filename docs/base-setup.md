@@ -138,26 +138,24 @@ Personal email access should be governed with stricter rules:
 
 This gives you the benefit of an AI executive assistant without turning the operator's private inbox into the public-facing address.
 
-## 5. Private GitHub backup repo: off-host memory recovery
+## 5. Temporary local database rollback backups
 
 Zorg MemoryDB's database is operational memory. Losing it means losing rules, decisions, contact context, recovery paths, and accumulated working knowledge.
 
-Local backups are the minimum. A private off-host backup target is strongly recommended. A private GitHub repository is a practical default because private repos are widely available, easy to automate, and familiar to many users.
+Production structural changes must first create and verify a temporary local PostgreSQL backup. Do not commit, mirror, or push database dumps to GitHub from the public MemoryDB update path. Temporary rollback dumps should be purged after verification.
 
 Recommended pattern:
 
 ```text
-github.com/<you>/<private-openclaw-backups>
-└─ backups/postgres/openclaw/
-   ├─ zorg-memorydb-YYYYMMDD-HHMMSS.dump
-   ├─ zorg-memorydb-YYYYMMDD-HHMMSS.sql.gz
-   └─ README.md
+/home/openclaw/.openclaw/backups/postgres/tmp/
+├─ zorgdb-YYYY-MM-DD_HHMMSS.sql.gz
+└─ zorgdb-schema-YYYY-MM-DD_HHMMSS.sql.gz
 ```
 
 Rules:
 
-- keep full DB dumps private
-- never publish dumps, rows, transcripts, credentials, contacts, or private operator context to the public `Zorg_MemoryDB` repo
+- keep DB dumps local/private and temporary unless the operator separately approves an encrypted/off-host recovery process
+- never publish dumps, rows, transcripts, credentials, contacts, or private operator context to GitHub from the public `Zorg_MemoryDB` update path
 - verify that backups are restorable, not merely created
 - run backups before production database/index/schema/recall-routing changes
 - keep public docs and schema templates separate from private recovery data
@@ -167,12 +165,9 @@ Example high-level flow:
 ```bash
 # Run the install's backup script.
 ./scripts/postgres_memory_backup.sh
-
-# Copy or commit only to a private backup repo or encrypted off-host store.
-# Do not push private dumps to the public Zorg_MemoryDB repository.
 ```
 
-For a fresh install, create the private recovery repository before the system becomes important. It is much easier to set up recovery before you need it.
+For a fresh install, verify the local rollback path before the system becomes important. Off-host recovery can be designed later as a separately approved private operations process.
 
 ## 6. Cloudflare connector: web-accessible publishing surface
 
@@ -334,4 +329,3 @@ The assistant owns the full article set and must keep the day’s coverage fresh
 ## Permanent engineering rules
 
 System changes, code writing, and software changes are governed by permanent base-install rules, not personal preferences. See [`base-install-permanent-engineering-rules.md`](base-install-permanent-engineering-rules.md). Zorg MemoryDB must be installed/upgraded as an additive OpenClaw overlay that preserves existing OpenClaw behavior and user data unless an explicit migration says otherwise.
-

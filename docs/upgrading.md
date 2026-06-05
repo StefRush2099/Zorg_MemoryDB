@@ -85,9 +85,10 @@ psql "$DATABASE_URL" -f db/public_canonical_rules_update_2026_06_02.sql
 
 Use the equivalent container or local PostgreSQL command for your install type.
 The update is public-safe and structural: it seeds sanitized rules into
-`zorg_logic_rules`, disables active rows in `zorg_rules` and
-`zorg_rule_catalog`, and updates existing dynamic timing weights. It does not
-publish or install private database rows.
+`zorg_logic_rules`, verifies that all 91 expected active public rules were
+seeded, disables active rows in `zorg_rules` and `zorg_rule_catalog`, and
+updates existing dynamic timing weights. It does not publish or install private
+database rows.
 
 ## Rollback
 

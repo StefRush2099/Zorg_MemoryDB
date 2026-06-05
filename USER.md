@@ -1,5 +1,8 @@
 # USER.md
 
+PostgreSQL Zorg MemoryDB is the primary source for durable rules, processes,
+and operating memory. This file is a bootstrap pointer only.
+
 Create your local user profile here after installation if your OpenClaw workflow uses one.
 
 <!-- SCORCHED_MEMORY_RECALL_RULE -->
@@ -49,4 +52,3 @@ Before drafting or publishing a new article, review the same-day feed/archive an
 
 The assistant owns the full article set and must keep the day’s coverage fresh, non-repetitive, and additive.
 <!-- /SAME_DAY_NEWS_FRESHNESS_RULE -->
-

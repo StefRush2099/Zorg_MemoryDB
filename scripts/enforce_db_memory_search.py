@@ -196,6 +196,55 @@ def memory_core_paths() -> list[Path]:
     return found
 
 
+def runtime_db_only_writer_paths() -> list[Path]:
+    candidates: list[Path] = []
+    for memory_file in memory_core_paths():
+        dist = memory_file
+        while dist.name != 'dist' and dist.parent != dist:
+            dist = dist.parent
+        if dist.name != 'dist':
+            continue
+        candidates.append(dist / 'extensions' / 'memory-core' / 'index.js')
+        candidates.append(dist / 'bundled' / 'session-memory' / 'handler.js')
+    found: list[Path] = []
+    for candidate in candidates:
+        resolved = candidate.expanduser().resolve() if candidate.exists() else candidate.expanduser()
+        if resolved.exists() and resolved not in found:
+            found.append(resolved)
+    return found
+
+
+def enforce_db_only_runtime_writers() -> bool:
+    """Prevent bundled OpenClaw paths from recreating retired memory/*.md files."""
+    any_changed = False
+    for runtime_file in runtime_db_only_writer_paths():
+        text = runtime_file.read_text(encoding='utf-8')
+        changed = False
+        if runtime_file.match('*/extensions/memory-core/index.js'):
+            marker = 'function buildMemoryFlushPlan(params = {}) {'
+            patched = 'function buildMemoryFlushPlan(params = {}) {\n\tif (process.env.ZORG_DB_ONLY_MEMORY !== "0") return null;'
+            if marker in text and patched not in text:
+                text = text.replace(marker, patched, 1)
+                changed = True
+        elif runtime_file.match('*/bundled/session-memory/handler.js'):
+            marker = 'const saveSessionToMemory = (event) => {'
+            patched = '''const saveSessionToMemory = (_event) => {
+\tif (process.env.ZORG_DB_ONLY_MEMORY === "0") return;
+\tlog.debug("Zorg DB-only memory: bundled session-memory markdown writer disabled");
+\treturn;
+};
+const saveSessionToMemoryDisabledOriginal = (event) => {'''
+            if marker in text and 'Zorg DB-only memory: bundled session-memory markdown writer disabled' not in text:
+                text = text.replace(marker, patched, 1)
+                changed = True
+        if changed:
+            backup(runtime_file)
+            runtime_file.write_text(text, encoding='utf-8')
+            subprocess.run(['node', '--check', str(runtime_file)], check=True)
+            any_changed = True
+    return any_changed
+
+
 def enforce_runtime() -> bool:
     any_changed = False
     for runtime_file in memory_core_paths():
@@ -220,6 +269,8 @@ def enforce_runtime() -> bool:
             runtime_file.write_text(text, encoding='utf-8')
             subprocess.run(['node', '--check', str(runtime_file)], check=True)
             any_changed = True
+    if enforce_db_only_runtime_writers():
+        any_changed = True
     return any_changed
 
 

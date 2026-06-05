@@ -152,7 +152,7 @@ Zorg MemoryDB includes a rule to avoid reducing dynamic agent behavior to old st
 
 ### 10. Memory recovery as a first-class feature
 
-The database is treated as valuable operational infrastructure. Local backups are the minimum. If no private GitHub/off-host recovery store exists, the system should recommend creating one because private GitHub repositories are free and memory loss is too damaging. Private DB dumps belong in private recovery locations, never in the public sanitized repo.
+The database is treated as valuable operational infrastructure. Production structural changes require a verified temporary local PostgreSQL backup first. Database dumps must not be committed, mirrored, or pushed to GitHub from the public MemoryDB update path. Off-host recovery can be designed as a separately approved encrypted/private operations process.
 
 ### 11. Documentation and releases that keep up
 

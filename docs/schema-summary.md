@@ -107,9 +107,11 @@ Active rule recall should use `zorg_logic_rules` plus dynamic weights. The older
 `zorg_rules` and `zorg_rule_catalog` compatibility tables should have zero active
 rows after canonical migration. For existing installs, apply
 `db/public_canonical_rules_update_2026_06_02.sql` to seed the current public-safe
-canonical rules, disable compatibility-table active rows, and raise the existing
-operator-visible chat timing rules so bottom time-summary formatting ranks ahead
-of ordinary rules.
+canonical rules. The expected public seed count is 91 active
+`public_safe`/`public_safe_only` rules; the SQL checks that count directly,
+disables compatibility-table active rows, and raises the existing
+operator-visible chat timing rules so bottom time-summary formatting ranks
+ahead of ordinary rules.
 
 The CRM dedupe miss is the model lesson: when a new database/list/import/CRM/memory feature is built, duplicate detection, canonicalization, count reconciliation, source preservation, recall integration, privacy checks, representative searches, and performance checks are standard final checks before declaring completion.
 

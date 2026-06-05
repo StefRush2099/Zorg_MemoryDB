@@ -18,6 +18,10 @@ Docs: https://docs.openclaw.ai
 
 ### Fixes
 
+- Zorg MemoryDB: rank concrete recall-router lookups by token coverage before
+  broad rule weight so exact host/path/project questions surface direct facts
+  instead of generic rule or query-observation noise.
+
 - Zorg docs: document the operator-visible rule recall repair pattern so missed timestamp, verified-memory, approval, backup, publication, lockout, and completion-verification rules are repaired with additive hints, query observations, semantic edges, and dynamic weights after the required backup.
 - Plugin SDK: expose the exec approvals runtime subpath used by newer Codex plugins, so an already-installed \`@openclaw/codex\` package does not fail to load with \`MODULE_NOT_FOUND\` for \`openclaw/plugin-sdk/exec-approvals-runtime\`.
 - Docker release: include the Zorg lifecycle helpers in the dependency-install layer so package preinstall/postinstall scripts can run inside release image builds.

@@ -125,6 +125,13 @@ Failure reports must not excuse the miss as “not enough information” when th
 
 `memory_recall_hints` and `memory_query_observations` are part of the canonical recall surface. They should be materialized into the main search view so alternate wording, relationship labels, operator corrections, and prior query failures become first-class retrieval cues. This keeps recall behavior neural/vector-like: source rows remain preserved, while additive hints and weighted associations improve future retrieval without pruning history.
 
+Recall-router fallback ranking should score concrete lookup questions by token
+coverage before broad rule weight. Direct fact surfaces such as recall hints,
+host rows, project facts, and path-bearing source chunks should be able to
+outrank generic rule or query-observation noise when the operator asks for an
+exact host, folder, service, project, or script target. Rule rows remain
+available, but they must not mask a direct fact for a concrete lookup.
+
 <!-- LLM_GOVERNED_PERFORMANCE_TUNING_RULE -->
 
 ## LLM-Governed Performance Tuning Rule

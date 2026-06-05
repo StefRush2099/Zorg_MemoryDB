@@ -125,7 +125,7 @@ def search_fast_fallback(cur, query: str, limit: int):
             from tok
             where z.content_lc like '%%' || tok.token || '%%'
           )
-          order by case when z.source_table = 'recall_hint' then 0 else 1 end,
+          order by token_hits desc,
                    z.priority_rank, z.source_rank, z.event_ts desc nulls last
           limit greatest(%s * 20, 200)
         ), matches as (
@@ -138,7 +138,17 @@ def search_fast_fallback(cur, query: str, limit: int):
         )
         select source_table, source_id, priority, content
         from matches
-        order by ((token_hits::numeric * greatest(1, 10 - priority_rank * 2) * greatest(1, 10 - source_rank)) / greatest(content_len, 100)) desc,
+        order by token_hits desc,
+                 case
+                   when source_table = 'recall_hint' then 0
+                   when source_table = 'host' then 1
+                   when source_table in ('project_fact', 'project') then 2
+                   when source_table = 'runbook' then 3
+                   when source_table = 'logic_rule' then 4
+                   when source_table = 'query_observation' then 6
+                   else 5
+                 end,
+                 ((token_hits::numeric * greatest(1, 10 - priority_rank * 2) * greatest(1, 10 - source_rank)) / greatest(content_len, 100)) desc,
                  token_hits desc, priority_rank, source_rank,
                  event_ts desc nulls last
         limit %s

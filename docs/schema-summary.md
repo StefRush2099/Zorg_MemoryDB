@@ -189,6 +189,13 @@ The OpenClaw-facing `scripts/memory_recall_router.py` must not report the databa
 
 The fallback is intentionally read-only and additive: it uses the already-materialized fast search surface, returns normal structured recall rows, marks the mode with `fallback-fast-mv`, and preserves the timeout text in `fallback_error` for diagnostics. It does not prune, delete, compact, or bypass source memory. This keeps the runtime memory wrapper available while deeper weighted/vector recall tuning can be repaired separately.
 
+For concrete lookup queries, the fast fallback ranking must not blindly place
+generic rule rows ahead of specific recall hints, host rows, or project facts.
+Rank by query token coverage first, then prefer direct recall/host/project
+surfaces before query observations and broad logic rules. Rule rows remain in
+the result set, but direct facts should surface first when the operator asks for
+an exact path, host, service, or project target.
+
 ## 2026-05-14 non-destructive index tuning
 
 `db/non_destructive_index_tuning_2026_05_14.sql` adds trigram and sort-support indexes for existing recall/context tables without pruning or reshaping source memory. The indexes target the existing lookup predicates used by `zorg_get_logic_context`, `zorg_get_runbook_context`, `zorg_get_project_context`, `zorg_get_host_context`, and related context surfaces:

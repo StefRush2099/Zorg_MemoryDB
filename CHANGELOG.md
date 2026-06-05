@@ -6,6 +6,10 @@ All meaningful changes to this project are documented here and released with a G
 
 ### Changed
 
+- Updated the fast materialized-view recall fallback ranking so direct
+  multi-token matches, recall hints, host rows, and project facts can outrank
+  broad logic-rule or query-observation noise for concrete lookup questions.
+
 - Added public-safe DB-only runtime memory writer rules for
   DB-before-visible-response, runtime markdown writer shutdown, emergency import
   of any recreated retired memory files, and real timestamp/duration handling on
@@ -48,6 +52,9 @@ All meaningful changes to this project are documented here and released with a G
   reducing noisy nearest-neighbor candidates.
 
 ### Verified
+
+- Verified the live router now returns the remote Zorg folder recall hint as the
+  first hit for a concrete remote script-storage query.
 
 - Syntax-checked the changed Python scripts, applied the public-safe runtime
   writer rule SQL against local PostgreSQL-backed memory, and verified DB recall

@@ -12,6 +12,10 @@ This directory contains the public-safe Zorg MemoryDB and LAN command chat insta
   active rules use `zorg_logic_rules`, compatibility rule tables are disabled
   when present, and existing chat timing rule weights are raised without
   creating replacement timing rules.
+- `db/current_system_rules_update_2026_06_05.sql` inserts current public-safe
+  rules for UI proof, LAN command chat browser verification, polling
+  backpressure, restart-after-build behavior, publication scope, and existing
+  database preservation.
 - `db/import_markdown_rules.py` imports packaged rules and retired markdown memory files into the database.
 - `lan-command-chat/` contains the LAN command chat source bundle.
 - `rules/` contains public-safe memory and install rules.
@@ -20,7 +24,30 @@ This directory contains the public-safe Zorg MemoryDB and LAN command chat insta
 
 The OpenClaw installer calls this bootstrap when the package contains `zorg/install-zorg-memorydb.sh`. Set `ZORG_MEMORYDB_SKIP_BOOTSTRAP=1` to skip it for a special-purpose install.
 
-The bootstrap prepares the database and LAN command chat for clean installs and existing installs. It preserves existing user data; the separate `prepare_public_baseline.sql` file is only for building a distributable public baseline and must not be run against a live user database.
+The bootstrap prepares the database and LAN command chat for clean installs and
+explicit existing installs. It preserves existing user data; the separate
+`prepare_public_baseline.sql` file is only for building a distributable public
+baseline and must not be run against a live user database.
+
+Schema/rule application includes the baseline seed plus all packaged
+public-safe update files: canonical rule-surface repair, runtime DB-only writer
+rules, and the current LAN command chat / proof-of-work / preservation rules.
+
+Existing database protection is fail-closed. If the configured PostgreSQL
+database already contains non-Zorg public tables, or if Zorg-named tables exist
+with an incompatible shape, the bootstrap skips schema/seed/config mutation,
+preserves an existing `sql_memory_map.json`, and tells the operator to choose a
+fresh database or explicitly set `ZORG_ALLOW_NONEMPTY_DB_BOOTSTRAP=1` after
+confirming the database is dedicated to Zorg MemoryDB.
+
+Existing PostgreSQL role passwords are preserved by default. The bootstrap
+creates the configured role when absent, but it does not reset an existing role
+password unless `ZORG_RESET_DB_PASSWORD=1` is set intentionally.
+
+LAN command chat is part of the base add-on, not an optional demo. The bootstrap
+copies the source bundle, creates `.env.local` from the packaged example when
+missing, runs `npm install` and `npm run build` when npm is available, and
+creates/restarts `lan-chat.service` on systemd hosts.
 
 When the add-on bootstrap is run through `sudo` without an explicit `OPENCLAW_HOME`, it installs into the invoking user's home directory instead of `/root`. This keeps the generated LAN command chat systemd service and its workspace on the same readable path. Set `OPENCLAW_HOME` explicitly only when a root-owned install is intentional.
 
@@ -41,7 +68,12 @@ The Python recall tools install their dependencies from `zorg/requirements.txt` 
 
 Changes to this package must follow the documented OpenClaw/Zorg install procedures and existing package source patterns before code is written. Check the relevant docs, package metadata, lifecycle scripts, generated runtime artifacts, and clean-install behavior instead of relying on generic coding memory or assumed APIs.
 
-Installer and package fixes are not complete until the actual documented path is verified. For this repository, that means testing the GitHub/package install path or the explicit existing-install overlay path that the documentation tells users to run, not only a local checkout.
+Installer and package fixes are not complete until the actual documented path is
+verified. For this repository, that means testing the GitHub/package install
+path or the explicit existing-install overlay path that the documentation tells
+users to run, not only a local checkout. If the operator explicitly prohibits
+install or upgrade tests for the task, use static verification only and report
+that live install proof was intentionally not run.
 
 ## Direct npm prerequisite repair
 

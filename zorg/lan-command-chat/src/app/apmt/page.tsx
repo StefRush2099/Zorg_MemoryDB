@@ -1,6 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
+
+const DEFAULT_IDENTITY = "Zorg Rush";
 
 type ResultState = {
   data: unknown | null;
@@ -15,7 +18,7 @@ function pretty(value: unknown) {
 }
 
 export default function ApmtPage() {
-  const [identity, setIdentity] = useState("Assistant");
+  const [identity, setIdentity] = useState(DEFAULT_IDENTITY);
   const [facilityCode, setFacilityCode] = useState("");
   const [assetId, setAssetId] = useState("");
   const [emptyState, setEmptyState] = useState<ResultState>(defaultState);
@@ -25,7 +28,7 @@ export default function ApmtPage() {
     fetch("/api/chat/identity", { cache: "no-store" })
       .then((res) => (res.ok ? res.json() : Promise.reject(new Error("identity unavailable"))))
       .then((data) => typeof data?.name === "string" && setIdentity(data.name))
-      .catch(() => setIdentity("Assistant"));
+      .catch(() => setIdentity(DEFAULT_IDENTITY));
   }, []);
 
   async function runLookup(endpoint: string, setState: (s: ResultState) => void) {
@@ -86,9 +89,9 @@ export default function ApmtPage() {
             >
               {bookingState.loading ? "Loading…" : "Booking Enquiry"}
             </button>
-            <a className="text-xs text-slate-400 underline" href="/">
+            <Link className="text-xs text-slate-400 underline" href="/">
               Back to chat
-            </a>
+            </Link>
           </div>
         </div>
 

@@ -17,6 +17,10 @@ LAN_CHAT_HOST="${LAN_CHAT_HOST:-0.0.0.0}"
 OPENCLAW_CONTROL_UI_DISABLE_DEVICE_AUTH="${OPENCLAW_CONTROL_UI_DISABLE_DEVICE_AUTH:-true}"
 ZORG_INSTALL_MODE="${ZORG_INSTALL_MODE:-first-run}"
 ZORG_PATCH_EXISTING_DOCKER_CONFIG="${ZORG_PATCH_EXISTING_DOCKER_CONFIG:-0}"
+ZORG_ALLOW_NONEMPTY_DB_BOOTSTRAP="${ZORG_ALLOW_NONEMPTY_DB_BOOTSTRAP:-0}"
+ZORG_RESET_DB_PASSWORD="${ZORG_RESET_DB_PASSWORD:-0}"
+ZORG_DB_BOOTSTRAP_SKIPPED=0
+ZORG_DB_BOOTSTRAP_SKIP_REASON=""
 
 default_openclaw_home() {
   if [[ -n "${OPENCLAW_HOME:-}" ]]; then
@@ -165,6 +169,10 @@ run_postgres_superuser_sql() {
   fi
 }
 
+env_truthy() {
+  [[ "${1:-}" =~ ^([Tt][Rr][Uu][Ee]|[Yy][Ee][Ss]|1|[Oo][Nn])$ ]]
+}
+
 start_local_postgres() {
   if command -v pg_isready >/dev/null 2>&1 && pg_isready -h "$ZORG_DB_HOST" -p "$ZORG_DB_PORT" >/dev/null 2>&1; then
     return 0
@@ -203,8 +211,10 @@ ensure_local_postgres_role_database() {
       warn "Could not create PostgreSQL role $ZORG_DB_USER."
       return 0
     }
-  else
+  elif env_truthy "$ZORG_RESET_DB_PASSWORD"; then
     run_postgres_superuser_sql "ALTER ROLE \"$ZORG_DB_USER\" WITH LOGIN PASSWORD '$quoted_password'" >/dev/null || true
+  else
+    warn "PostgreSQL role $ZORG_DB_USER already exists; preserving its password. Set ZORG_RESET_DB_PASSWORD=1 only for an intentional credential reset."
   fi
 
   if [[ "$(run_postgres_superuser_sql "SELECT 1 FROM pg_database WHERE datname = '$ZORG_DB_NAME'" 2>/dev/null || true)" != "1" ]]; then
@@ -215,6 +225,52 @@ ensure_local_postgres_role_database() {
   fi
 }
 
+psql_zorg_db() {
+  PGPASSWORD="$ZORG_DB_PASSWORD" psql -h "$ZORG_DB_HOST" -p "$ZORG_DB_PORT" -U "$ZORG_DB_USER" -d "$ZORG_DB_NAME" "$@"
+}
+
+database_exists_for_configured_user() {
+  PGPASSWORD="$ZORG_DB_PASSWORD" psql -h "$ZORG_DB_HOST" -p "$ZORG_DB_PORT" -U "$ZORG_DB_USER" -d "$ZORG_DB_NAME" -Atqc "select 1" >/dev/null 2>&1
+}
+
+is_existing_database_safe_for_additive_bootstrap() {
+  local table_summary marker_count incompatible_count
+  table_summary="$(psql_zorg_db -Atqc "select coalesce(string_agg(tablename, ',' order by tablename), '') from pg_tables where schemaname = 'public'" 2>/dev/null || true)"
+  marker_count="$(psql_zorg_db -Atqc "select count(*) from pg_tables where schemaname = 'public' and tablename in ('zorg_logic_rules','zorg_memory','lan_chat_messages','memory_source_chunks')" 2>/dev/null || echo 0)"
+  incompatible_count="$(psql_zorg_db -Atqc "
+    with required(table_name, column_name) as (
+      values
+        ('zorg_logic_rules','rule_key'),
+        ('zorg_logic_rules','rule_text'),
+        ('zorg_memory','memory_value'),
+        ('lan_chat_messages','content')
+    )
+    select count(*)
+    from required r
+    where to_regclass('public.' || r.table_name) is not null
+      and not exists (
+        select 1
+        from information_schema.columns c
+        where c.table_schema = 'public'
+          and c.table_name = r.table_name
+          and c.column_name = r.column_name
+      )
+  " 2>/dev/null || echo 1)"
+
+  if [[ -z "$table_summary" ]]; then
+    return 0
+  fi
+  if [[ "$marker_count" -eq 0 ]] && ! env_truthy "$ZORG_ALLOW_NONEMPTY_DB_BOOTSTRAP"; then
+    ZORG_DB_BOOTSTRAP_SKIP_REASON="database $ZORG_DB_NAME already contains non-Zorg public tables: $table_summary"
+    return 1
+  fi
+  if [[ "$incompatible_count" -ne 0 ]]; then
+    ZORG_DB_BOOTSTRAP_SKIP_REASON="database $ZORG_DB_NAME has Zorg-named tables with an incompatible schema"
+    return 1
+  fi
+  return 0
+}
+
 ensure_postgres_database() {
   ensure_db_password
   if ! command -v psql >/dev/null 2>&1; then
@@ -223,20 +279,40 @@ ensure_postgres_database() {
   fi
   start_local_postgres
   ensure_local_postgres_role_database
-  PGPASSWORD="$ZORG_DB_PASSWORD" psql -h "$ZORG_DB_HOST" -p "$ZORG_DB_PORT" -U "$ZORG_DB_USER" -d "$ZORG_DB_NAME" -v ON_ERROR_STOP=1 -f "$ZORG_WORKSPACE_DIR/db/schema.sql" || {
+  if database_exists_for_configured_user && ! is_existing_database_safe_for_additive_bootstrap; then
+    ZORG_DB_BOOTSTRAP_SKIPPED=1
+    warn "Existing database was not modified: $ZORG_DB_BOOTSTRAP_SKIP_REASON"
+    warn "Set ZORG_DB_NAME to a fresh database, or set ZORG_ALLOW_NONEMPTY_DB_BOOTSTRAP=1 only after confirming this database is dedicated to Zorg MemoryDB."
+    return 0
+  fi
+  psql_zorg_db -v ON_ERROR_STOP=1 -f "$ZORG_WORKSPACE_DIR/db/schema.sql" || {
     warn "Schema apply failed. Create database/role or set ZORG_DB_* variables, then rerun this script."
     return 0
   }
   if [[ -f "$ZORG_WORKSPACE_DIR/db/memory_file_archive_schema.sql" ]]; then
-    PGPASSWORD="$ZORG_DB_PASSWORD" psql -h "$ZORG_DB_HOST" -p "$ZORG_DB_PORT" -U "$ZORG_DB_USER" -d "$ZORG_DB_NAME" -v ON_ERROR_STOP=1 -f "$ZORG_WORKSPACE_DIR/db/memory_file_archive_schema.sql" || true
+    psql_zorg_db -v ON_ERROR_STOP=1 -f "$ZORG_WORKSPACE_DIR/db/memory_file_archive_schema.sql" || true
   fi
-  PGPASSWORD="$ZORG_DB_PASSWORD" psql -h "$ZORG_DB_HOST" -p "$ZORG_DB_PORT" -U "$ZORG_DB_USER" -d "$ZORG_DB_NAME" -v ON_ERROR_STOP=1 -f "$ZORG_WORKSPACE_DIR/db/seed_rules.sql" || true
+  psql_zorg_db -v ON_ERROR_STOP=1 -f "$ZORG_WORKSPACE_DIR/db/seed_rules.sql" || true
+  if [[ -f "$ZORG_WORKSPACE_DIR/db/public_canonical_rules_update_2026_06_02.sql" ]]; then
+    psql_zorg_db -v ON_ERROR_STOP=1 -f "$ZORG_WORKSPACE_DIR/db/public_canonical_rules_update_2026_06_02.sql" || true
+  fi
   if [[ -f "$ZORG_WORKSPACE_DIR/db/runtime_db_only_memory_writer_rules_2026_06_04.sql" ]]; then
-    PGPASSWORD="$ZORG_DB_PASSWORD" psql -h "$ZORG_DB_HOST" -p "$ZORG_DB_PORT" -U "$ZORG_DB_USER" -d "$ZORG_DB_NAME" -v ON_ERROR_STOP=1 -f "$ZORG_WORKSPACE_DIR/db/runtime_db_only_memory_writer_rules_2026_06_04.sql" || true
+    psql_zorg_db -v ON_ERROR_STOP=1 -f "$ZORG_WORKSPACE_DIR/db/runtime_db_only_memory_writer_rules_2026_06_04.sql" || true
+  fi
+  if [[ -f "$ZORG_WORKSPACE_DIR/db/current_system_rules_update_2026_06_05.sql" ]]; then
+    psql_zorg_db -v ON_ERROR_STOP=1 -f "$ZORG_WORKSPACE_DIR/db/current_system_rules_update_2026_06_05.sql" || true
   fi
 }
 
 write_memory_config() {
+  if [[ "$ZORG_DB_BOOTSTRAP_SKIPPED" == "1" && -f "$OPENCLAW_WORKSPACE/sql_memory_map.json" ]]; then
+    warn "Preserving existing sql_memory_map.json because database bootstrap was skipped."
+    return 0
+  fi
+  if [[ "$ZORG_DB_BOOTSTRAP_SKIPPED" == "1" ]]; then
+    warn "Not writing sql_memory_map.json because database bootstrap was skipped and no existing DB config was found."
+    return 0
+  fi
   cat > "$OPENCLAW_WORKSPACE/sql_memory_map.json" <<JSON
 {
   "postgres": {

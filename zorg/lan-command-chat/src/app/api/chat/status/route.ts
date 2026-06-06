@@ -11,7 +11,7 @@ export const runtime = "nodejs";
 
 const execFileAsync = promisify(execFile);
 const OPENCLAW_BIN = process.env.OPENCLAW_BIN || "/home/openclaw/.npm-global/bin/openclaw";
-const STATUS_TIMEOUT_MS = Math.max(appConfig.statusTimeoutMs, 12_000);
+const STATUS_TIMEOUT_MS = appConfig.statusTimeoutMs;
 
 type SessionSummary = {
   agentId?: string;

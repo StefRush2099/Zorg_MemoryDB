@@ -5,6 +5,8 @@ import { getIdentityPath } from "@/lib/paths";
 
 export const runtime = "nodejs";
 
+const DEFAULT_IDENTITY = "Zorg Rush";
+
 function extractName(markdown: string): string | null {
   const match = markdown.match(/^\s*-\s*\*\*Name:\*\*\s*(.+?)\s*$/im);
   if (!match) return null;
@@ -15,7 +17,7 @@ function extractName(markdown: string): string | null {
 export async function GET() {
   try {
     const raw = await readFile(getIdentityPath(), "utf8");
-    const name = extractName(raw) ?? "Assistant";
+    const name = extractName(raw) ?? DEFAULT_IDENTITY;
     return NextResponse.json({ name });
   } catch (error) {
     console.error("identity failed", error);

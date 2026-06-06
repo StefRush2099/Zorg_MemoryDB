@@ -523,6 +523,21 @@ This fork packages Zorg MemoryDB and LAN command chat for OpenClaw installs. The
 
 If the target Linux user lacks root or passwordless sudo, the bootstrap keeps the install moving by copying the packaged Zorg files and LAN command chat source, then warns that PostgreSQL system packages must be installed as root before rerunning the Zorg bootstrap to apply the schema.
 
+Existing upgrades preserve databases defensively. If the configured PostgreSQL
+database already contains unrelated public tables or Zorg-named tables with an
+incompatible shape, the add-on bootstrap skips schema/seed/config writes and
+preserves any existing `sql_memory_map.json`. Choose a fresh database, or set
+`ZORG_ALLOW_NONEMPTY_DB_BOOTSTRAP=1` only after confirming the database is
+dedicated to Zorg MemoryDB.
+
+The bootstrap also preserves existing PostgreSQL role passwords by default; set
+`ZORG_RESET_DB_PASSWORD=1` only for an intentional credential reset.
+
+LAN command chat is installed as base communication infrastructure. The add-on
+copies the packaged console source, creates `.env.local` when missing, builds
+the Next app when npm is available, and creates/restarts `lan-chat.service` on
+systemd hosts.
+
 Public-safe MemoryDB docs:
 
 - [Why Zorg MemoryDB](docs/why-zorg-memorydb.md)

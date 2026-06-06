@@ -16,6 +16,15 @@ The database package keeps rule tables, markdown import tables, source chunk tab
 
 Root workspace markdown files are bootstrap pointers for backend DB repair, not the canonical long-form rule store. Current installs should keep durable rules in structured PostgreSQL recall and use [`../root-markdown-db-first.md`](../root-markdown-db-first.md) when reducing oversized root markdown.
 
+The bootstrap also applies the packaged public-safe rule update files after the
+baseline seed: `public_canonical_rules_update_2026_06_02.sql`,
+`runtime_db_only_memory_writer_rules_2026_06_04.sql`, and
+`current_system_rules_update_2026_06_05.sql`. Those rule rows cover canonical
+rule surfaces, runtime DB-only memory writers, LAN command chat browser proof,
+four-screenshot UI verification, polling backpressure, restart-after-build
+behavior, publication scope, no live install tests without explicit current-task
+authorization, and existing database preservation.
+
 ## Coding And Install Rule Discipline
 
 Zorg MemoryDB install and package changes must be grounded in the product's own documentation, source patterns, package metadata, tests, runbooks, and existing implementation procedures before code is changed. Do not implement install, upgrade, plugin, or runtime behavior from generic coding memory or assumed API behavior.
@@ -33,6 +42,20 @@ curl -fsSL --proto '=https' --tlsv1.2 https://raw.githubusercontent.com/StefRush
 ```
 
 On an existing install, the bootstrap applies additive schema changes and preserves user data. Do not run `prepare_public_baseline.sql` against a live user install; that file exists only for building a public-safe package seed.
+
+Existing database preservation is stricter than "create table if not exists."
+Before applying schema or seed files, the bootstrap checks the configured
+PostgreSQL database. If the database already has non-Zorg public tables, or if
+Zorg-named tables exist with incompatible required columns, the bootstrap skips
+schema/seed/config writes, preserves an existing `sql_memory_map.json`, and
+requires the operator to choose a fresh database or explicitly set
+`ZORG_ALLOW_NONEMPTY_DB_BOOTSTRAP=1` after confirming the database is dedicated
+to Zorg MemoryDB. This prevents an upgrade from mutating an unrelated or
+structurally different database.
+
+The bootstrap also preserves an existing PostgreSQL role password by default.
+It creates the role when absent, but it does not alter an existing role password
+unless `ZORG_RESET_DB_PASSWORD=1` is set for an intentional credential reset.
 
 ## Retired Markdown Memory Files
 

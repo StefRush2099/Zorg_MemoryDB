@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { DragEvent, KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type Role = "assistant" | "user" | "system";
@@ -80,10 +81,16 @@ type ActivityPayload = {
   degraded?: boolean;
 };
 
-const CHAT_POLL_MS = 3500;
-const DB_POLL_MS = 1100;
+function pollIntervalFromEnv(value: string | undefined, fallback: number, min: number) {
+  const parsed = Number.parseInt(value || "", 10);
+  return Number.isFinite(parsed) ? Math.max(parsed, min) : fallback;
+}
+
+const CHAT_POLL_MS = pollIntervalFromEnv(process.env.NEXT_PUBLIC_CHAT_POLL_MS, 12_000, 5_000);
+const DB_POLL_MS = pollIntervalFromEnv(process.env.NEXT_PUBLIC_DB_POLL_MS, 10_000, 5_000);
 const MAX_DROP_FILES = 12;
 const STORAGE_KEY = "lan-chat:v2:draft";
+const DEFAULT_IDENTITY = "Zorg Rush";
 
 const emptyStatus: ChatStatus = { label: "local", model: "unknown", thinking: "unknown" };
 
@@ -140,7 +147,7 @@ function formatGHz(value: unknown) {
 }
 
 function roleLabel(role: Role, identity: string) {
-  if (role === "assistant") return identity || "Assistant";
+  if (role === "assistant") return identity || DEFAULT_IDENTITY;
   if (role === "system") return "System";
   return "You";
 }
@@ -258,7 +265,11 @@ function MessageBubble({ message, identity }: { message: ChatMessage; identity: 
             const label = `${file.name} · ${formatBytes(file.size)}`;
             return (
               <a className={cx("message-attachment", isImageAttachment(file) && "image")} href={href || undefined} target="_blank" rel="noreferrer" key={`${file.url || file.name}-${index}`}>
-                {href && isImageAttachment(file) ? <img src={href} alt={file.name} loading="lazy" /> : <span className="file-icon">📎</span>}
+                {href && isImageAttachment(file) ? (
+                  <Image src={href} alt={file.name} width={160} height={120} unoptimized />
+                ) : (
+                  <span className="file-icon">📎</span>
+                )}
                 <span>{label}</span>
               </a>
             );
@@ -302,7 +313,7 @@ export default function Home() {
   const [dbQueries, setDbQueries] = useState<DbQueries | null>(null);
   const [dbError, setDbError] = useState<string | null>(null);
   const [queryError, setQueryError] = useState<string | null>(null);
-  const [identity, setIdentity] = useState("Assistant");
+  const [identity, setIdentity] = useState(DEFAULT_IDENTITY);
   const [draft, setDraft] = useState("");
   const [attachments, setAttachments] = useState<ChatAttachment[]>([]);
   const [sending, setSending] = useState(false);
@@ -406,15 +417,28 @@ export default function Home() {
     loadStatus().catch(() => undefined);
     loadActivity().catch(() => undefined);
     loadDb().catch(() => undefined);
-    const chatTimer = window.setInterval(() => {
+    const refreshWhenVisible = () => {
+      if (document.hidden) return;
       loadHistory().catch(() => undefined);
       loadStatus().catch(() => undefined);
       loadActivity().catch(() => undefined);
-    }, CHAT_POLL_MS);
-    const dbTimer = window.setInterval(() => loadDb().catch(() => undefined), DB_POLL_MS);
+    };
+    const refreshDbWhenVisible = () => {
+      if (document.hidden) return;
+      loadDb().catch(() => undefined);
+    };
+    const onVisibilityChange = () => {
+      if (document.hidden) return;
+      refreshWhenVisible();
+      refreshDbWhenVisible();
+    };
+    const chatTimer = window.setInterval(refreshWhenVisible, CHAT_POLL_MS);
+    const dbTimer = window.setInterval(refreshDbWhenVisible, DB_POLL_MS);
+    document.addEventListener("visibilitychange", onVisibilityChange);
     return () => {
       window.clearInterval(chatTimer);
       window.clearInterval(dbTimer);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
       if (noticeTimerRef.current) window.clearTimeout(noticeTimerRef.current);
       streamRef.current?.getTracks().forEach((track) => track.stop());
       audioRef.current?.pause();
@@ -449,14 +473,6 @@ export default function Home() {
     textRef.current.style.height = "0px";
     textRef.current.style.height = `${Math.min(220, Math.max(88, textRef.current.scrollHeight))}px`;
   }, [draft]);
-
-  useEffect(() => {
-    if (!speechEnabled || !soundUnlocked || !latestAssistant) return;
-    if (spokenMessageIdsRef.current.has(latestAssistant.id)) return;
-    spokenMessageIdsRef.current.add(latestAssistant.id);
-    notifyAssistantReply(latestAssistant);
-    speakAssistantReply(latestAssistant).catch((error) => showNotice(error instanceof Error ? error.message : "Browser speech failed", 7000));
-  }, [latestAssistant, notificationPermission, showNotice, soundUnlocked, speechEnabled]);
 
   async function uploadFiles(fileList: FileList | File[]) {
     const files = Array.from(fileList).filter((file) => file.size > 0).slice(0, MAX_DROP_FILES);
@@ -606,7 +622,7 @@ export default function Home() {
     }
   }
 
-  function notifyAssistantReply(message: ChatMessage) {
+  const notifyAssistantReply = useCallback((message: ChatMessage) => {
     if (notificationPermission !== "granted" || typeof window === "undefined" || !("Notification" in window)) return;
     const body = redactSensitiveText(message.text).replace(/\s+/g, " ").slice(0, 180) || "New assistant reply is ready.";
     try {
@@ -614,9 +630,9 @@ export default function Home() {
     } catch {
       // Browser notification delivery is best effort after permission is granted.
     }
-  }
+  }, [identity, notificationPermission]);
 
-  async function speakAssistantReply(message: ChatMessage) {
+  const speakAssistantReply = useCallback(async (message: ChatMessage) => {
     const text = redactSensitiveText(message.text).trim();
     if (!text) return;
 
@@ -649,7 +665,15 @@ export default function Home() {
     }
 
     throw new Error("Browser speech is unavailable: LAN TTS failed and this browser has no speech synthesis API.");
-  }
+  }, []);
+
+  useEffect(() => {
+    if (!speechEnabled || !soundUnlocked || !latestAssistant) return;
+    if (spokenMessageIdsRef.current.has(latestAssistant.id)) return;
+    spokenMessageIdsRef.current.add(latestAssistant.id);
+    notifyAssistantReply(latestAssistant);
+    speakAssistantReply(latestAssistant).catch((error) => showNotice(error instanceof Error ? error.message : "Browser speech failed", 7000));
+  }, [latestAssistant, notifyAssistantReply, showNotice, soundUnlocked, speakAssistantReply, speechEnabled]);
 
   async function toggleRecording() {
     if (recording) {

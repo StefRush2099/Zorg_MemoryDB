@@ -11,6 +11,24 @@ interface ChatSendResponse {
   status?: string;
 }
 
+type IncomingAttachment = {
+  name?: unknown;
+  type?: unknown;
+  size?: unknown;
+  url?: unknown;
+  path?: unknown;
+  containerPath?: unknown;
+};
+
+type NormalizedAttachment = {
+  name: string;
+  type: string;
+  size: number;
+  url: string;
+  path: string;
+  containerPath: string;
+};
+
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
@@ -23,8 +41,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Message or attachment is required" }, { status: 400 });
     }
 
-    const normalizedAttachments = attachments
-      .map((file: any) => ({
+    const normalizedAttachments: NormalizedAttachment[] = (attachments as IncomingAttachment[])
+      .map((file) => ({
         name: typeof file?.name === "string" ? file.name : "file",
         type: typeof file?.type === "string" ? file.type : "application/octet-stream",
         size: typeof file?.size === "number" ? file.size : 0,
@@ -32,10 +50,10 @@ export async function POST(request: Request) {
         path: typeof file?.path === "string" ? file.path : "",
         containerPath: typeof file?.containerPath === "string" ? file.containerPath : "",
       }))
-      .filter((file: any) => file.url || file.path || file.containerPath);
+      .filter((file) => file.url || file.path || file.containerPath);
 
     const attachmentLines = normalizedAttachments
-      .map((file: any) => {
+      .map((file) => {
         const { name, type, url } = file;
         const size = file.size ? `${Math.round(file.size / 1024)}KB` : "";
         const localPath = file.path;

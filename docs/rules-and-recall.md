@@ -38,6 +38,12 @@ When a screenshot is captured as verification, proof, or a deliverable for the o
 
 For Telegram, place PNG/JPEG verification screenshots under the managed media directory and send them with the messaging tool as an attachment/document when that is the reliable delivery mode. A completion report should not leave the operator with only “screenshot saved at …” when the screenshot was meant to prove visible UI state.
 
+LAN command chat is a browser UI and a communication route, so backend endpoint
+checks are not enough. Repairs, polling changes, service restarts, rebuilds, and
+runtime claims for LAN command chat require live browser proof that the console
+hydrates and shows the expected readouts: status/model/token panel, DB gauges,
+PostgreSQL live readout, and conversation/activity surfaces.
+
 ## System change publication and visual verification rule
 
 For Zorg/OpenClaw system work, a change is not complete when the local file edit succeeds. Completion requires all applicable follow-through:
@@ -48,9 +54,22 @@ For Zorg/OpenClaw system work, a change is not complete when the local file edit
 4. After markdown/rule/skill/recall changes, sync structured rules into DB recall, refresh search/materialized views, analyze/reindex affected recall tables when appropriate, and verify natural-language recall returns the new process rule near the top.
 5. If the operator reports process regression, run before/after representative recall queries, identify the failed ranking/structure, make additive fixes only, and record the result in durable memory plus public-safe docs when structural behavior changes.
 
+Do not run install or upgrade tests against the current agent host, other
+operator systems, or live environment systems unless the operator explicitly
+authorizes that install-test target in the current task. When install tests are
+prohibited, use repo-only static verification and state that live install proof
+was intentionally not run.
+
 ## Clean-install enforcement
 
 Clean installs must enforce DB-only memory in both rules and runtime configuration. The installer/startup path writes valid OpenClaw `agents.defaults.memorySearch` settings with `enabled: true`, `provider: local`, `fallback: none`, and `sources: [memory]`. `scripts/enforce_db_memory_search.py` must create or patch `openclaw.json` even when the file does not exist yet, and must avoid unsupported config keys so fresh OpenClaw gateways still pass schema validation.
+
+Upgrade paths must preserve existing databases. If the configured PostgreSQL
+database already contains unrelated non-Zorg public tables, or if Zorg-named
+tables exist with incompatible required columns, the installer must skip
+schema/seed/config mutation and preserve existing `sql_memory_map.json`. The
+operator must choose a fresh database or explicitly authorize non-empty database
+bootstrap before the package touches that database.
 
 The `memory/` subdirectory is retired. It must not be used for daily notes, project notes, people research, source notes, heartbeat state, JSON logs, or any durable memory. If a `memory/` directory appears during or after install, the auto-heal path archives/imports it into PostgreSQL, removes it from the filesystem, and records the repair in DB memory.
 

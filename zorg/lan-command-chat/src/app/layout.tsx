@@ -4,6 +4,8 @@ import { readFile } from "node:fs/promises";
 import { getIdentityPath } from "@/lib/paths";
 import "./globals.css";
 
+const DEFAULT_IDENTITY = "Zorg Rush";
+
 function extractName(markdown: string): string | null {
   const match = markdown.match(/^\s*-\s*\*\*Name:\*\*\s*(.+?)\s*$/im);
   const value = match?.[1]?.trim();
@@ -13,9 +15,9 @@ function extractName(markdown: string): string | null {
 async function loadAgentName() {
   try {
     const raw = await readFile(getIdentityPath(), "utf8");
-    return extractName(raw) ?? "Assistant";
+    return extractName(raw) ?? DEFAULT_IDENTITY;
   } catch {
-    return "Assistant";
+    return DEFAULT_IDENTITY;
   }
 }
 

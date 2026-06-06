@@ -13,3 +13,10 @@
 - Do not commit, mirror, or push live DB dumps, rows, contacts, transcripts, credentials, or private memory to GitHub from the public MemoryDB update path.
 - Runtime memory writers must not create retired markdown memory files. Generated durable memory belongs in PostgreSQL-backed ingestion; any accidental file is imported then removed.
 - Visible operational replies include the operator request timestamp, actual response timestamp, and elapsed duration based on those two times.
+- Visible UI/runtime work requires proof from the real affected browser surface. For UI changes, deliver desktop light, desktop dark, mobile light, and mobile dark screenshots unless a mode is blocked and the blocker is reported.
+- LAN command chat repairs require browser-level proof of the live console, including hydrated readout panels, DB gauges, PostgreSQL live readout, and conversation/activity surfaces. API 200 responses alone are supplemental evidence.
+- LAN command chat is base communication infrastructure. Clean installs and explicit existing-install upgrades must copy it, configure it, build it, and create/restart its service when systemd is available.
+- LAN command chat polling must remain conservative and configurable; hidden tabs should stop polling, and read-only history refreshes must not write activity rows.
+- After rebuilding LAN command chat, restart the live Next service before claiming the console is fixed.
+- Installers and upgrade bootstraps must not overwrite or mutate an existing non-empty PostgreSQL database with a different or incompatible schema. Preserve existing DB config and require an explicit operator decision instead.
+- Do not run install or upgrade tests on the current host or other live environment systems unless the operator explicitly authorizes that target in the current task.

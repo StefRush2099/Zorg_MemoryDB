@@ -31,6 +31,16 @@ On local PostgreSQL installs where root or passwordless sudo is available, `zorg
 
 The public schema creates scheduler tables and functions but does not seed live scheduled job rows. Operators import their own schedule metadata locally; private job payloads and execution output must stay out of the public repository.
 
+## PostgreSQL Recall Settings
+
+On local PostgreSQL installs where superuser access is available, the add-on applies conservative planner/runtime settings for short indexed memory lookups:
+
+- `shared_buffers` is raised to at least `256MB` so the hot MemoryDB recall indexes have room to stay warm on small installs.
+- `random_page_cost` is lowered to `1.5` when the current value is higher, which better reflects indexed recall on SSD-backed local hosts.
+- `jit` is set to `off` so short recall queries do not pay compilation overhead.
+
+The installer uses `ALTER SYSTEM`, reloads PostgreSQL for reloadable settings, and restarts local PostgreSQL only when `shared_buffers` must change. If superuser access is unavailable, configure the same values manually when recall indexes are not staying warm or the planner avoids indexed recall paths.
+
 ## Coding And Install Rule Discipline
 
 Zorg MemoryDB install and package changes must be grounded in the product's own documentation, source patterns, package metadata, tests, runbooks, and existing implementation procedures before code is changed. Do not implement install, upgrade, plugin, or runtime behavior from generic coding memory or assumed API behavior.

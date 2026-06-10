@@ -273,6 +273,43 @@ ensure_pg_cron_configuration() {
   run_postgres_superuser_target_sql "CREATE EXTENSION IF NOT EXISTS pg_cron" >/dev/null || warn "pg_cron extension could not be created in $ZORG_DB_NAME; scheduled job tables will still install, but database-owned cron activation needs manual pg_cron setup."
 }
 
+ensure_postgres_recall_settings() {
+  case "$ZORG_DB_HOST" in
+    127.0.0.1|localhost|::1) ;;
+    *) return 0 ;;
+  esac
+  [[ "$ZORG_DB_PORT" == "5432" ]] || return 0
+
+  if ! run_postgres_superuser_sql "SELECT 1" >/dev/null 2>&1; then
+    warn "PostgreSQL superuser access is unavailable; configure recall planner settings manually if needed."
+    return 0
+  fi
+
+  local restart_needed=0
+  local shared_buffers_bytes
+  shared_buffers_bytes="$(run_postgres_superuser_sql "SELECT pg_size_bytes(current_setting('shared_buffers'))::bigint" 2>/dev/null || true)"
+  if [[ "$shared_buffers_bytes" =~ ^[0-9]+$ && "$shared_buffers_bytes" -lt 268435456 ]]; then
+    if run_postgres_superuser_sql "ALTER SYSTEM SET shared_buffers = '256MB'" >/dev/null; then
+      restart_needed=1
+    else
+      warn "Could not set shared_buffers for the hot MemoryDB index set; configure it manually if recall indexes do not stay warm."
+    fi
+  fi
+
+  if [[ "$(run_postgres_superuser_sql "SELECT CASE WHEN current_setting('random_page_cost')::numeric > 1.5 THEN 1 ELSE 0 END" 2>/dev/null || true)" == "1" ]]; then
+    run_postgres_superuser_sql "ALTER SYSTEM SET random_page_cost = '1.5'" >/dev/null || warn "Could not lower random_page_cost for indexed recall; configure it manually if the planner avoids recall indexes."
+  fi
+
+  if [[ "$(run_postgres_superuser_sql "SELECT CASE WHEN lower(current_setting('jit', true)) = 'off' THEN 0 ELSE 1 END" 2>/dev/null || true)" == "1" ]]; then
+    run_postgres_superuser_sql "ALTER SYSTEM SET jit = 'off'" >/dev/null || warn "Could not disable PostgreSQL JIT; configure it manually if short recall lookups show JIT overhead."
+  fi
+
+  run_postgres_superuser_sql "SELECT pg_reload_conf()" >/dev/null 2>&1 || true
+  if [[ "$restart_needed" == "1" ]]; then
+    restart_local_postgres_if_possible || warn "Restart PostgreSQL before expecting the shared_buffers recall setting to take effect."
+  fi
+}
+
 ensure_local_postgres_role_database() {
   case "$ZORG_DB_HOST" in
     127.0.0.1|localhost|::1) ;;
@@ -317,6 +354,7 @@ ensure_postgres_database() {
   ensure_local_postgres_role_database
   ensure_postgres_extension_packages
   ensure_pg_cron_configuration
+  ensure_postgres_recall_settings
   PGPASSWORD="$ZORG_DB_PASSWORD" psql -h "$ZORG_DB_HOST" -p "$ZORG_DB_PORT" -U "$ZORG_DB_USER" -d "$ZORG_DB_NAME" -v ON_ERROR_STOP=1 -f "$ZORG_WORKSPACE_DIR/db/schema.sql" || {
     warn "Schema apply failed. Create database/role or set ZORG_DB_* variables, then rerun this script."
     return 0

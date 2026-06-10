@@ -52,6 +52,16 @@ The legacy local-hash ANN backfill functions remain as compatibility stubs that 
 
 The install path requires PostgreSQL with the `vector` and `pg_trgm` extensions available. The HNSW indexes use cosine distance for 768-dimensional local embedding vectors.
 
+## PostgreSQL recall planner settings
+
+The packaged installer also applies conservative local PostgreSQL settings when superuser access is available:
+
+- `shared_buffers` is raised to at least `256MB` so the hot MemoryDB full-text, trigram, and ANN index set has room to stay warm on small local installs.
+- `random_page_cost` is lowered to `1.5` when the current value is higher, nudging the planner toward indexed recall paths on SSD-backed local hosts.
+- `jit` is set to `off` to avoid compilation overhead on short recall lookups.
+
+These are runtime settings only. They do not alter schema shape, delete source rows, compact memory, or replace the LLM-governed benchmark rule for deeper database tuning. Operators can override them locally if their PostgreSQL deployment has different storage or memory constraints.
+
 ## DB-owned LLM scheduler
 
 Zorg MemoryDB can mirror externally-defined OpenClaw LLM cron jobs into database-owned scheduler tables without storing private live payload rows in the public package. The public schema provides:

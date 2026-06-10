@@ -247,9 +247,10 @@ ensure_pg_cron_configuration() {
   local restart_needed=0
   local libraries
   libraries="$(run_postgres_superuser_sql "SELECT current_setting('shared_preload_libraries', true)" 2>/dev/null || true)"
+  libraries="${libraries//[[:space:]]/}"
   if [[ ",$libraries," != *",pg_cron,"* ]]; then
     if [[ -n "$libraries" ]]; then
-      libraries="$libraries, pg_cron"
+      libraries="$libraries,pg_cron"
     else
       libraries="pg_cron"
     fi
@@ -286,27 +287,72 @@ ensure_postgres_recall_settings() {
   fi
 
   local restart_needed=0
+  local host_mem_kb=0
+  local target_shared_buffers="256MB"
+  local target_shared_buffers_bytes=268435456
+  local target_effective_cache_size="1GB"
+  if [[ -r /proc/meminfo ]]; then
+    host_mem_kb="$(awk '/^MemTotal:/ {print $2}' /proc/meminfo 2>/dev/null || echo 0)"
+  fi
+  if [[ "$host_mem_kb" =~ ^[0-9]+$ && "$host_mem_kb" -ge 8388608 ]]; then
+    target_shared_buffers="2GB"
+    target_shared_buffers_bytes=2147483648
+    target_effective_cache_size="8GB"
+  elif [[ "$host_mem_kb" =~ ^[0-9]+$ && "$host_mem_kb" -ge 4194304 ]]; then
+    target_shared_buffers="512MB"
+    target_shared_buffers_bytes=536870912
+    target_effective_cache_size="3GB"
+  fi
+
   local shared_buffers_bytes
   shared_buffers_bytes="$(run_postgres_superuser_sql "SELECT pg_size_bytes(current_setting('shared_buffers'))::bigint" 2>/dev/null || true)"
-  if [[ "$shared_buffers_bytes" =~ ^[0-9]+$ && "$shared_buffers_bytes" -lt 268435456 ]]; then
-    if run_postgres_superuser_sql "ALTER SYSTEM SET shared_buffers = '256MB'" >/dev/null; then
+  if [[ "$shared_buffers_bytes" =~ ^[0-9]+$ && "$shared_buffers_bytes" -lt "$target_shared_buffers_bytes" ]]; then
+    if run_postgres_superuser_sql "ALTER SYSTEM SET shared_buffers = '$target_shared_buffers'" >/dev/null; then
       restart_needed=1
     else
       warn "Could not set shared_buffers for the hot MemoryDB index set; configure it manually if recall indexes do not stay warm."
     fi
   fi
 
-  if [[ "$(run_postgres_superuser_sql "SELECT CASE WHEN current_setting('random_page_cost')::numeric > 1.5 THEN 1 ELSE 0 END" 2>/dev/null || true)" == "1" ]]; then
-    run_postgres_superuser_sql "ALTER SYSTEM SET random_page_cost = '1.5'" >/dev/null || warn "Could not lower random_page_cost for indexed recall; configure it manually if the planner avoids recall indexes."
+  run_postgres_superuser_sql "ALTER SYSTEM SET effective_cache_size = '$target_effective_cache_size'" >/dev/null || warn "Could not set effective_cache_size for MemoryDB recall planning."
+  run_postgres_superuser_sql "ALTER SYSTEM SET work_mem = '16MB'" >/dev/null || warn "Could not set work_mem for MemoryDB recall planning."
+  run_postgres_superuser_sql "ALTER SYSTEM SET maintenance_work_mem = '512MB'" >/dev/null || warn "Could not set maintenance_work_mem for MemoryDB maintenance."
+
+  if [[ "$(run_postgres_superuser_sql "SELECT CASE WHEN current_setting('random_page_cost')::numeric > 1.1 THEN 1 ELSE 0 END" 2>/dev/null || true)" == "1" ]]; then
+    run_postgres_superuser_sql "ALTER SYSTEM SET random_page_cost = '1.1'" >/dev/null || warn "Could not lower random_page_cost for indexed recall; configure it manually if the planner avoids recall indexes."
   fi
 
   if [[ "$(run_postgres_superuser_sql "SELECT CASE WHEN lower(current_setting('jit', true)) = 'off' THEN 0 ELSE 1 END" 2>/dev/null || true)" == "1" ]]; then
     run_postgres_superuser_sql "ALTER SYSTEM SET jit = 'off'" >/dev/null || warn "Could not disable PostgreSQL JIT; configure it manually if short recall lookups show JIT overhead."
   fi
 
+  run_postgres_superuser_target_sql "CREATE EXTENSION IF NOT EXISTS pg_prewarm" >/dev/null || warn "pg_prewarm extension could not be created; hot MemoryDB relations can still be warmed by the OS cache."
+
+  local libraries
+  libraries="$(run_postgres_superuser_sql "SELECT current_setting('shared_preload_libraries', true)" 2>/dev/null || true)"
+  libraries="${libraries//[[:space:]]/}"
+  if [[ ",$libraries," != *",pg_prewarm,"* ]]; then
+    if [[ -n "$libraries" ]]; then
+      libraries="$libraries,pg_prewarm"
+    else
+      libraries="pg_prewarm"
+    fi
+    if run_postgres_superuser_sql "ALTER SYSTEM SET shared_preload_libraries = '$(sql_quote_literal "$libraries")'" >/dev/null; then
+      restart_needed=1
+    else
+      warn "Could not preload pg_prewarm for persistent buffer warming."
+    fi
+  fi
+
   run_postgres_superuser_sql "SELECT pg_reload_conf()" >/dev/null 2>&1 || true
   if [[ "$restart_needed" == "1" ]]; then
     restart_local_postgres_if_possible || warn "Restart PostgreSQL before expecting the shared_buffers recall setting to take effect."
+  fi
+
+  if [[ "$(run_postgres_superuser_sql "SELECT 1 FROM pg_settings WHERE name = 'pg_prewarm.autoprewarm'" 2>/dev/null || true)" == "1" ]]; then
+    run_postgres_superuser_sql "ALTER SYSTEM SET pg_prewarm.autoprewarm = 'on'" >/dev/null || true
+    run_postgres_superuser_sql "ALTER SYSTEM SET pg_prewarm.autoprewarm_interval = '300s'" >/dev/null || true
+    run_postgres_superuser_sql "SELECT pg_reload_conf()" >/dev/null 2>&1 || true
   fi
 }
 

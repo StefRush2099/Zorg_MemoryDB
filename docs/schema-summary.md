@@ -54,11 +54,14 @@ The install path requires PostgreSQL with the `vector` and `pg_trgm` extensions 
 
 ## PostgreSQL recall planner settings
 
-The packaged installer also applies conservative local PostgreSQL settings when superuser access is available:
+The packaged installer also applies local PostgreSQL settings when superuser access is available:
 
-- `shared_buffers` is raised to at least `256MB` so the hot MemoryDB full-text, trigram, and ANN index set has room to stay warm on small local installs.
-- `random_page_cost` is lowered to `1.5` when the current value is higher, nudging the planner toward indexed recall paths on SSD-backed local hosts.
+- `shared_buffers` is raised by host-RAM tier: `2GB` on hosts with at least 8GB RAM, `512MB` on hosts with at least 4GB RAM, and `256MB` on smaller hosts.
+- `effective_cache_size` follows the same tiering at `8GB`, `3GB`, or `1GB`, so the planner can account for host RAM available to PostgreSQL and OS cache.
+- `work_mem` is set to `16MB` and `maintenance_work_mem` to `512MB` for bounded recall sorts and maintenance work.
+- `random_page_cost` is lowered to `1.1` when the current value is higher, nudging the planner toward indexed recall paths on SSD-backed local hosts.
 - `jit` is set to `off` to avoid compilation overhead on short recall lookups.
+- `pg_prewarm` is installed and preloaded when possible, with autoprewarm enabled so PostgreSQL can restore hot recall buffers after restart.
 
 These are runtime settings only. They do not alter schema shape, delete source rows, compact memory, or replace the LLM-governed benchmark rule for deeper database tuning. Operators can override them locally if their PostgreSQL deployment has different storage or memory constraints.
 

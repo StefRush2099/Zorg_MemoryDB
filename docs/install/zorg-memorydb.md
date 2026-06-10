@@ -24,8 +24,10 @@ Zorg MemoryDB uses PostgreSQL extensions for the current public schema:
 - `pg_trgm` for trigram recall indexes.
 - `vector` for model-vector ANN recall.
 - `pg_cron` for database-owned activation of scheduled LLM job queues.
+- `pg_prewarm` for loading hot recall tables and indexes back into PostgreSQL
+  buffers after restart.
 
-On local PostgreSQL installs where root or passwordless sudo is available, `zorg/install-zorg-memorydb.sh` attempts to install the PostgreSQL `pgvector` and `pg_cron` packages for the detected PostgreSQL major version, then configures pg_cron for the Zorg database by setting `shared_preload_libraries`, `cron.database_name`, and `cron.timezone`.
+On local PostgreSQL installs where root or passwordless sudo is available, `zorg/install-zorg-memorydb.sh` attempts to install the PostgreSQL `pgvector` and `pg_cron` packages for the detected PostgreSQL major version, then configures pg_cron for the Zorg database by setting `shared_preload_libraries`, `cron.database_name`, and `cron.timezone`. The same preload list is normalized without spaces so PostgreSQL does not quote the whole list as one library name.
 
 `pg_cron` is special because it must be loaded by PostgreSQL before the extension can schedule jobs from the target database. If superuser access is unavailable, the installer copies the packaged files and warns instead of guessing. Configure pg_cron manually, restart PostgreSQL, and rerun the add-on script.
 
@@ -33,13 +35,16 @@ The public schema creates scheduler tables and functions but does not seed live 
 
 ## PostgreSQL Recall Settings
 
-On local PostgreSQL installs where superuser access is available, the add-on applies conservative planner/runtime settings for short indexed memory lookups:
+On local PostgreSQL installs where superuser access is available, the add-on applies planner/runtime settings for short indexed memory lookups and RAM-resident hot recall indexes:
 
-- `shared_buffers` is raised to at least `256MB` so the hot MemoryDB recall indexes have room to stay warm on small installs.
-- `random_page_cost` is lowered to `1.5` when the current value is higher, which better reflects indexed recall on SSD-backed local hosts.
+- `shared_buffers` is raised according to host RAM: `2GB` on hosts with at least 8GB RAM, `512MB` on hosts with at least 4GB RAM, and `256MB` on smaller hosts.
+- `effective_cache_size` is set according to the same host-RAM tier: `8GB`, `3GB`, or `1GB`, so the planner understands how much recall data can live in OS/PostgreSQL cache.
+- `work_mem` is set to `16MB` and `maintenance_work_mem` to `512MB` for bounded recall sorts and maintenance.
+- `random_page_cost` is lowered to `1.1` when the current value is higher, which better reflects indexed recall on SSD-backed local hosts.
 - `jit` is set to `off` so short recall queries do not pay compilation overhead.
+- `pg_prewarm` is installed and preloaded when possible, with autoprewarm enabled so hot buffer contents are restored after PostgreSQL restarts.
 
-The installer uses `ALTER SYSTEM`, reloads PostgreSQL for reloadable settings, and restarts local PostgreSQL only when `shared_buffers` must change. If superuser access is unavailable, configure the same values manually when recall indexes are not staying warm or the planner avoids indexed recall paths.
+The installer uses `ALTER SYSTEM`, reloads PostgreSQL for reloadable settings, and restarts local PostgreSQL only when `shared_buffers` or preload settings must change. If superuser access is unavailable, configure the same values manually when recall indexes are not staying warm or the planner avoids indexed recall paths.
 
 ## Coding And Install Rule Discipline
 

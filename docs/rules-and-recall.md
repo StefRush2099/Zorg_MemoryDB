@@ -238,6 +238,19 @@ Failure reports must not excuse the miss as “not enough information” when th
 
 The canonical recall surface must include explicit recall hints and query observations alongside core rules, contacts, relationships, projects, hosts, runbooks, and operational facts. Query ranking should prefer critical/high-priority recall material and semantically useful hints before arbitrary source ordering. When an operator correction proves a known memory existed but was missed, treat it as a production recall failure: add aliases, hints, relationship edges, query observations, indexes, or materialized-search support so the same phrasing is not missed again.
 
+## Routine recall-QA repair loop
+
+When an operator reports that the assistant missed an existing process, rule, or workflow, the repair should become a normal pre-action recall routine instead of a one-off apology. The routine is:
+
+1. Run backend DB recall for the current request before acting.
+2. Verify that the controlling existing rule or memory ranks near the top for the exact current phrasing.
+3. If the first query is weak, broaden with alternate names, adjacent terms, prior-working paths, related runbooks, and live configuration clues.
+4. When broader recall finds what the first phrasing missed, repair retrieval additively: update existing rule text/checks when needed, add recall hints, query observations, semantic edges, dynamic weights, materialized/search support, or benchmark/regression queries.
+5. Refresh or analyze affected recall surfaces when the structure or rule text changes.
+6. Re-run the exact failing phrase and representative variants, and report completion only when the intended existing rule or memory returns near the top.
+
+Do not create a duplicate rule merely because retrieval was weak. Strengthen the existing rule or memory when it is still the correct authority. Do not prune, delete, compact, or age out source memory as a recall-quality shortcut.
+
 <!-- LLM_GOVERNED_PERFORMANCE_TUNING_RULE -->
 
 ## LLM-Governed Performance Tuning Rule

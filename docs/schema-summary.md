@@ -42,6 +42,14 @@ The schema includes additive tables for vector/neural-style recall evolution:
 
 These objects are derived/additive. They may be rebuilt, but source memory rows must not be removed for performance.
 
+For recall-QA repairs, use these additive objects together with existing
+structured rules. If an operator correction shows that a known process or rule
+exists but did not rank for the exact phrasing, record query observations and
+weighted recall hints, add semantic edges to the existing rule or workflow, and
+adjust dynamic rule weights when appropriate. Refresh materialized recall
+surfaces and verify the original phrase before claiming the repair is complete.
+This preserves source memory while making the same phrasing reliable next time.
+
 ## Model-vector ANN recall
 
 The packaged schema includes pgvector ANN recall support for local model vectors. Fresh installs create `memory_ann_model_embeddings`, `memory_query_embedding_cache`, HNSW cosine indexes, `memory_provider_ann_recall(...)`, and the convenience wrapper `memory_ann_recall(...)`.

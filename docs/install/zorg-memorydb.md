@@ -1,12 +1,12 @@
-# Zorg MemoryDB And LAN Command Chat Install
+# Zorg MemoryDB, LAN Command Chat, And Memory 3D Install
 
-Zorg MemoryDB extends OpenClaw with PostgreSQL-backed durable memory and the LAN command chat fallback console.
+Zorg MemoryDB extends OpenClaw with PostgreSQL-backed durable memory, the LAN command chat fallback console, and the Zorg Memory 3D visualizer.
 
 ## What The Installer Adds
 
-The first-run installer prepares missing prerequisites, installs the Zorg GitHub package on the host by default, then runs `zorg/install-zorg-memorydb.sh` as the add-on step from that installed package. The add-on script creates the OpenClaw workspace subdirectories for `zorg-memorydb` and `lan-chat`, applies the public-safe schema, seeds production rule records, imports packaged markdown rules into database tables, imports retired `memory/*.md` files into the database if they exist, and copies the LAN command chat source.
+The first-run installer prepares missing prerequisites, installs the Zorg GitHub package on the host by default, then runs `zorg/install-zorg-memorydb.sh` as the add-on step from that installed package. The add-on script creates the OpenClaw workspace subdirectories for `zorg-memorydb`, `lan-chat`, and `zorg-memory-3d`, applies the public-safe schema, seeds production rule records, imports packaged markdown rules into database tables, imports retired `memory/*.md` files into the database if they exist, copies the LAN command chat source, and installs the 3D memory visualizer.
 
-If the target Linux user does not have root or passwordless sudo, the bootstrap does not abort the whole OpenClaw install. It copies the packaged Zorg MemoryDB and LAN command chat files, builds the LAN chat source when npm is available, and warns that system packages such as PostgreSQL client/server must be installed as root before rerunning `zorg/install-zorg-memorydb.sh` to apply the database schema.
+If the target Linux user does not have root or passwordless sudo, the bootstrap does not abort the whole OpenClaw install. It copies the packaged Zorg MemoryDB, LAN command chat, and Zorg Memory 3D files, builds the Node-based local web surfaces when npm is available, and warns that system packages such as PostgreSQL client/server must be installed as root before rerunning `zorg/install-zorg-memorydb.sh` to apply the database schema.
 
 When the add-on bootstrap is launched with `sudo`, it defaults to the invoking user's OpenClaw home unless `OPENCLAW_HOME` is explicitly set. This keeps the LAN command chat service user and `WorkingDirectory` aligned; otherwise a root-run bootstrap can accidentally create `/root/.openclaw/workspace/lan-chat` while systemd runs LAN chat as the non-root user.
 
@@ -15,6 +15,46 @@ When the add-on bootstrap is launched with `sudo`, it defaults to the invoking u
 The database package keeps rule tables, markdown import tables, source chunk tables, recall hint tables, entity and association tables, and the default LAN command chat message table. The public baseline does not ship private live memory rows, transcripts, credentials, uploaded files, contact data, or operator-only state.
 
 Root workspace markdown files are bootstrap pointers for backend DB repair, not the canonical long-form rule store. Current installs should keep durable rules in structured PostgreSQL recall and use [`../root-markdown-db-first.md`](../root-markdown-db-first.md) when reducing oversized root markdown.
+
+## Zorg Memory 3D Visualizer
+
+The installer includes `zorg/memory-3d/` in the standard package and copies it to:
+
+```text
+~/.openclaw/workspace/zorg-memory-3d/
+```
+
+On Standard Ubuntu installs with systemd, the bootstrap builds it with npm and creates `zorg-memory-3d.service`. The default local URL is:
+
+```text
+http://127.0.0.1:8097/
+```
+
+Use `http://127.0.0.1:8097/?theme=light` to open light view directly.
+
+The service reads database settings from the same `sql_memory_map.json` file as the DB recall tools, so the public package does not need to ship database passwords. To override the connection for a custom install, set `ZORG_MEMORY_MAP`, `SQL_MEMORY_MAP`, `DATABASE_URL`, or the standard `PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER`, and `PGPASSWORD` variables.
+
+Useful service commands:
+
+```bash
+systemctl status zorg-memory-3d.service
+systemctl restart zorg-memory-3d.service
+```
+
+For user-level installs where the bootstrap cannot write system services:
+
+```bash
+systemctl --user status zorg-memory-3d.service
+systemctl --user restart zorg-memory-3d.service
+```
+
+Set `ZORG_MEMORY_3D_ENABLE=0` before running `zorg/install-zorg-memorydb.sh` if a host should install the files but skip the visualizer service.
+
+Docker Compose and Dockge installs include a `zorg-memory-3d` service. The container listens on internal port `8097` and publishes one free host port from `ZORG_MEMORY_3D_PUBLISHED_PORTS`, default `8097-8197`. Discover the selected host port with:
+
+```bash
+docker compose port zorg-memory-3d 8097
+```
 
 ## PostgreSQL Add-ons
 

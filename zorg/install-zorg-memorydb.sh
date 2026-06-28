@@ -14,6 +14,9 @@ ZORG_DB_PORT="${ZORG_DB_PORT:-5432}"
 ZORG_DB_PASSWORD="${ZORG_DB_PASSWORD:-}"
 LAN_CHAT_PORT="${LAN_CHAT_PORT:-3001}"
 LAN_CHAT_HOST="${LAN_CHAT_HOST:-0.0.0.0}"
+ZORG_MEMORY_3D_PORT="${ZORG_MEMORY_3D_PORT:-8097}"
+ZORG_MEMORY_3D_HOST="${ZORG_MEMORY_3D_HOST:-0.0.0.0}"
+ZORG_MEMORY_3D_ENABLE="${ZORG_MEMORY_3D_ENABLE:-1}"
 OPENCLAW_CONTROL_UI_DISABLE_DEVICE_AUTH="${OPENCLAW_CONTROL_UI_DISABLE_DEVICE_AUTH:-true}"
 ZORG_INSTALL_MODE="${ZORG_INSTALL_MODE:-first-run}"
 ZORG_PATCH_EXISTING_DOCKER_CONFIG="${ZORG_PATCH_EXISTING_DOCKER_CONFIG:-0}"
@@ -44,6 +47,7 @@ fi
 OPENCLAW_WORKSPACE="${OPENCLAW_WORKSPACE:-$OPENCLAW_EFFECTIVE_HOME/.openclaw/workspace}"
 ZORG_WORKSPACE_DIR="${ZORG_WORKSPACE_DIR:-$OPENCLAW_WORKSPACE/zorg-memorydb}"
 LAN_CHAT_DIR="${LAN_CHAT_DIR:-$OPENCLAW_WORKSPACE/lan-chat}"
+ZORG_MEMORY_3D_DIR="${ZORG_MEMORY_3D_DIR:-$OPENCLAW_WORKSPACE/zorg-memory-3d}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd -P)"
 PACKAGE_ROOT="$SCRIPT_DIR"
 
@@ -121,7 +125,7 @@ ensure_prerequisites() {
 }
 
 ensure_workspace_layout() {
-  mkdir -p "$OPENCLAW_WORKSPACE" "$ZORG_WORKSPACE_DIR" "$LAN_CHAT_DIR"
+  mkdir -p "$OPENCLAW_WORKSPACE" "$ZORG_WORKSPACE_DIR" "$LAN_CHAT_DIR" "$ZORG_MEMORY_3D_DIR"
   mkdir -p "$ZORG_WORKSPACE_DIR/db" "$ZORG_WORKSPACE_DIR/rules" "$ZORG_WORKSPACE_DIR/memory"
 }
 
@@ -135,6 +139,10 @@ copy_packaged_components() {
   fi
   log "Copying LAN command chat source into $LAN_CHAT_DIR"
   cp -R "$PACKAGE_ROOT/lan-command-chat/." "$LAN_CHAT_DIR/"
+  if [[ -d "$PACKAGE_ROOT/memory-3d" ]]; then
+    log "Copying Zorg Memory 3D visualizer source into $ZORG_MEMORY_3D_DIR"
+    cp -R "$PACKAGE_ROOT/memory-3d/." "$ZORG_MEMORY_3D_DIR/"
+  fi
 }
 
 ensure_db_password() {
@@ -515,6 +523,23 @@ prepare_lan_chat() {
   fi
 }
 
+prepare_memory_3d() {
+  if [[ "$ZORG_MEMORY_3D_ENABLE" =~ ^([Ff][Aa][Ll][Ss][Ee]|[Nn][Oo]|0|[Oo][Ff][Ff])$ ]]; then
+    log "Zorg Memory 3D visualizer disabled by ZORG_MEMORY_3D_ENABLE=$ZORG_MEMORY_3D_ENABLE"
+    return 0
+  fi
+  if [[ ! -f "$ZORG_MEMORY_3D_DIR/package.json" ]]; then
+    warn "Zorg Memory 3D visualizer source is unavailable; skipping build."
+    return 0
+  fi
+  if command -v npm >/dev/null 2>&1; then
+    (cd "$ZORG_MEMORY_3D_DIR" && npm install)
+    (cd "$ZORG_MEMORY_3D_DIR" && npm run check) || warn "Zorg Memory 3D syntax check failed; inspect $ZORG_MEMORY_3D_DIR."
+  else
+    warn "npm is unavailable; Zorg Memory 3D source is installed but not built."
+  fi
+}
+
 install_lan_chat_service() {
   if ! command -v systemctl >/dev/null 2>&1; then
     warn "systemd is unavailable; LAN chat source is installed but no service was created."
@@ -586,6 +611,84 @@ SERVICE
   systemctl --user restart lan-chat.service || warn "LAN chat service restart failed; run: systemctl --user status lan-chat.service"
 }
 
+install_memory_3d_service() {
+  if [[ "$ZORG_MEMORY_3D_ENABLE" =~ ^([Ff][Aa][Ll][Ss][Ee]|[Nn][Oo]|0|[Oo][Ff][Ff])$ ]]; then
+    return 0
+  fi
+  if ! command -v systemctl >/dev/null 2>&1; then
+    warn "systemd is unavailable; Zorg Memory 3D source is installed but no service was created."
+    return 0
+  fi
+  local npm_bin
+  npm_bin="$(command -v npm || true)"
+  if [[ -z "$npm_bin" ]]; then
+    warn "npm is unavailable; Zorg Memory 3D source is installed but no service was created."
+    return 0
+  fi
+  local service_path
+  service_path="$(dirname "$npm_bin"):/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+  if [[ "$(id -u)" == "0" ]]; then
+    local service_user
+    service_user="$(stat -c '%U' "$OPENCLAW_WORKSPACE" 2>/dev/null || true)"
+    if [[ -z "$service_user" || "$service_user" == "UNKNOWN" || "$service_user" == "root" ]]; then
+      service_user="${SUDO_USER:-root}"
+    fi
+    if [[ "$service_user" == "root" ]]; then
+      warn "Running as root and no non-root OpenClaw workspace owner was found; Zorg Memory 3D source is installed but no service was created."
+      return 0
+    fi
+    cat > /etc/systemd/system/zorg-memory-3d.service <<SERVICE
+[Unit]
+Description=Zorg MemoryDB 3D visualizer
+After=network-online.target postgresql.service
+
+[Service]
+Type=simple
+User=$service_user
+WorkingDirectory=$ZORG_MEMORY_3D_DIR
+Environment=PATH=$service_path
+Environment=OPENCLAW_WORKSPACE=$OPENCLAW_WORKSPACE
+Environment=ZORG_MEMORY_MAP=$OPENCLAW_WORKSPACE/sql_memory_map.json
+Environment=PORT=$ZORG_MEMORY_3D_PORT
+Environment=HOSTNAME=$ZORG_MEMORY_3D_HOST
+ExecStart=$npm_bin run start
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+SERVICE
+    systemctl daemon-reload || true
+    systemctl enable zorg-memory-3d.service || true
+    systemctl restart zorg-memory-3d.service || warn "Zorg Memory 3D service restart failed; run: systemctl status zorg-memory-3d.service"
+    return 0
+  fi
+  mkdir -p "$HOME/.config/systemd/user"
+  cat > "$HOME/.config/systemd/user/zorg-memory-3d.service" <<SERVICE
+[Unit]
+Description=Zorg MemoryDB 3D visualizer
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=$ZORG_MEMORY_3D_DIR
+Environment=PATH=$service_path
+Environment=OPENCLAW_WORKSPACE=$OPENCLAW_WORKSPACE
+Environment=ZORG_MEMORY_MAP=$OPENCLAW_WORKSPACE/sql_memory_map.json
+Environment=PORT=$ZORG_MEMORY_3D_PORT
+Environment=HOSTNAME=$ZORG_MEMORY_3D_HOST
+ExecStart=$npm_bin run start
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target
+SERVICE
+  systemctl --user daemon-reload || true
+  systemctl --user enable zorg-memory-3d.service || true
+  systemctl --user restart zorg-memory-3d.service || warn "Zorg Memory 3D service restart failed; run: systemctl --user status zorg-memory-3d.service"
+}
+
 main() {
   while [[ "${1:-}" == --* ]]; do
     case "$1" in
@@ -620,8 +723,10 @@ main() {
     ZORG_SKIP_RECALL_REFRESH=1 "$OPENCLAW_WORKSPACE/.venv-sqlmem/bin/python" "$OPENCLAW_WORKSPACE/archive_retired_memory_dir.py" || true
   fi
   prepare_lan_chat
+  prepare_memory_3d
   maybe_chown_sudo_workspace
   install_lan_chat_service
-  log "Zorg MemoryDB and LAN command chat bootstrap complete."
+  install_memory_3d_service
+  log "Zorg MemoryDB, LAN command chat, and Zorg Memory 3D bootstrap complete."
 }
 main "$@"

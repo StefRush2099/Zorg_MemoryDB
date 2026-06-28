@@ -99,6 +99,12 @@ RUN set -eux; \
 
 COPY . .
 
+# Build the packaged Zorg Memory 3D visualizer dependencies so Docker/Dockge
+# installs can run it as a standard service without a runtime npm install.
+RUN if [ -f zorg/memory-3d/package.json ]; then \
+      cd zorg/memory-3d && npm install --omit=dev && npm run check; \
+    fi
+
 # Normalize extension paths now so runtime COPY preserves safe modes
 # without adding a second full extensions layer.
 RUN for dir in /app/${OPENCLAW_BUNDLED_PLUGIN_DIR} /app/.agent /app/.agents; do \
@@ -190,6 +196,7 @@ COPY --from=runtime-assets --chown=node:node /app/${OPENCLAW_BUNDLED_PLUGIN_DIR}
 COPY --from=runtime-assets --chown=node:node /app/skills ./skills
 COPY --from=runtime-assets --chown=node:node /app/docs ./docs
 COPY --from=runtime-assets --chown=node:node /app/qa ./qa
+COPY --from=runtime-assets --chown=node:node /app/zorg ./zorg
 
 # Keep pnpm available in the runtime image for container-local workflows.
 # Use a shared Corepack home so the non-root `node` user does not need a

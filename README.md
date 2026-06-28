@@ -519,11 +519,11 @@ clawtributors:hidden:end -->
 
 ## Zorg MemoryDB Install Package
 
-This fork packages Zorg MemoryDB and LAN command chat for OpenClaw installs. The installer includes a bootstrap that places the database structure, public-safe production rules, markdown-import tooling, and LAN command chat into the OpenClaw workspace without shipping private live memory rows.
+This fork packages Zorg MemoryDB, LAN command chat, and the Zorg Memory 3D visualizer for OpenClaw installs. The installer includes a bootstrap that places the database structure, public-safe production rules, markdown-import tooling, LAN command chat, and the 3D memory activity view into the OpenClaw workspace without shipping private live memory rows.
 
 The packaged database schema includes PostgreSQL add-on support for pgvector ANN recall, trigram recall indexes, and pg_cron-backed scheduled-job queue activation. The public package ships structure and install guidance only; live job payloads, private memory rows, credentials, contacts, and transcripts stay local to each install.
 
-If the target Linux user lacks root or passwordless sudo, the bootstrap keeps the install moving by copying the packaged Zorg files and LAN command chat source, then warns that PostgreSQL system packages must be installed as root before rerunning the Zorg bootstrap to apply the schema.
+If the target Linux user lacks root or passwordless sudo, the bootstrap keeps the install moving by copying the packaged Zorg files, LAN command chat source, and Zorg Memory 3D source, then warns that PostgreSQL system packages must be installed as root before rerunning the Zorg bootstrap to apply the schema.
 
 Public-safe MemoryDB docs:
 
@@ -536,15 +536,17 @@ Public-safe MemoryDB docs:
 - [Documentation maintenance](docs/documentation-maintenance.md)
 - [Release process](docs/release-process.md)
 
+After the Zorg add-on bootstrap completes on a Standard Ubuntu install, the 3D visualizer runs as `zorg-memory-3d.service` on `http://127.0.0.1:8097/`. Docker Compose and Dockge installs include a `zorg-memory-3d` service; find the selected host port with `docker compose port zorg-memory-3d 8097`.
+
 ## Zorg MemoryDB first-run installer
 
-Use the installer first on a fresh system. It follows the OpenClaw install pattern and upgrades/install prerequisites such as Node before installing Zorg MemoryDB and LAN command chat.
+Use the installer first on a fresh system. It follows the OpenClaw install pattern and upgrades/install prerequisites such as Node before installing Zorg MemoryDB, LAN command chat, and Zorg Memory 3D.
 
 ```bash
 curl -fsSL --proto '=https' --tlsv1.2 https://raw.githubusercontent.com/StefRush2099/Zorg_MemoryDB/main/scripts/install.sh | bash
 ```
 
-Install order is intentional: the script prepares missing software first, installs the Zorg GitHub package by default, then applies the Zorg MemoryDB add-on plus LAN command chat from the installed package. Set `OPENCLAW_NPM_SPEC` only when intentionally testing another package source. Do not use direct npm on fresh hosts as a replacement for this installer.
+Install order is intentional: the script prepares missing software first, installs the Zorg GitHub package by default, then applies the Zorg MemoryDB add-on plus LAN command chat and Zorg Memory 3D from the installed package. Set `OPENCLAW_NPM_SPEC` only when intentionally testing another package source. Do not use direct npm on fresh hosts as a replacement for this installer.
 
 Use direct npm only on systems that already have Node >=22.19.0 and working global npm permissions:
 

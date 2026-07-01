@@ -217,11 +217,23 @@ async function loadRows(table) {
     `
       select ${selectParts.join(", ")}
       from ${quoteIdent(graphSchema)}.${quoteIdent(table.name)}
+      ${timeColumn ? `order by ${quoteIdent(timeColumn)} desc` : ""}
       limit $1
     `,
     [maxRowsPerTable]
   );
   return result.rows;
+}
+
+function newestTimestamp(rows) {
+  let newest = null;
+  for (const row of rows) {
+    if (!row.row_time) continue;
+    const timestamp = new Date(row.row_time).getTime();
+    if (!Number.isFinite(timestamp)) continue;
+    if (!newest || timestamp > new Date(newest).getTime()) newest = row.row_time;
+  }
+  return newest;
 }
 
 function addRowGraph(nodes, links, table, row, queryText) {
@@ -288,6 +300,8 @@ async function loadGraph(queryText = "") {
     try {
       const rows = await loadRows(table);
       sampledRows += rows.length;
+      const latestRowSeen = newestTimestamp(rows);
+      if (latestRowSeen) addNode(nodes, tableNode, "table", table.name, { lastSeen: latestRowSeen });
       const beforeLinks = links.length;
       for (const row of rows) addRowGraph(nodes, links, table, row, queryText);
       inferredLinks += links.length - beforeLinks;

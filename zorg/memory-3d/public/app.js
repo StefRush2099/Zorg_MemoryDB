@@ -14,32 +14,34 @@ window.addEventListener("error", (event) => {
 const colors = {
   core: "#f8fafc",
   query: "#38bdf8",
-  neural: "#a78bfa",
   "manual-query": "#f59e0b",
   rule: "#fb7185",
-  hint: "#2dd4bf",
+  table: "#2dd4bf",
+  schema: "#818cf8",
+  record: "#c084fc",
+  reference: "#34d399",
   activity: "#f97316",
   job: "#eab308",
   timing: "#22c55e",
   project: "#60a5fa",
   host: "#34d399",
-  memory: "#c084fc",
   default: "#94a3b8"
 };
 
 const lightColors = {
   core: "#102033",
   query: "#0369a1",
-  neural: "#7c3aed",
   "manual-query": "#b45309",
   rule: "#be123c",
-  hint: "#0f766e",
+  table: "#0f766e",
+  schema: "#4338ca",
+  record: "#9333ea",
+  reference: "#047857",
   activity: "#c2410c",
   job: "#a16207",
   timing: "#15803d",
   project: "#1d4ed8",
   host: "#047857",
-  memory: "#9333ea",
   default: "#475569"
 };
 
@@ -79,7 +81,7 @@ Graph.d3Force("charge").strength(-14).distanceMax(95);
 Graph.d3Force("link").distance((link) => {
   const source = link.source.id || link.source;
   const target = link.target.id || link.target;
-  const anchored = source === "zorg-memorydb" || target === "zorg-memorydb" || source === "recall-engine" || target === "recall-engine";
+  const anchored = source === "zorg-memorydb" || target === "zorg-memorydb" || source === "catalog" || target === "catalog";
   return anchored ? 18 : 26;
 });
 Graph.d3Force("center").strength(0.22);
@@ -133,8 +135,7 @@ function applyFilter() {
       .map((node) => node.id)
   );
   keep.add("zorg-memorydb");
-  keep.add("recall-engine");
-  keep.add("live-activity");
+  keep.add("catalog");
   const links = rawGraph.links.filter((link) => keep.has(link.source.id || link.source) && keep.has(link.target.id || link.target));
   const linked = new Set(links.flatMap((link) => [link.source.id || link.source, link.target.id || link.target]));
   Graph.graphData({ nodes: rawGraph.nodes.filter((node) => linked.has(node.id)), links });
@@ -163,7 +164,7 @@ function renderActivity(items) {
 }
 
 async function loadGraph(query = "") {
-  statusEl.textContent = query ? "Tracing recall path..." : "Loading memory graph...";
+  statusEl.textContent = query ? "Filtering graph..." : "Loading memory graph...";
   const response = await fetch(`/api/graph${query ? `?q=${encodeURIComponent(query)}` : ""}`);
   if (!response.ok) throw new Error(await response.text());
   const data = await response.json();
@@ -176,7 +177,7 @@ async function loadGraph(query = "") {
   fitGraph(2600);
   renderMetrics(data.stats, rawGraph);
   statusEl.textContent = data.highlight
-    ? `Recall trace returned ${data.highlight.resultCount} ranked results.`
+    ? `Graph filter matched ${data.highlight.resultCount} visible items.`
     : `Live graph generated ${new Date(data.generatedAt).toLocaleTimeString()}.`;
 }
 

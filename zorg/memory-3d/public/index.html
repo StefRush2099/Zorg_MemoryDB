@@ -12,19 +12,20 @@
       <aside class="panel" aria-label="Zorg MemoryDB controls">
         <header>
           <p class="eyebrow">Zorg MemoryDB</p>
-          <h1>Neural Recall Activity</h1>
+          <h1>Memory Graph Activity</h1>
           <p id="status">Connecting to PostgreSQL...</p>
         </header>
 
         <form id="searchForm" class="search">
-          <input id="queryInput" type="search" autocomplete="off" placeholder="Run a recall query" />
-          <button type="submit">Trace</button>
+          <input id="queryInput" type="search" autocomplete="off" placeholder="Filter graph" />
+          <button type="submit">Filter</button>
         </form>
 
         <div class="toolbar" role="group" aria-label="Graph filters">
           <button data-filter="all" class="active" type="button">All</button>
-          <button data-filter="query" type="button">Queries</button>
-          <button data-filter="rule" type="button">Rules</button>
+          <button data-filter="table" type="button">Tables</button>
+          <button data-filter="schema" type="button">Schema</button>
+          <button data-filter="record" type="button">Records</button>
           <button data-filter="activity" type="button">Activity</button>
         </div>
 

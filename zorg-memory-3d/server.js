@@ -3571,10 +3571,16 @@ async function loadMemoryBrainIdentity() {
 }
 
 async function loadSemanticNodes(scanOffset = 0, historyConfig = null) {
+  const columns = await tableColumns("memory_semantic_nodes");
+  const labelColumn = columns.has("canonical_label")
+    ? "canonical_label"
+    : columns.has("display_name")
+      ? "display_name as canonical_label"
+      : "node_key as canonical_label";
   return optionalQuery(
     "memory_semantic_nodes",
     `
-    select node_key, node_type, canonical_label, confidence, updated_at
+    select node_key, node_type, ${labelColumn}, confidence, updated_at
     from memory_semantic_nodes
     where active is distinct from false
       and updated_at >= ${activeCutoffSql(historyConfig)}
@@ -3585,34 +3591,58 @@ async function loadSemanticNodes(scanOffset = 0, historyConfig = null) {
 }
 
 async function loadRecallHints(scanOffset = 0, historyConfig = null) {
+  const columns = await tableColumns("memory_recall_hints");
+  const sourceTypeSql = columns.has("source_type") ? "source_type" : "target_table as source_type";
+  const sourceKeySql = columns.has("source_key")
+    ? "source_key"
+    : "coalesce(target_key, query_pattern) as source_key";
+  const hintKindSql = columns.has("hint_kind") ? "hint_kind" : "query_pattern as hint_kind";
+  const updatedAtSql = columns.has("updated_at")
+    ? "coalesce(updated_at, created_at)"
+    : "created_at";
+  const activeWhere = columns.has("active") ? "active is distinct from false and" : "";
   return optionalQuery(
     "memory_recall_hints",
     `
-    select source_type,
-           source_key,
-           hint_kind,
+    select ${sourceTypeSql},
+           ${sourceKeySql},
+           ${hintKindSql},
            hint_text,
            weight,
-           coalesce(updated_at, created_at) as updated_at
+           ${updatedAtSql} as updated_at
     from memory_recall_hints
-    where active is distinct from false
-      and coalesce(updated_at, created_at) >= ${activeCutoffSql(historyConfig)}
-    order by coalesce(updated_at, created_at) desc
+    where ${activeWhere}
+      ${updatedAtSql} >= ${activeCutoffSql(historyConfig)}
+    order by ${updatedAtSql} desc
     ${scanBatchClause(scanOffset)}
   `,
   );
 }
 
 async function loadQueryObservations(scanOffset = 0, historyConfig = null) {
+  const columns = await tableColumns("memory_query_observations");
+  const queryIntentSql = columns.has("query_intent")
+    ? "coalesce(query_intent, 'recall') as query_intent"
+    : "coalesce(observed_category, 'recall') as query_intent";
+  const sourceTypeSql = columns.has("source_type")
+    ? "source_type"
+    : "observation_source as source_type";
+  const sourceKeySql = columns.has("source_key")
+    ? "coalesce(source_key, query_text) as source_key"
+    : "coalesce(recall_log_id::text, normalized_query, query_text) as source_key";
+  const rankSeenSql = columns.has("rank_seen") ? "rank_seen" : "null::integer as rank_seen";
+  const usefulnessSql = columns.has("usefulness_score")
+    ? "greatest(1, coalesce(usefulness_score, 1))::numeric as usefulness_score"
+    : "greatest(1, coalesce(selected_count, result_count, 1))::numeric as usefulness_score";
   return optionalQuery(
     "memory_query_observations",
     `
     select query_text,
-           coalesce(query_intent, 'recall') as query_intent,
-           source_type,
-           coalesce(source_key, query_text) as source_key,
-           rank_seen,
-           greatest(1, coalesce(usefulness_score, 1))::numeric as usefulness_score,
+           ${queryIntentSql},
+           ${sourceTypeSql},
+           ${sourceKeySql},
+           ${rankSeenSql},
+           ${usefulnessSql},
            observed_at
     from memory_query_observations
     where observed_at >= ${activeCutoffSql(historyConfig)}

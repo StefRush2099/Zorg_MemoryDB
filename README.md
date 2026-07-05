@@ -22,8 +22,11 @@ Zorg MemoryDB is the OpenClaw base with a durable PostgreSQL-backed memory spine
 - Recommended baseline for a fully useful assistant install: [`docs/base-setup.md`](docs/base-setup.md)
 - Dynamic trigger backpressure: [`docs/dynamic-trigger-backpressure.md`](docs/dynamic-trigger-backpressure.md)
 - Built-in LAN/local command console: [`docs/lan-console.md`](docs/lan-console.md)
+- Built-in 3D brain map for MemoryDB: [`docs/zorg-memory-3d.md`](docs/zorg-memory-3d.md)
 
 ![Zorg MemoryDB LAN command console in use](docs/assets/lan-console-in-use-2026-05-14.png)
+
+![Zorg Memory 3D brain map](docs/assets/zorg-memory-3d-map.png)
 
 ## Before you get started
 
@@ -79,6 +82,7 @@ The target state is still a normal OpenClaw install: `openclaw gateway status`, 
 A fully useful OpenClaw + Zorg MemoryDB install should have more than the memory layer alone:
 
 - the built-in LAN/local command chat for private local access to the agent without an outside chat provider
+- the built-in Zorg Memory 3D brain map for visualizing MemoryDB relationships, recall hints, semantic links, runtime activity, and ADMIN-tunable graph settings
 - an optional fast instant messaging control channel such as Telegram, WhatsApp, Signal, Discord, or Slack for remote/mobile convenience
 - a dedicated assistant email account used as the public-facing executive-assistant identity, so routine mail is filtered through the agent instead of the operator's private address
 - optional, separately governed access to the operator's personal email for triage/search/drafting

@@ -16,6 +16,7 @@ OPENCLAW_GATEWAY_PORT="${OPENCLAW_GATEWAY_PORT:-18789}"
 OPENCLAW_GATEWAY_BIND="${OPENCLAW_GATEWAY_BIND:-lan}"
 OPENCLAW_GATEWAY_AUTH="${OPENCLAW_GATEWAY_AUTH:-trusted-proxy}"
 LAN_CHAT_PORT="${LAN_CHAT_PORT:-3001}"
+ZORG_MEMORY_3D_PORT="${ZORG_MEMORY_3D_PORT:-8097}"
 REQUIRED_NODE_VERSION="${REQUIRED_NODE_VERSION:-22.19.0}"
 
 have(){ command -v "$1" >/dev/null 2>&1; }
@@ -281,6 +282,7 @@ OPENCLAW_GATEWAY_PORT=$OPENCLAW_GATEWAY_PORT
 OPENCLAW_GATEWAY_BIND=$OPENCLAW_GATEWAY_BIND
 OPENCLAW_GATEWAY_AUTH=$OPENCLAW_GATEWAY_AUTH
 LAN_CHAT_PORT=$LAN_CHAT_PORT
+ZORG_MEMORY_3D_PORT=$ZORG_MEMORY_3D_PORT
 ENV
 chmod 600 "$OPENCLAW_WORKSPACE/.env.native"
 
@@ -316,5 +318,8 @@ echo "Native Ubuntu OpenClaw + Zorg MemoryDB install complete."
 echo "Config saved to $OPENCLAW_WORKSPACE/.env.native"
 echo "LAN command console installed at http://127.0.0.1:$LAN_CHAT_PORT/"
 echo "Service status: systemctl --user status lan-chat.service"
+echo "Zorg Memory 3D installed at http://127.0.0.1:$ZORG_MEMORY_3D_PORT/"
+echo "Zorg Memory 3D admin: http://127.0.0.1:$ZORG_MEMORY_3D_PORT/admin"
+echo "Brain map service status: systemctl --user status zorg-memory-3d.service"
 echo "Start gateway with:"
 echo "  cd $OPENCLAW_WORKSPACE && source .env.native && OPENCLAW_WORKSPACE=$OPENCLAW_WORKSPACE SQL_MEMORY_MAP=$OPENCLAW_WORKSPACE/sql_memory_map.json openclaw gateway run --allow-unconfigured --bind \$OPENCLAW_GATEWAY_BIND --port \$OPENCLAW_GATEWAY_PORT --auth \$OPENCLAW_GATEWAY_AUTH"

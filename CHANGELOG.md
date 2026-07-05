@@ -6,6 +6,10 @@ All meaningful changes to this project are documented here and released with a G
 
 ### Changed
 
+- Added Zorg Memory 3D as a built-in native Standard Ubuntu install service,
+  including the brain map app, installer helper, docs, ADMIN-page explanation,
+  and fresh GitHub screenshot assets.
+
 - Updated the fast materialized-view recall fallback ranking so direct
   multi-token matches, recall hints, host rows, and project facts can outrank
   broad logic-rule or query-observation noise for concrete lookup questions.
@@ -52,6 +56,9 @@ All meaningful changes to this project are documented here and released with a G
   reducing noisy nearest-neighbor candidates.
 
 ### Verified
+
+- Verified the native `zorg-memory-3d.service` on OpenClaw, including health,
+  live graph snapshot data, ADMIN setting patch/restore, and screenshots.
 
 - Verified the live router now returns the remote Zorg folder recall hint as the
   first hit for a concrete remote script-storage query.

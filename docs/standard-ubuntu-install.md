@@ -23,7 +23,9 @@ What it does:
 8. applies the Zorg MemoryDB schema, recall surfaces, and the 93-rule public canonical rule seed from the OpenClaw branch
 9. installs and builds the built-in LAN command console from `./lan-chat`
 10. registers `lan-chat.service` as a user-level systemd service on port `3001`
-11. starts OpenClaw with memory already wired
+11. installs and builds the built-in Zorg Memory 3D brain map from `./zorg-memory-3d`
+12. registers `zorg-memory-3d.service` as a user-level systemd service on port `8097`
+13. starts OpenClaw with memory already wired
 
 The automatic prerequisite path currently recognizes `apt`, `dnf`, `yum`, `zypper`, `apk`, `pacman`, and `brew`. Debian and Ubuntu hosts use NodeSource for Node 22 when the distribution package is missing or too old, and the same repair path is used when Node is present but npm is missing.
 
@@ -49,6 +51,32 @@ Default local URL:
 http://127.0.0.1:3001/
 ```
 
+## Zorg Memory 3D Brain Map
+
+The native installer also runs `./scripts/install_zorg_memory_3d.sh`. The brain
+map is installed as:
+
+```bash
+systemctl --user status zorg-memory-3d.service
+```
+
+Default local URL:
+
+```text
+http://127.0.0.1:8097/
+```
+
+Default ADMIN URL:
+
+```text
+http://127.0.0.1:8097/admin
+```
+
+The brain map is a native Node.js service in the Standard Ubuntu path, not a
+Docker container. It visualizes MemoryDB relationships, semantic nodes, recall
+hints, runtime events, and graph settings. See
+[`zorg-memory-3d.md`](zorg-memory-3d.md).
+
 ## Verify
 
 ```bash
@@ -56,6 +84,8 @@ cd "$HOME/.openclaw/workspace"
 .venv-sqlmem/bin/python scripts/memory_sql_tool.py tables
 .venv-sqlmem/bin/python scripts/memory_recall_router.py "database memory" --limit 5
 curl -fsS http://127.0.0.1:${LAN_CHAT_PORT:-3001}/ | grep -i '<title>'
+curl -fsS http://127.0.0.1:${ZORG_MEMORY_3D_PORT:-8097}/api/health
+curl -fsS http://127.0.0.1:${ZORG_MEMORY_3D_PORT:-8097}/admin | grep -i 'Memory Brain Admin'
 ```
 
 Expected recall mode: `database-direct-structured`.

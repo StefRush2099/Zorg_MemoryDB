@@ -12,7 +12,7 @@ TUI CLI: https://docs.openclaw.ai/cli/tui
 
 Install guide: https://docs.openclaw.ai/install
 
-Zorg MemoryDB is installed as an additive branch or fork of upstream OpenClaw. OpenClaw still supplies the Gateway, Control UI, TUI, chat channels, device pairing, and gateway authentication behavior. Zorg MemoryDB adds DB-backed recall, public-safe operating-rule templates, and the local LAN command chat on top of that normal OpenClaw runtime.
+Zorg MemoryDB is installed as an additive branch or fork of upstream OpenClaw. OpenClaw still supplies the Gateway, Control UI, TUI, chat channels, device pairing, and gateway authentication behavior. Zorg MemoryDB adds DB-backed recall, public-safe operating-rule templates, the local LAN command chat, and the Zorg Memory 3D brain map on top of that normal OpenClaw runtime.
 
 ## The Three Ways to Talk to the Assistant
 
@@ -23,6 +23,9 @@ A finished install should give the operator at least one of these access paths:
 **OpenClaw Control UI:** the official OpenClaw browser dashboard served by the Gateway.
 
 **OpenClaw TUI:** the terminal UI that connects to the running Gateway.
+
+**Zorg Memory 3D:** a local browser page that shows MemoryDB as an interactive
+3D relationship map with an ADMIN page for graph settings.
 
 Optional instant messaging channels such as Telegram, Signal, Discord, Slack, or WhatsApp are useful after they are configured. They are not the same as the LAN command chat; they travel through an outside provider.
 
@@ -51,6 +54,33 @@ Docker Compose, Dockge, and Docker run keep LAN command chat on internal contain
 Docker Compose and Dockge run the LAN command chat inside the same Docker Compose service/container named `openclaw` as OpenClaw/Zorg MemoryDB. `openclaw` is the service/container name, not the assistant name. They do not run a separate LAN chat container.
 
 If the page asks for a password and you do not have one yet, continue to Step 2.
+
+## Step 1B: Open the Zorg Memory 3D Brain Map
+
+Standard Ubuntu and existing OpenClaw branch-overlay installs include the 3D
+brain map as a native service:
+
+```text
+http://127.0.0.1:8097/
+```
+
+From another device on the same LAN or VPN, replace `127.0.0.1` with the server
+LAN IP:
+
+```text
+http://<server-lan-ip>:8097/
+```
+
+The ADMIN settings page is:
+
+```text
+http://127.0.0.1:8097/admin
+```
+
+Use the brain map to inspect MemoryDB relationships, semantic nodes, recall
+hints, runtime events, and graph activity. Use ADMIN to tune the graph history
+window, node size, collision radius, vector size, packet behavior, and opacity.
+See [`zorg-memory-3d.md`](zorg-memory-3d.md).
 
 ## Step 2: Ask OpenClaw to Create the First LAN Chat Password
 
@@ -173,3 +203,13 @@ Confirm you can hear me from the LAN command chat and tell me the current OpenCl
 ```
 
 Expected result: the assistant replies in the LAN command chat, and future recall can see that local command chat traffic through the DB-backed memory path.
+
+Then verify the brain map:
+
+```bash
+curl -fsS http://127.0.0.1:8097/api/health
+curl -fsS http://127.0.0.1:8097/admin | grep -i 'Memory Brain Admin'
+```
+
+Expected result: the health endpoint returns JSON with `"ok":true`, and the
+ADMIN page loads the adjustable graph settings.

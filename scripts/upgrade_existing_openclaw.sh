@@ -66,12 +66,15 @@ copy_files(){
   cp "$REPO_ROOT/scripts/db_only_memory_autoheal.py" "$TARGET_WORKSPACE/scripts/db_only_memory_autoheal.py"
   cp "$REPO_ROOT/scripts/postgres_memory_backup.sh" "$TARGET_WORKSPACE/scripts/postgres_memory_backup.sh"
   cp "$REPO_ROOT/scripts/install_lan_chat.sh" "$TARGET_WORKSPACE/scripts/install_lan_chat.sh"
+  cp "$REPO_ROOT/scripts/install_zorg_memory_3d.sh" "$TARGET_WORKSPACE/scripts/install_zorg_memory_3d.sh"
   cp "$REPO_ROOT/zorg/db/schema.sql" "$TARGET_WORKSPACE/db/schema.sql"
   cp "$REPO_ROOT/zorg/db/memory_file_archive_schema.sql" "$TARGET_WORKSPACE/db/memory_file_archive_schema.sql"
   cp "$REPO_ROOT/zorg/db/public_canonical_rules_update_2026_06_02.sql" "$TARGET_WORKSPACE/db/public_canonical_rules_update_2026_06_02.sql"
   mkdir -p "$TARGET_WORKSPACE/lan-chat"
   cp -R "$REPO_ROOT/lan-chat/." "$TARGET_WORKSPACE/lan-chat/"
-  chmod +x "$TARGET_WORKSPACE/memory_sql_tool.py" "$TARGET_WORKSPACE/memory_recall_router.py" "$TARGET_WORKSPACE/memory_speed_test.py" "$TARGET_WORKSPACE/scripts/enforce_db_memory_search.py" "$TARGET_WORKSPACE/scripts/import_markdown_memory.py" "$TARGET_WORKSPACE/scripts/archive_retired_memory_dir.py" "$TARGET_WORKSPACE/scripts/db_only_memory_autoheal.py" "$TARGET_WORKSPACE/scripts/postgres_memory_backup.sh" "$TARGET_WORKSPACE/scripts/install_lan_chat.sh"
+  mkdir -p "$TARGET_WORKSPACE/zorg-memory-3d"
+  cp -R "$REPO_ROOT/zorg-memory-3d/." "$TARGET_WORKSPACE/zorg-memory-3d/"
+  chmod +x "$TARGET_WORKSPACE/memory_sql_tool.py" "$TARGET_WORKSPACE/memory_recall_router.py" "$TARGET_WORKSPACE/memory_speed_test.py" "$TARGET_WORKSPACE/scripts/enforce_db_memory_search.py" "$TARGET_WORKSPACE/scripts/import_markdown_memory.py" "$TARGET_WORKSPACE/scripts/archive_retired_memory_dir.py" "$TARGET_WORKSPACE/scripts/db_only_memory_autoheal.py" "$TARGET_WORKSPACE/scripts/postgres_memory_backup.sh" "$TARGET_WORKSPACE/scripts/install_lan_chat.sh" "$TARGET_WORKSPACE/scripts/install_zorg_memory_3d.sh"
 }
 
 write_config(){
@@ -170,6 +173,24 @@ install_lan_chat(){
   "$TARGET_WORKSPACE/scripts/install_lan_chat.sh"
 }
 
+install_zorg_memory_3d(){
+  if [ "${ZORG_SKIP_MEMORY_3D_INSTALL:-0}" = "1" ]; then
+    log "Zorg Memory 3D install skipped by ZORG_SKIP_MEMORY_3D_INSTALL=1"
+    return 0
+  fi
+
+  log "installing built-in Zorg Memory 3D brain map"
+  OPENCLAW_WORKSPACE="$TARGET_WORKSPACE" \
+  INSTALL_DIR="$TARGET_WORKSPACE" \
+  ZORG_MEMORY_3D_DIR="$TARGET_WORKSPACE/zorg-memory-3d" \
+  ZORG_MEMORY_3D_PORT="${ZORG_MEMORY_3D_PORT:-8097}" \
+  DB_HOST="$DB_HOST" \
+  DB_PORT="$DB_PORT" \
+  DB_NAME="$DB_NAME" \
+  DB_USER="$DB_USER" \
+  "$TARGET_WORKSPACE/scripts/install_zorg_memory_3d.sh"
+}
+
 append_rules(){
   cd "$TARGET_WORKSPACE"
   log "updating OpenClaw markdown files with DB-memory rules"
@@ -241,3 +262,4 @@ append_rules
 import_and_verify
 enforce_builtin_memory_search
 install_lan_chat
+install_zorg_memory_3d

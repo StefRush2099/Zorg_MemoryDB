@@ -14,6 +14,7 @@ ZORG_DB_PORT="${ZORG_DB_PORT:-5432}"
 ZORG_DB_PASSWORD="${ZORG_DB_PASSWORD:-}"
 LAN_CHAT_PORT="${LAN_CHAT_PORT:-3001}"
 LAN_CHAT_HOST="${LAN_CHAT_HOST:-0.0.0.0}"
+ZORG_MEMORY_3D_PORT="${ZORG_MEMORY_3D_PORT:-8097}"
 OPENCLAW_CONTROL_UI_DISABLE_DEVICE_AUTH="${OPENCLAW_CONTROL_UI_DISABLE_DEVICE_AUTH:-true}"
 ZORG_INSTALL_MODE="${ZORG_INSTALL_MODE:-first-run}"
 ZORG_PATCH_EXISTING_DOCKER_CONFIG="${ZORG_PATCH_EXISTING_DOCKER_CONFIG:-0}"
@@ -46,6 +47,7 @@ ZORG_WORKSPACE_DIR="${ZORG_WORKSPACE_DIR:-$OPENCLAW_WORKSPACE/zorg-memorydb}"
 LAN_CHAT_DIR="${LAN_CHAT_DIR:-$OPENCLAW_WORKSPACE/lan-chat}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd -P)"
 PACKAGE_ROOT="$SCRIPT_DIR"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." >/dev/null 2>&1 && pwd -P)"
 
 log() { printf '%s\n' "zorg-memorydb: $*"; }
 warn() { printf '%s\n' "zorg-memorydb warning: $*" >&2; }
@@ -135,6 +137,17 @@ copy_packaged_components() {
   fi
   log "Copying LAN command chat source into $LAN_CHAT_DIR"
   cp -R "$PACKAGE_ROOT/lan-command-chat/." "$LAN_CHAT_DIR/"
+  if [[ -d "$REPO_ROOT/zorg-memory-3d" ]]; then
+    log "Copying Zorg Memory 3D source into $OPENCLAW_WORKSPACE/zorg-memory-3d"
+    mkdir -p "$OPENCLAW_WORKSPACE/zorg-memory-3d"
+    cp -R "$REPO_ROOT/zorg-memory-3d/." "$OPENCLAW_WORKSPACE/zorg-memory-3d/"
+  else
+    warn "Packaged Zorg Memory 3D source is missing; brain map install skipped."
+  fi
+  if [[ -f "$REPO_ROOT/scripts/install_zorg_memory_3d.sh" ]]; then
+    cp "$REPO_ROOT/scripts/install_zorg_memory_3d.sh" "$OPENCLAW_WORKSPACE/install_zorg_memory_3d.sh"
+    chmod +x "$OPENCLAW_WORKSPACE/install_zorg_memory_3d.sh"
+  fi
 }
 
 ensure_db_password() {
@@ -586,6 +599,31 @@ SERVICE
   systemctl --user restart lan-chat.service || warn "LAN chat service restart failed; run: systemctl --user status lan-chat.service"
 }
 
+install_zorg_memory_3d_service() {
+  if [[ "${ZORG_SKIP_MEMORY_3D_INSTALL:-0}" == "1" ]]; then
+    log "Zorg Memory 3D install skipped by ZORG_SKIP_MEMORY_3D_INSTALL=1"
+    return 0
+  fi
+  if [[ ! -x "$OPENCLAW_WORKSPACE/install_zorg_memory_3d.sh" ]]; then
+    warn "Zorg Memory 3D installer helper is missing; brain map service was not installed."
+    return 0
+  fi
+  if [[ ! -d "$OPENCLAW_WORKSPACE/zorg-memory-3d" ]]; then
+    warn "Zorg Memory 3D source is missing; brain map service was not installed."
+    return 0
+  fi
+  log "Installing built-in Zorg Memory 3D brain map"
+  OPENCLAW_WORKSPACE="$OPENCLAW_WORKSPACE" \
+  INSTALL_DIR="$OPENCLAW_WORKSPACE" \
+  ZORG_MEMORY_3D_DIR="$OPENCLAW_WORKSPACE/zorg-memory-3d" \
+  ZORG_MEMORY_3D_PORT="$ZORG_MEMORY_3D_PORT" \
+  DB_HOST="$ZORG_DB_HOST" \
+  DB_PORT="$ZORG_DB_PORT" \
+  DB_NAME="$ZORG_DB_NAME" \
+  DB_USER="$ZORG_DB_USER" \
+  "$OPENCLAW_WORKSPACE/install_zorg_memory_3d.sh"
+}
+
 main() {
   while [[ "${1:-}" == --* ]]; do
     case "$1" in
@@ -622,6 +660,7 @@ main() {
   prepare_lan_chat
   maybe_chown_sudo_workspace
   install_lan_chat_service
-  log "Zorg MemoryDB and LAN command chat bootstrap complete."
+  install_zorg_memory_3d_service
+  log "Zorg MemoryDB, LAN command chat, and Zorg Memory 3D bootstrap complete."
 }
 main "$@"

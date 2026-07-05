@@ -75,8 +75,17 @@ public-safe canonical rule set and checks for 104 active public rules in
 `zorg_logic_rules`.
 
 The upgrade helper also installs the built-in LAN command chat from `lan-chat/`
-by default. To deliberately skip only that LAN chat install, set
-`ZORG_SKIP_LAN_CHAT_INSTALL=1`.
+and the built-in Zorg Memory 3D brain map from `zorg-memory-3d/` by default.
+To deliberately skip only the LAN chat install, set
+`ZORG_SKIP_LAN_CHAT_INSTALL=1`. To deliberately skip only the brain map install,
+set `ZORG_SKIP_MEMORY_3D_INSTALL=1`.
+
+Default brain map URLs after the native service starts:
+
+```text
+http://127.0.0.1:8097/
+http://127.0.0.1:8097/admin
+```
 
 ## Step 5: Restart OpenClaw if Needed
 

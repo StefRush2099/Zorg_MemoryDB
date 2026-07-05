@@ -9,6 +9,10 @@
 </p>
 
 <p align="center">
+    <img src="https://raw.githubusercontent.com/StefRush2099/Zorg_MemoryDB/main/docs/assets/zorg-memory-3d-map.png" alt="Zorg Memory 3D brain map" width="900">
+</p>
+
+<p align="center">
   <strong>EXFOLIATE! EXFOLIATE!</strong>
 </p>
 
@@ -99,8 +103,8 @@ Model note: while many providers and models are supported, prefer a current flag
 
 Use the Zorg MemoryDB installer first on a new Linux host or any host that may
 have missing/old system prerequisites. It installs or repairs Node, npm, Git,
-Python, PostgreSQL, OpenClaw, Zorg MemoryDB, and LAN command chat in the correct
-order before OpenClaw's npm package is executed.
+Python, PostgreSQL, OpenClaw, Zorg MemoryDB, LAN command chat, and Zorg Memory
+3D in the correct order before OpenClaw's npm package is executed.
 
 ```bash
 curl -fsSL --proto '=https' --tlsv1.2 https://raw.githubusercontent.com/StefRush2099/Zorg_MemoryDB/main/scripts/install.sh | bash
@@ -519,7 +523,7 @@ clawtributors:hidden:end -->
 
 ## Zorg MemoryDB Install Package
 
-This fork packages Zorg MemoryDB and LAN command chat for OpenClaw installs. The installer includes a bootstrap that places the database structure, public-safe production rules, markdown-import tooling, and LAN command chat into the OpenClaw workspace without shipping private live memory rows.
+This fork packages Zorg MemoryDB, LAN command chat, and Zorg Memory 3D for OpenClaw installs. The installer includes a bootstrap that places the database structure, public-safe production rules, markdown-import tooling, LAN command chat, and the native 3D brain map into the OpenClaw workspace without shipping private live memory rows.
 
 The packaged database schema includes PostgreSQL add-on support for pgvector ANN recall, trigram recall indexes, and pg_cron-backed scheduled-job queue activation. The public package ships structure and install guidance only; live job payloads, private memory rows, credentials, contacts, and transcripts stay local to each install.
 
@@ -535,16 +539,17 @@ Public-safe MemoryDB docs:
 - [Root markdown DB-first policy](docs/root-markdown-db-first.md)
 - [Documentation maintenance](docs/documentation-maintenance.md)
 - [Release process](docs/release-process.md)
+- [Zorg Memory 3D brain map](docs/zorg-memory-3d.md)
 
 ## Zorg MemoryDB first-run installer
 
-Use the installer first on a fresh system. It follows the OpenClaw install pattern and upgrades/install prerequisites such as Node before installing Zorg MemoryDB and LAN command chat.
+Use the installer first on a fresh system. It follows the OpenClaw install pattern and upgrades/install prerequisites such as Node before installing Zorg MemoryDB, LAN command chat, and Zorg Memory 3D.
 
 ```bash
 curl -fsSL --proto '=https' --tlsv1.2 https://raw.githubusercontent.com/StefRush2099/Zorg_MemoryDB/main/scripts/install.sh | bash
 ```
 
-Install order is intentional: the script prepares missing software first, installs the Zorg GitHub package by default, then applies the Zorg MemoryDB add-on plus LAN command chat from the installed package. Set `OPENCLAW_NPM_SPEC` only when intentionally testing another package source. Do not use direct npm on fresh hosts as a replacement for this installer.
+Install order is intentional: the script prepares missing software first, installs the Zorg GitHub package by default, then applies the Zorg MemoryDB add-on plus LAN command chat and Zorg Memory 3D from the installed package. Set `OPENCLAW_NPM_SPEC` only when intentionally testing another package source. Do not use direct npm on fresh hosts as a replacement for this installer.
 
 Use direct npm only on systems that already have Node >=22.19.0 and working global npm permissions:
 

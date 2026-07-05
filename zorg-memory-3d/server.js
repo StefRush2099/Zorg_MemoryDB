@@ -1404,10 +1404,9 @@ function attractionAffinity(left, right) {
   return 0.012;
 }
 
-function applyRuntimeCollisionBoundary(nodeList, maxPasses = 4) {
+function applyRuntimeCollisionBoundary(nodeList) {
   let collisions = 0;
-  const passLimit = Math.max(1, Math.min(32, Math.round(Number(maxPasses) || 4)));
-  for (let pass = 0; pass < passLimit; pass += 1) {
+  for (let pass = 0; pass < 32; pass += 1) {
     let passCollisions = 0;
     for (let leftIndex = 0; leftIndex < nodeList.length; leftIndex += 1) {
       const left = nodeList[leftIndex];
@@ -1466,20 +1465,14 @@ function runtimeVectorRadius(link, renderConfig = null) {
   return Math.max(0.04, (baseWidth * render.vectorDiameterVisualScale) / 2);
 }
 
-function applyRuntimeVectorCollisionBoundary(
-  nodeList,
-  linkList,
-  renderConfig = null,
-  maxPasses = 2,
-) {
+function applyRuntimeVectorCollisionBoundary(nodeList, linkList, renderConfig = null) {
   const nodes = new Map(nodeList.map((node) => [node.id, node]));
   const adjustedNodeIds = new Set();
   let collisions = 0;
   let maxOverlapBefore = 0;
   let maxOverlapAfter = 0;
 
-  const passLimit = Math.max(1, Math.min(18, Math.round(Number(maxPasses) || 2)));
-  for (let pass = 0; pass < passLimit; pass += 1) {
+  for (let pass = 0; pass < 18; pass += 1) {
     let passCollisions = 0;
     for (const link of linkList) {
       const sourceId = endpointId(link.source);
@@ -1548,9 +1541,7 @@ function applyRuntimeVectorCollisionBoundary(
 }
 
 function settleRuntimeCollisionBoundaries(nodeList, linkList, renderConfig = null, options = {}) {
-  const maxPasses = Math.max(1, Math.min(24, Math.round(Number(options.maxPasses) || 3)));
-  const nodePasses = Math.max(1, Math.min(32, Math.round(Number(options.nodePasses) || 4)));
-  const vectorPasses = Math.max(1, Math.min(18, Math.round(Number(options.vectorPasses) || 2)));
+  const maxPasses = Math.max(1, Math.min(80, Math.round(Number(options.maxPasses) || 36)));
   let moved = 0;
   let collisionBoundary = 0;
   let vectorCollisionBoundary = {
@@ -1561,13 +1552,8 @@ function settleRuntimeCollisionBoundaries(nodeList, linkList, renderConfig = nul
   };
 
   for (let pass = 0; pass < maxPasses; pass += 1) {
-    const vectorStats = applyRuntimeVectorCollisionBoundary(
-      nodeList,
-      linkList,
-      renderConfig,
-      vectorPasses,
-    );
-    const nodeCollisions = applyRuntimeCollisionBoundary(nodeList, nodePasses);
+    const vectorStats = applyRuntimeVectorCollisionBoundary(nodeList, linkList, renderConfig);
+    const nodeCollisions = applyRuntimeCollisionBoundary(nodeList);
     moved += vectorStats.collisions + nodeCollisions;
     collisionBoundary = nodeCollisions;
     vectorCollisionBoundary = vectorStats;
@@ -2023,7 +2009,6 @@ class MemoryGameEngine {
     this.scanPage = 0;
     this.accumulatedNodes = new Map();
     this.accumulatedLinks = new Map();
-    this.syncProgress = { phase: "idle" };
   }
 
   async start() {
@@ -2164,48 +2149,10 @@ class MemoryGameEngine {
   async syncUnlocked(reason = "db-poll") {
     const scanOffset = this.scanPage * databaseScanBatchRows;
     this.scanPage = (this.scanPage + 1) % databaseScanMaxPages;
-    this.syncProgress = {
-      phase: "loadGraph",
-      reason,
-      scanOffset,
-      startedAt: new Date().toISOString(),
-    };
     const graphBatch = await loadGraph("", scanOffset);
-    this.syncProgress = {
-      phase: "identity",
-      reason,
-      scanOffset,
-      batchNodes: graphBatch.nodes.length,
-      batchLinks: graphBatch.links.length,
-      startedAt: this.syncProgress.startedAt,
-    };
     this.identity = await loadMemoryBrainIdentity();
-    this.syncProgress = {
-      phase: "accumulate",
-      reason,
-      scanOffset,
-      batchNodes: graphBatch.nodes.length,
-      batchLinks: graphBatch.links.length,
-      startedAt: this.syncProgress.startedAt,
-    };
     const fullGraph = this.accumulateGraphBatch(graphBatch, scanOffset);
-    this.syncProgress = {
-      phase: "stage",
-      reason,
-      scanOffset,
-      targetNodes: fullGraph.nodes.length,
-      targetLinks: fullGraph.links.length,
-      startedAt: this.syncProgress.startedAt,
-    };
     const graph = this.stageGraphBuild(fullGraph, reason);
-    this.syncProgress = {
-      phase: "mergeNodes",
-      reason,
-      scanOffset,
-      stagedNodes: graph.nodes.length,
-      stagedLinks: graph.links.length,
-      startedAt: this.syncProgress.startedAt,
-    };
     const events = [];
     const nextNodes = new Map();
     const seenLinks = new Map();
@@ -2348,14 +2295,6 @@ class MemoryGameEngine {
       }
     }
 
-    this.syncProgress = {
-      phase: "packets",
-      reason,
-      scanOffset,
-      stagedNodes: graph.nodes.length,
-      stagedLinks: graph.links.length,
-      startedAt: this.syncProgress.startedAt,
-    };
     let changedNodePacketEvents = 0;
     if (dataChangedNodeIds.size) {
       for (const nodeId of dataChangedNodeIds) {
@@ -2403,14 +2342,6 @@ class MemoryGameEngine {
         };
     if (this.rules.dynamicAssociationOrbit)
       applyDynamicAssociationOrbitSprings([...nextNodes.values()]);
-    this.syncProgress = {
-      phase: "settleCollisions",
-      reason,
-      scanOffset,
-      stagedNodes: graph.nodes.length,
-      stagedLinks: graph.links.length,
-      startedAt: this.syncProgress.startedAt,
-    };
     const syncCollisionSettlement =
       this.rules.vectorCollisionBoundary || this.rules.collisionBoundary
         ? settleRuntimeCollisionBoundaries(
@@ -2463,12 +2394,6 @@ class MemoryGameEngine {
     }
     broadcastGameSnapshot();
     this.syncInFlight = false;
-    this.syncProgress = {
-      phase: "idle",
-      reason,
-      scanOffset,
-      completedAt: new Date().toISOString(),
-    };
     return events;
   }
 
@@ -2640,14 +2565,12 @@ class MemoryGameEngine {
       stagedBuild: {
         enabled: true,
         reason,
-        rule: "active-window database scan stages connected nodes into the running brain map",
+        rule: "active-window database scan stages visible vector endpoint pairs into the running game before free movement",
         batchNodeLimit: stagedBuildNodeBatch,
         enteredNodes: staged.nodes.length,
         targetNodes: graph.nodes.length,
-        remainingNodes: Math.max(0, graph.nodes.length - staged.nodes.length),
         enteredLinks: staged.links.length,
         targetLinks: graph.links.length,
-        remainingLinks: Math.max(0, graph.links.length - staged.links.length),
         lastAddedNodes: this.buildState.lastAddedNodes,
         lastAddedLinks: this.buildState.lastAddedLinks,
         pairedEntries: this.buildState.pairedEntryCount,

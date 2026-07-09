@@ -342,6 +342,7 @@ function TuiConsole({
   onRestart,
   onKey,
   inputRef,
+  scrollRequestId,
 }: {
   payload: TuiPayload | null;
   input: string;
@@ -352,8 +353,31 @@ function TuiConsole({
   onRestart: () => void;
   onKey: (key: string) => void;
   inputRef: RefObject<HTMLInputElement | null>;
+  scrollRequestId: number;
 }) {
   const screen = payload?.screen || (payload?.error ? `TUI unavailable: ${payload.error}` : "Opening openclaw tui…");
+  const screenRef = useRef<HTMLPreElement | null>(null);
+  const didInitialScrollRef = useRef(false);
+
+  const scrollToBottom = useCallback(() => {
+    window.requestAnimationFrame(() => {
+      const el = screenRef.current;
+      if (!el) return;
+      el.scrollTop = el.scrollHeight;
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!payload?.screen || didInitialScrollRef.current) return;
+    didInitialScrollRef.current = true;
+    scrollToBottom();
+  }, [payload?.screen, scrollToBottom]);
+
+  useEffect(() => {
+    if (scrollRequestId <= 0) return;
+    scrollToBottom();
+  }, [scrollRequestId, scrollToBottom]);
+
   return (
     <section className="tui-panel">
       <div className="tui-toolbar">
@@ -363,7 +387,7 @@ function TuiConsole({
           <button className="ghost" onClick={onRestart} disabled={busy}>Restart</button>
         </div>
       </div>
-      <pre className="tui-screen" aria-label="openclaw tui screen output">{screen}</pre>
+      <pre ref={screenRef} className="tui-screen" aria-label="openclaw tui screen output">{screen}</pre>
       <div className="tui-command-row">
         <input
           ref={inputRef}
@@ -397,6 +421,7 @@ export default function Home() {
   const [tui, setTui] = useState<TuiPayload | null>(null);
   const [tuiInput, setTuiInput] = useState("");
   const [tuiBusy, setTuiBusy] = useState(false);
+  const [tuiScrollRequestId, setTuiScrollRequestId] = useState(0);
   const [dbStatus, setDbStatus] = useState<DbStatus | null>(null);
   const [dbQueries, setDbQueries] = useState<DbQueries | null>(null);
   const [dbError, setDbError] = useState<string | null>(null);
@@ -484,7 +509,7 @@ export default function Home() {
     setTui(data || null);
   }, []);
 
-  const postTui = useCallback(async (body: Record<string, string>) => {
+  const postTui = useCallback(async (body: Record<string, string>, options?: { scrollAfter?: boolean }) => {
     setTuiBusy(true);
     try {
       const res = await fetch("/api/tui", {
@@ -495,6 +520,7 @@ export default function Home() {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error || "TUI command failed");
       setTui(data || null);
+      if (options?.scrollAfter) setTuiScrollRequestId((value) => value + 1);
     } catch (error) {
       setTui((current) => ({ ...(current || {}), error: error instanceof Error ? error.message : "TUI command failed" }));
     } finally {
@@ -561,7 +587,7 @@ export default function Home() {
     const input = tuiInput.trimEnd();
     if (!input) return;
     setTuiInput("");
-    void postTui({ action: "send", input });
+    void postTui({ action: "send", input }, { scrollAfter: true });
   }
 
   useEffect(() => {
@@ -863,6 +889,7 @@ export default function Home() {
             onRestart={() => void postTui({ action: "restart" })}
             onKey={(key) => void postTui({ action: "key", key })}
             inputRef={tuiInputRef}
+            scrollRequestId={tuiScrollRequestId}
           />
           {notice ? <div className="notice command-notice" onClick={() => showNotice(null)}>{notice}</div> : null}
         </section>

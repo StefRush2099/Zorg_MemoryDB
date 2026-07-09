@@ -14,7 +14,9 @@ The console provides a local browser chat surface that talks to the OpenClaw Gat
 
 ## Features
 
-- Local web chat UI
+- Local web command-line UI backed by a tmux `openclaw tui` session
+- TUI output opens at the bottom and scrolls once after web command sends,
+  without timed auto-scroll
 - Gateway-backed `chat.send` / history access
 - PostgreSQL memory ingestion for LAN chat messages
 - Runtime and database status display

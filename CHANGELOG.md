@@ -10,6 +10,8 @@ All meaningful changes to this project are documented here and released with a G
   command line that opens and controls the local `openclaw tui`, moved the
   thinking/tool activity readout above the TUI, removed the extra command-line
   titles, and removed the retired browser alerts/speech control path.
+- Fixed the TUI output pane to land at the bottom on first render and after a
+  web command send without adding recurring auto-scroll.
 
 - Added Zorg Memory 3D as a built-in native Standard Ubuntu install service,
   including the brain map app, installer helper, docs, ADMIN-page explanation,

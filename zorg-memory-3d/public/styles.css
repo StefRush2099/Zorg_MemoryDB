@@ -77,6 +77,24 @@ a {
   overflow: auto;
 }
 
+:root[data-embed="true"] body {
+  overflow: hidden;
+  background: var(--bg);
+}
+
+:root[data-embed="true"] .shell {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+:root[data-embed="true"] #graph {
+  width: 100vw;
+  min-height: 100vh;
+}
+
+:root[data-embed="true"] .panel {
+  display: none;
+}
+
 .eyebrow {
   margin: 0 0 5px;
   color: var(--accent);

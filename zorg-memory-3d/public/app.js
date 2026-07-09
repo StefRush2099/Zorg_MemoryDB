@@ -8,7 +8,10 @@ const memoryStatusTitleEl = document.getElementById("memoryStatusTitle");
 const engineCountEls = document.querySelectorAll("[data-engine-count]");
 const urlParams = new URLSearchParams(location.search);
 const proxyPrefix = location.pathname.startsWith("/zorg-memory-3d") ? "/zorg-memory-3d" : "";
-const embedMode = urlParams.get("embed") === "1";
+const embedParam = urlParams.get("embed");
+const embedMode = embedParam !== null && embedParam !== "" && embedParam !== "0";
+
+if (embedMode) document.documentElement.dataset.embed = "true";
 
 function proxiedPath(path) {
   return `${proxyPrefix}${path}`;

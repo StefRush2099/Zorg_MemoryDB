@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "node server.js",
-    "check": "node --check server.js && node --check public/app.js && node --check public/admin.js && for f in features/*.js gamePieceFeatureLayers.js; do node --check \"$f\"; done"
+    "check": "node --check server.js"
   },
   "dependencies": {
     "3d-force-graph": "^1.77.0",

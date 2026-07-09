@@ -13,26 +13,30 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Text is required" }, { status: 400 });
     }
 
-    if (!appConfig.chatterboxBase) {
-      return NextResponse.json({ error: "Chatterbox base URL not configured" }, { status: 500 });
+    const provider = appConfig.kokoroBase ? "Kokoro" : "Chatterbox";
+    const configuredBase = appConfig.kokoroBase || appConfig.chatterboxBase;
+
+    if (!configuredBase) {
+      return NextResponse.json({ error: "TTS base URL not configured" }, { status: 500 });
     }
 
-    const base = appConfig.chatterboxBase.replace(/\/$/, "");
+    const base = configuredBase.replace(/\/$/, "");
     const endpoint = `${base}/audio/speech`;
 
     const response = await fetch(endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        model: appConfig.kokoroBase ? appConfig.kokoroModel : undefined,
         input: text,
-        voice: appConfig.chatterboxVoice || undefined,
+        voice: (appConfig.kokoroBase ? appConfig.kokoroVoice : appConfig.chatterboxVoice) || undefined,
         response_format: "wav",
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => "");
-      console.error("Chatterbox TTS failed", response.status, errorText);
+      console.error(`${provider} TTS failed`, response.status, errorText);
       return NextResponse.json({ error: "TTS request failed" }, { status: 502 });
     }
 

@@ -6,6 +6,11 @@ All meaningful changes to this project are documented here and released with a G
 
 ### Changed
 
+- Replaced the LAN command chat's main Conversation tile with a tmux-backed web
+  command line that opens and controls the local `openclaw tui`, while keeping
+  status, activity, DB gauges, query readout, browser audio, and Memory 3D
+  readouts visible.
+
 - Added Zorg Memory 3D as a built-in native Standard Ubuntu install service,
   including the brain map app, installer helper, docs, ADMIN-page explanation,
   and fresh GitHub screenshot assets.
@@ -56,6 +61,13 @@ All meaningful changes to this project are documented here and released with a G
   reducing noisy nearest-neighbor candidates.
 
 ### Verified
+
+- Verified the live native LAN chat build, `lan-chat.service`, `/api/tui`,
+  `/api/chat/status`, `/api/chat/activity`, `/api/db/status`,
+  `/api/db/queries`, and the local tmux `openclaw tui` session.
+
+- Verified the latest Vorg Memory 3D tree matches the local OpenClaw tree, then
+  checked the local `zorg-memory-3d.service` health and graph snapshot.
 
 - Verified the native `zorg-memory-3d.service` on OpenClaw, including health,
   live graph snapshot data, ADMIN setting patch/restore, and screenshots.

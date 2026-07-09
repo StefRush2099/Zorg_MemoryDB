@@ -23,7 +23,7 @@ A clean Zorg MemoryDB install must never recreate `memory/` markdown files as du
 Runtime paths must not create retired memory markdown either. Disable or patch OpenClaw's bundled `session-memory` hook and pre-compaction `memoryFlush` writer so they do not create `memory/YYYY-MM-DD.md`, `memory/YYYY-MM-DD-HHMM.md`, or equivalent files. If a retired memory file still appears, treat it only as emergency DB-import input: import it into PostgreSQL, remove the filesystem copy after successful import, and record the repair. Do not rely on read-only directory permissions as the enforcement mechanism because that causes permission-denied failures before repair can run.
 
 
-Before acting, query DB memory. DB recall is the durable memory path; retired flat-file memory fallback is prohibited. Preserve all durable history.
+Before acting, query DB memory. When an OpenClaw/Codex skill system is available, load the `db-memory` skill first and follow it as the canonical procedure for recall, inspection, repair, health checks, and DB-backed writes. DB recall is the durable memory path; retired flat-file memory fallback is prohibited. Preserve all durable history.
 
 ## User-visible timestamp / duration rule
 

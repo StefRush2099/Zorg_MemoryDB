@@ -6,7 +6,6 @@ import { appConfig } from "@/lib/env";
 import { getDbPool } from "@/lib/db";
 import { callGateway } from "@/lib/gatewayWs";
 import { normalizeMessages } from "@/lib/chat";
-import { logAppActivity } from "@/lib/chatIngest";
 
 export const runtime = "nodejs";
 
@@ -19,6 +18,7 @@ type StreamMessage = {
   role: "user" | "assistant" | "system";
   text: string;
   timestamp?: number;
+  attachments?: Array<{ name: string; type: string; size: number; url: string; path?: string; containerPath?: string }>;
 };
 
 const STREAM_HISTORY_LIMIT = 20;
@@ -67,6 +67,27 @@ function extractTranscriptText(content: unknown): string {
     .filter(Boolean)
     .join("\n")
     .trim();
+}
+
+function parseAttachmentSummary(value: unknown): StreamMessage["attachments"] {
+  if (typeof value !== "string" || !value.trim()) return undefined;
+  try {
+    const parsed = JSON.parse(value);
+    if (!Array.isArray(parsed)) return undefined;
+    const attachments = parsed
+      .map((file) => ({
+        name: typeof file?.name === "string" ? file.name : "file",
+        type: typeof file?.type === "string" ? file.type : "application/octet-stream",
+        size: typeof file?.size === "number" ? file.size : 0,
+        url: typeof file?.url === "string" ? file.url : "",
+        path: typeof file?.path === "string" ? file.path : undefined,
+        containerPath: typeof file?.containerPath === "string" ? file.containerPath : undefined,
+      }))
+      .filter((file) => file.url || file.path || file.containerPath);
+    return attachments.length ? attachments : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 function transcriptSessionKey(jsonlPath: string) {
@@ -158,13 +179,16 @@ async function loadDbHistory(): Promise<StreamMessage[] | null> {
         const parsed = JSON.parse(row.memory_value) as {
           role?: "user" | "assistant" | "system";
           message?: string;
+          attachmentSummary?: string | null;
           timestamp?: number | null;
         };
-        if (!parsed?.message || (parsed.role !== "user" && parsed.role !== "assistant" && parsed.role !== "system")) return null;
+        const attachments = parseAttachmentSummary(parsed?.attachmentSummary);
+        if ((!parsed?.message && !attachments?.length) || (parsed.role !== "user" && parsed.role !== "assistant" && parsed.role !== "system")) return null;
         return {
           id: row.memory_key || `db-${index}`,
           role: parsed.role,
-          text: parsed.message,
+          text: parsed.message || "Attached files",
+          attachments,
           timestamp: parsed.timestamp ?? (row.logged_at ? new Date(row.logged_at).getTime() : undefined),
         };
       } catch {
@@ -187,7 +211,16 @@ function unifiedLatest(messages: StreamMessage[] | null) {
       return true;
     })
     .slice(-STREAM_HISTORY_LIMIT)
-    .map(({ sortTime: _sortTime, ...message }) => message);
+    .map((message) => {
+      const withoutSortTime: Omit<typeof message, "sortTime"> = {
+        id: message.id,
+        role: message.role,
+        text: message.text,
+        attachments: message.attachments,
+        timestamp: message.timestamp,
+      };
+      return withoutSortTime;
+    });
 }
 
 export async function GET() {
@@ -197,11 +230,6 @@ export async function GET() {
     const dbMessages = dbResult.status === "fulfilled" ? dbResult.value ?? [] : [];
     const transcriptMessages = loadTranscriptHistory();
     const messages = unifiedLatest([...dbMessages, ...gatewayMessages, ...transcriptMessages]);
-
-    await logAppActivity({
-      activityKey: `history:${Date.now()}:unified`,
-      activityType: "chat_history",
-    });
 
     return NextResponse.json({
       messages,

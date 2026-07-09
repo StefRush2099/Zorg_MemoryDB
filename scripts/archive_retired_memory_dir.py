@@ -65,11 +65,15 @@ def main():
                     insert into public.zorg_memory_file_archive
                       (source_path, content_sha256, byte_size, line_count, content, content_json, notes)
                     values (%s, %s, %s, %s, %s, %s, %s)
-                    on conflict (source_path, content_sha256) do update
-                      set content=excluded.content,
+                    on conflict (source_path) do update
+                      set content_sha256=excluded.content_sha256,
+                          content=excluded.content,
                           byte_size=excluded.byte_size,
                           line_count=excluded.line_count,
                           content_json=excluded.content_json,
+                          migrated_at=now(),
+                          deleted_from_filesystem=false,
+                          deleted_at=null,
                           notes=excluded.notes
                     returning id::text
                     """,

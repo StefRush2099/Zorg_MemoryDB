@@ -3,6 +3,9 @@
 PostgreSQL Zorg MemoryDB is the primary source for durable rules, processes,
 and operating memory. This file is a bootstrap pointer only.
 
+When a skill system is available, use the `db-memory` skill before ad hoc memory
+lookup, repair, or write procedures.
+
 Create your local user profile here after installation if your OpenClaw workflow uses one.
 
 <!-- SCORCHED_MEMORY_RECALL_RULE -->

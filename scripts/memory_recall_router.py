@@ -95,6 +95,91 @@ def normalize_source_type(source_table: str) -> str:
     }.get(source_table, 'memory')
 
 
+def search_exact_hint_promotions(cur, query: str, limit: int) -> list[dict]:
+    normalized_query = ' '.join((query or '').lower().split())
+    if not normalized_query:
+        return []
+    cur.execute('set local statement_timeout = %s', (FALLBACK_STATEMENT_TIMEOUT_MS,))
+    cur.execute(
+        """
+        with exact_hints as (
+          select h.id, h.source_type, h.source_key, h.hint_kind, h.hint_text, h.weight
+          from public.memory_recall_hints h
+          where coalesce(h.active, true)
+            and h.hint_kind = 'exact_query_alias'
+            and lower(regexp_replace(h.hint_text, '\\s+', ' ', 'g')) = %s
+          order by h.weight desc, h.updated_at desc
+          limit greatest(%s * 2, 10)
+        ), linked_rules as (
+          select
+            'logic_rule'::text as source_type,
+            r.id::text as source_id,
+            r.priority,
+            left(concat_ws(E'\\n', r.rule_key, r.title, r.rule_text), 4000) as content,
+            h.weight,
+            0 as source_order
+          from exact_hints h
+          join public.zorg_logic_rules r
+            on h.source_type = 'logic_rule'
+           and r.rule_key = h.source_key
+           and coalesce(r.active, true)
+        ), hint_rows as (
+          select
+            'recall_hint'::text as source_type,
+            h.id::text as source_id,
+            'critical'::text as priority,
+            left(concat_ws(E'\\n', h.source_key, h.hint_kind, h.hint_text), 4000) as content,
+            h.weight,
+            1 as source_order
+          from exact_hints h
+        )
+        select source_type, source_id, priority, content
+        from (
+          select * from linked_rules
+          union all
+          select * from hint_rows
+        ) promoted
+        order by source_order, weight desc
+        limit %s
+        """,
+        (normalized_query, limit, limit),
+    )
+    return [
+        {
+            'source_type': normalize_source_type(row['source_type']),
+            'source_id': row['source_id'],
+            'path': None,
+            'line_start': None,
+            'line_end': None,
+            'priority': row['priority'] or 'critical',
+            'content': row['content'],
+        }
+        for row in cur.fetchall()
+    ]
+
+
+def prepend_promotions(promoted_rows: list[dict], rows: list[dict], limit: int) -> list[dict]:
+    if not promoted_rows:
+        return rows[:limit]
+    seen = set()
+    merged = []
+
+    def add(row):
+        key = (row.get('source_type'), str(row.get('source_id')))
+        if key in seen:
+            return
+        seen.add(key)
+        merged.append(row)
+
+    for row in promoted_rows:
+        add(row)
+    for row in rows:
+        add(row)
+        if len(merged) >= limit:
+            break
+    return merged[:limit]
+
+
 def search_fast_fallback(cur, query: str, limit: int):
     tokens = query_tokens(query)
     if not tokens and query:
@@ -177,6 +262,7 @@ def search_structured_db(query: str, limit: int):
     fallback_error = None
     with db_connect() as conn:
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
+            promoted_rows = search_exact_hint_promotions(cur, query, effective_limit)
             try:
                 cur.execute('set local statement_timeout = %s', (PRIMARY_STATEMENT_TIMEOUT_MS,))
                 cur.execute(
@@ -187,11 +273,14 @@ def search_structured_db(query: str, limit: int):
                     (query, effective_limit),
                 )
                 rows = cur.fetchall()
+                rows = prepend_promotions(promoted_rows, rows, effective_limit)
             except errors.QueryCanceled as e:
                 fallback_error = str(e)[:500]
                 conn.rollback()
                 with conn.cursor(cursor_factory=RealDictCursor) as fallback_cur:
+                    promoted_rows = search_exact_hint_promotions(fallback_cur, query, effective_limit)
                     rows = search_fast_fallback(fallback_cur, query, effective_limit)
+                    rows = prepend_promotions(promoted_rows, rows, effective_limit)
                     mode += '-fallback-fast-mv'
     return {
         'mode': mode,

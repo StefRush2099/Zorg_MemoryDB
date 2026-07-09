@@ -7,6 +7,9 @@ A clean Zorg MemoryDB install must never recreate `memory/` markdown files as du
 
 Add local durable memory here.
 
+When a skill system is available, use the `db-memory` skill first for MemoryDB
+recall, inspection, repair, health checks, and DB-backed writes.
+
 ## DB memory retention rule
 
 Never prune, delete, truncate, age out, compact-by-removal, or discard original/source DB memory data for performance. Grow continuously and improve recall only with additive semantic/vector/weighted layers.
@@ -104,4 +107,3 @@ Before drafting or publishing a new article, review the same-day feed/archive an
 
 The assistant owns the full article set and must keep the day’s coverage fresh, non-repetitive, and additive.
 <!-- /SAME_DAY_NEWS_FRESHNESS_RULE -->
-

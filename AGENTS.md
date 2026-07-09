@@ -34,9 +34,10 @@ After operational work, every progress update, blocker report, completion claim,
 Before any reply, tool call, command, file change, external action, or claim of inability:
 
 1. Query the database-backed memory system for the current request category, project, system, and likely prior solution.
-2. If first-pass recall is weak or empty, perform a deeper DB recall using alternate phrasings and adjacent concepts.
-3. Do not use flat-file memory fallback. Repair or restore DB memory if the DB path is unavailable; legacy markdown memory may be imported once into the DB archive, then retired.
-4. If memory cannot be checked, fail closed: do not proceed except to repair or verify the memory path.
+2. When an OpenClaw/Codex skill system is available, load the `db-memory` skill before ad hoc SQL, shell, or markdown recovery work; treat that skill as the canonical procedure for recall, inspection, repair, health checks, and DB-backed writes.
+3. If first-pass recall is weak or empty, perform a deeper DB recall using alternate phrasings and adjacent concepts.
+4. Do not use flat-file memory fallback. Repair or restore DB memory if the DB path is unavailable; legacy markdown memory may be imported once into the DB archive, then retired.
+5. If memory cannot be checked, fail closed: do not proceed except to repair or verify the memory path.
 
 ## DB-first recall rule
 

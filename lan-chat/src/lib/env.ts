@@ -3,6 +3,7 @@ export const appConfig = {
   sourceLabel: process.env.CHAT_SOURCE_LABEL?.trim() || "LAN Console",
   historyLimit: Number.parseInt(process.env.CHAT_HISTORY_LIMIT || "50", 10),
   gatewayTimeoutMs: Number.parseInt(process.env.GATEWAY_CALL_TIMEOUT_MS || "15000", 10),
+  statusTimeoutMs: Number.parseInt(process.env.OPENCLAW_STATUS_TIMEOUT_MS || "3000", 10),
   kokoroBase: process.env.KOKORO_BASE?.trim() || "",
   kokoroModel: process.env.KOKORO_MODEL?.trim() || "kokoro",
   kokoroVoice: process.env.KOKORO_VOICE?.trim() || "",
@@ -19,4 +20,8 @@ if (!Number.isFinite(appConfig.historyLimit) || appConfig.historyLimit <= 0) {
 
 if (!Number.isFinite(appConfig.gatewayTimeoutMs) || appConfig.gatewayTimeoutMs <= 0) {
   appConfig.gatewayTimeoutMs = 15000;
+}
+
+if (!Number.isFinite(appConfig.statusTimeoutMs) || appConfig.statusTimeoutMs <= 0) {
+  appConfig.statusTimeoutMs = 3000;
 }

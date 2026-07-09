@@ -7,6 +7,9 @@ A clean Zorg MemoryDB install must never recreate `memory/` markdown files as du
 
 ## Canonical tools
 
+- `db-memory` skill - canonical LLM-facing entry point for Zorg MemoryDB recall,
+  inspection, repair, health checks, write procedures, and bootstrap recovery
+  when an OpenClaw/Codex skill system is available
 - `scripts/memory_sql_tool.py` - direct DB recall, table listing, refresh, and row retrieval
 - `scripts/memory_recall_router.py` - structured DB-first recall wrapper
 - `scripts/import_markdown_memory.py` - imports local markdown into mapped DB tables
@@ -85,4 +88,3 @@ Before drafting or publishing a new article, review the same-day feed/archive an
 
 The assistant owns the full article set and must keep the day’s coverage fresh, non-repetitive, and additive.
 <!-- /SAME_DAY_NEWS_FRESHNESS_RULE -->
-

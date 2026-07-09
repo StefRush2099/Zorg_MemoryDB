@@ -141,9 +141,36 @@ function getStorageMetric() {
   }
 }
 
+function getMemoryMetric() {
+  try {
+    const meminfo = fs.readFileSync("/proc/meminfo", "utf8");
+    const values = Object.fromEntries(
+      meminfo
+        .split("\n")
+        .map((line) => line.match(/^([A-Za-z_()]+):\s+(\d+)\s+kB$/))
+        .filter((match): match is RegExpMatchArray => Boolean(match))
+        .map((match) => [match[1], Number(match[2]) * 1024]),
+    );
+    const totalBytes = values.MemTotal || 0;
+    const availableBytes = values.MemAvailable || values.MemFree || 0;
+    const usedBytes = Math.max(0, totalBytes - availableBytes);
+    const usedPercent = totalBytes > 0 ? (usedBytes / totalBytes) * 100 : 0;
+    return {
+      totalBytes,
+      availableBytes,
+      usedBytes,
+      usedPercent: Math.round(usedPercent * 10) / 10,
+      status: usedPercent >= 95 ? "hot" : usedPercent >= 85 ? "warn" : usedPercent >= 75 ? "busy" : usedPercent >= 60 ? "ok" : "great",
+    };
+  } catch {
+    return { totalBytes: 0, availableBytes: 0, usedBytes: 0, usedPercent: 0, status: "warn" };
+  }
+}
+
 export async function GET() {
   try {
     const storageMetric = getStorageMetric();
+    const memoryMetric = getMemoryMetric();
     const cpuMetric = getCpuMetric();
     const pool = getDbPool();
     if (!pool) {
@@ -176,6 +203,11 @@ export async function GET() {
           cpuBaseGHz: cpuMetric.baseGHz,
           cpuCapacityGHz: cpuMetric.capacityGHz,
           cpuCores: cpuMetric.cores,
+          memoryTotalBytes: memoryMetric.totalBytes,
+          memoryAvailableBytes: memoryMetric.availableBytes,
+          memoryUsedBytes: memoryMetric.usedBytes,
+          memoryUsedPercent: memoryMetric.usedPercent,
+          memoryStatus: memoryMetric.status,
         },
         healthScore: 0,
         degraded: true,
@@ -363,6 +395,11 @@ export async function GET() {
         cpuBaseGHz: cpuMetric.baseGHz,
         cpuCapacityGHz: cpuMetric.capacityGHz,
         cpuCores: cpuMetric.cores,
+        memoryTotalBytes: memoryMetric.totalBytes,
+        memoryAvailableBytes: memoryMetric.availableBytes,
+        memoryUsedBytes: memoryMetric.usedBytes,
+        memoryUsedPercent: memoryMetric.usedPercent,
+        memoryStatus: memoryMetric.status,
       },
       healthScore: clamp(
         Math.round(100 - blockedQueries * 18 - slowQueries * 10 - Math.min(longestQuerySeconds * 4, 35) - Math.max(0, 95 - cacheHitRatio) * 1.2),
@@ -373,6 +410,7 @@ export async function GET() {
   } catch (error) {
     console.error("db status failed", error);
     const storageMetric = getStorageMetric();
+    const memoryMetric = getMemoryMetric();
     const cpuMetric = getCpuMetric();
     return NextResponse.json({
       sampledAt: new Date().toISOString(),
@@ -403,6 +441,11 @@ export async function GET() {
         cpuBaseGHz: cpuMetric.baseGHz,
         cpuCapacityGHz: cpuMetric.capacityGHz,
         cpuCores: cpuMetric.cores,
+        memoryTotalBytes: memoryMetric.totalBytes,
+        memoryAvailableBytes: memoryMetric.availableBytes,
+        memoryUsedBytes: memoryMetric.usedBytes,
+        memoryUsedPercent: memoryMetric.usedPercent,
+        memoryStatus: memoryMetric.status,
       },
       healthScore: 0,
       degraded: true,

@@ -312,7 +312,7 @@ button.active {
 
 .admin-controls {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(240px, 0.85fr) minmax(280px, 1fr) minmax(320px, 1.15fr);
   align-items: start;
   gap: 16px;
 }
@@ -339,7 +339,7 @@ button.active {
 
 .admin-control {
   display: grid;
-  grid-template-columns: minmax(128px, 0.8fr) minmax(120px, 1.25fr) minmax(54px, 0.35fr);
+  grid-template-columns: minmax(96px, 0.85fr) minmax(88px, 1fr) minmax(44px, auto);
   align-items: center;
   gap: 10px;
   min-height: 38px;
@@ -375,6 +375,73 @@ button.active {
 .admin-control input[type="checkbox"] {
   width: 20px;
   height: 20px;
+}
+
+.admin-feature-modules {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.admin-feature-toggle {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) 36px;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding-top: 8px;
+  color: var(--ink);
+  font-size: 13px;
+}
+
+.admin-feature-toggle + .admin-feature-toggle {
+  border-top: 1px solid var(--line);
+}
+
+.admin-feature-toggle input {
+  width: 20px;
+  height: 20px;
+  padding: 0;
+}
+
+.admin-feature-text,
+.admin-feature-text strong,
+.admin-feature-description,
+.admin-feature-file {
+  display: block;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.admin-feature-text strong {
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.admin-feature-description {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+.admin-feature-file {
+  margin-top: 3px;
+  color: var(--accent);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-feature-toggle output {
+  color: var(--accent);
+  font-size: 12px;
+  text-align: right;
+}
+
+.admin-feature-empty {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
 }
 
 .history-estimate {
@@ -420,10 +487,23 @@ button.active {
   }
 
   .admin-control {
-    grid-template-columns: minmax(0, 1fr) minmax(112px, 1fr) minmax(48px, auto);
+    grid-template-columns: minmax(0, 1fr) minmax(88px, 1fr) minmax(44px, auto);
   }
 
   .history-estimate {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 861px) and (max-width: 1180px) {
+  .admin-controls {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-column[data-column="physics"] {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: start;
   }
 }

@@ -212,7 +212,7 @@ Prepare:
 Typical private environment variables:
 
 ```bash
-GITHUB_TOKEN=ghp_or_fine_grained_token
+GITHUB_TOKEN=<github-token>
 GITHUB_BACKUP_REPO=github.com/you/private-openclaw-backups.git
 ```
 

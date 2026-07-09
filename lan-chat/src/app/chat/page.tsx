@@ -1,6 +1,7 @@
 "use client";
 
-import { DragEvent, KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Image from "next/image";
+import { DragEvent, KeyboardEvent, RefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type Role = "assistant" | "user" | "system";
 
@@ -9,6 +10,7 @@ type ChatMessage = {
   role: Role;
   text: string;
   timestamp?: number;
+  attachments?: ChatAttachment[];
 };
 
 type ChatAttachment = {
@@ -55,6 +57,8 @@ type ChatStatus = {
   model?: string;
   thinking?: string;
   tokensUsed?: number;
+  inputTokens?: number;
+  outputTokens?: number;
   tokensLimit?: number;
   tokensPercent?: number;
   agentId?: string;
@@ -77,10 +81,26 @@ type ActivityPayload = {
   degraded?: boolean;
 };
 
-const CHAT_POLL_MS = 3500;
-const DB_POLL_MS = 1100;
+type TuiPayload = {
+  active?: boolean;
+  session?: string;
+  command?: string;
+  sampledAt?: string;
+  screen?: string;
+  error?: string;
+};
+
+function pollIntervalFromEnv(value: string | undefined, fallback: number, min: number) {
+  const parsed = Number.parseInt(value || "", 10);
+  return Number.isFinite(parsed) ? Math.max(parsed, min) : fallback;
+}
+
+const CHAT_POLL_MS = pollIntervalFromEnv(process.env.NEXT_PUBLIC_CHAT_POLL_MS, 12_000, 5_000);
+const DB_POLL_MS = pollIntervalFromEnv(process.env.NEXT_PUBLIC_DB_POLL_MS, 10_000, 5_000);
 const MAX_DROP_FILES = 12;
 const STORAGE_KEY = "lan-chat:v2:draft";
+const GAUGE_VIEW_KEY = "lan-chat:gauge-view";
+const DEFAULT_IDENTITY = "Zorg Rush";
 
 const emptyStatus: ChatStatus = { label: "local", model: "unknown", thinking: "unknown" };
 
@@ -88,11 +108,57 @@ function cx(...parts: Array<string | false | null | undefined>) {
   return parts.filter(Boolean).join(" ");
 }
 
+function buildMemory3dFrameSrc(theme: "light" | "dark") {
+  if (typeof window === "undefined") return "";
+  const params = new URLSearchParams({ theme, embed: "lan-chat-gauges" });
+  const { hostname, port } = window.location;
+  if (port === "3001") {
+    const direct = new URL(window.location.href);
+    direct.protocol = "http:";
+    direct.hostname = hostname || "127.0.0.1";
+    direct.port = "8097";
+    direct.pathname = "/";
+    direct.search = params.toString();
+    direct.hash = "";
+    return direct.toString();
+  }
+  return `/memory-3d-proxy/?${params.toString()}`;
+}
+
 function formatBytes(value?: number) {
   if (!value || value <= 0) return "0 B";
   const units = ["B", "KB", "MB", "GB", "TB"];
   const index = Math.min(Math.floor(Math.log(value) / Math.log(1024)), units.length - 1);
   return `${(value / 1024 ** index).toFixed(index ? 1 : 0)} ${units[index]}`;
+}
+
+
+function formatTuiTokenNumber(value?: number) {
+  if (!value || value <= 0) return "0";
+  if (value >= 1_000_000) return `${Math.round(value / 100_000) / 10}m`;
+  if (value >= 10_000) return `${Math.round(value / 1_000)}k`;
+  if (value >= 1_000) return `${Math.round(value / 100) / 10}k`;
+  return `${Math.round(value)}`;
+}
+
+function formatTokenCount(status?: ChatStatus) {
+  const input = status?.inputTokens ?? 0;
+  const output = status?.outputTokens ?? 0;
+  if (input > 0 || output > 0) return `${formatTuiTokenNumber(input)} in / ${formatTuiTokenNumber(output)} out`;
+  const total = status?.tokensUsed ?? 0;
+  return total > 0 ? `${formatTuiTokenNumber(total)} total` : "0 in / 0 out";
+}
+
+function displayThinking(value?: string) {
+  const cleaned = value?.trim();
+  if (!cleaned || cleaned.toLowerCase() === "default") return "unknown";
+  return cleaned;
+}
+
+function formatMemoryUsage(usedBytes?: number, totalBytes?: number, usedPercent?: number) {
+  const percent = typeof usedPercent === "number" && Number.isFinite(usedPercent) ? usedPercent : 0;
+  if (!usedBytes || !totalBytes) return percent > 0 ? `${percent.toFixed(1)}% used` : "memory n/a";
+  return `${formatBytes(usedBytes)} / ${formatBytes(totalBytes)} · ${percent.toFixed(1)}%`;
 }
 
 function formatTime(value?: number | string) {
@@ -108,7 +174,7 @@ function formatGHz(value: unknown) {
 }
 
 function roleLabel(role: Role, identity: string) {
-  if (role === "assistant") return identity || "Assistant";
+  if (role === "assistant") return identity || DEFAULT_IDENTITY;
   if (role === "system") return "System";
   return "You";
 }
@@ -120,6 +186,46 @@ function redactSensitiveText(text: string) {
       const separator = match.includes("=") ? "=" : ":";
       return `${match.split(separator)[0]}${separator}••••REDACTED••••`;
     });
+}
+
+function isImageAttachment(file: Pick<ChatAttachment, "type" | "url" | "name">) {
+  return file.type?.startsWith("image/") || /\.(png|jpe?g|gif|webp|bmp|svg)$/i.test(file.name || file.url || "");
+}
+
+function safeAttachmentUrl(url: string) {
+  if (!url) return "";
+  if (url.startsWith("/uploads/")) return url;
+  try {
+    const parsed = new URL(url, window.location.origin);
+    return parsed.origin === window.location.origin ? parsed.pathname + parsed.search : "";
+  } catch {
+    return "";
+  }
+}
+
+function pickAudioMimeType() {
+  const candidates = [
+    "audio/webm;codecs=opus",
+    "audio/webm",
+    "audio/mp4",
+    "audio/ogg;codecs=opus",
+  ];
+  return candidates.find((type) => typeof MediaRecorder !== "undefined" && MediaRecorder.isTypeSupported(type)) || "";
+}
+
+function secureMicUrl() {
+  if (typeof window === "undefined") return "";
+  const host = window.location.hostname;
+  if (host === "localhost" || host === "127.0.0.1" || host === "::1") return window.location.href;
+  return `https://${host}${window.location.pathname}${window.location.search}${window.location.hash}`;
+}
+
+function micUnavailableReason() {
+  if (typeof window === "undefined") return "Microphone is unavailable in this browser.";
+  if (!window.isSecureContext) return `Microphone requires the secure HTTPS console: ${secureMicUrl()}`;
+  if (!navigator.mediaDevices?.getUserMedia) return "This browser does not expose microphone recording APIs.";
+  if (typeof MediaRecorder === "undefined") return "This browser does not expose the MediaRecorder API.";
+  return "";
 }
 
 function metricLabel(key: string) {
@@ -167,6 +273,7 @@ function Gauge({ label, metric }: { label: string; metric?: DialMetric }) {
 
 function MessageBubble({ message, identity }: { message: ChatMessage; identity: string }) {
   const chunks = redactSensitiveText(message.text).split("\n");
+  const attachments = message.attachments ?? [];
   return (
     <article className={cx("message", `message-${message.role}`)}>
       <header>
@@ -178,6 +285,24 @@ function MessageBubble({ message, identity }: { message: ChatMessage; identity: 
           <p key={`${message.id}-${index}`}>{line || "\u00a0"}</p>
         ))}
       </div>
+      {attachments.length ? (
+        <div className="message-attachments">
+          {attachments.map((file, index) => {
+            const href = safeAttachmentUrl(file.url);
+            const label = `${file.name} · ${formatBytes(file.size)}`;
+            return (
+              <a className={cx("message-attachment", isImageAttachment(file) && "image")} href={href || undefined} target="_blank" rel="noreferrer" key={`${file.url || file.name}-${index}`}>
+                {href && isImageAttachment(file) ? (
+                  <Image src={href} alt={file.name} width={160} height={120} unoptimized />
+                ) : (
+                  <span className="file-icon">📎</span>
+                )}
+                <span>{label}</span>
+              </a>
+            );
+          })}
+        </div>
+      ) : null}
     </article>
   );
 }
@@ -207,15 +332,80 @@ function QueryReadout({ payload, error }: { payload: DbQueries | null; error: st
   );
 }
 
+function TuiConsole({
+  payload,
+  input,
+  busy,
+  onInput,
+  onSend,
+  onStart,
+  onRestart,
+  onKey,
+  inputRef,
+}: {
+  payload: TuiPayload | null;
+  input: string;
+  busy: boolean;
+  onInput: (value: string) => void;
+  onSend: () => void;
+  onStart: () => void;
+  onRestart: () => void;
+  onKey: (key: string) => void;
+  inputRef: RefObject<HTMLInputElement | null>;
+}) {
+  const screen = payload?.screen || (payload?.error ? `TUI unavailable: ${payload.error}` : "Opening openclaw tui…");
+  return (
+    <section className="tui-panel">
+      <div className="tui-toolbar">
+        <div>
+          <p className="eyebrow">OpenClaw TUI</p>
+          <h2>Web command line</h2>
+        </div>
+        <div className="tui-actions">
+          <button className="ghost" onClick={onStart} disabled={busy}>Open</button>
+          <button className="ghost" onClick={() => onKey("ctrlc")} disabled={busy}>Ctrl-C</button>
+          <button className="ghost" onClick={onRestart} disabled={busy}>Restart</button>
+        </div>
+      </div>
+      <pre className="tui-screen" aria-label="openclaw tui screen output">{screen}</pre>
+      <div className="tui-command-row">
+        <input
+          ref={inputRef}
+          value={input}
+          onChange={(event) => onInput(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              event.preventDefault();
+              onSend();
+            }
+          }}
+          placeholder="Type into openclaw tui and press Enter"
+          spellCheck={false}
+        />
+        <button className="primary" onClick={onSend} disabled={busy || !input.trim()}>Send</button>
+      </div>
+      <div className="tui-key-row">
+        {["up", "down", "left", "right", "tab", "escape", "enter"].map((key) => (
+          <button className="ghost" key={key} onClick={() => onKey(key)} disabled={busy}>{key}</button>
+        ))}
+        <span className="mini">{payload?.active ? `session ${payload.session || "open"}` : "session warming"} · {payload?.sampledAt ? formatTime(payload.sampledAt) : "not sampled"}</span>
+      </div>
+    </section>
+  );
+}
+
 export default function Home() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [status, setStatus] = useState<ChatStatus>(emptyStatus);
   const [activity, setActivity] = useState<ActivityPayload | null>(null);
+  const [tui, setTui] = useState<TuiPayload | null>(null);
+  const [tuiInput, setTuiInput] = useState("");
+  const [tuiBusy, setTuiBusy] = useState(false);
   const [dbStatus, setDbStatus] = useState<DbStatus | null>(null);
   const [dbQueries, setDbQueries] = useState<DbQueries | null>(null);
   const [dbError, setDbError] = useState<string | null>(null);
   const [queryError, setQueryError] = useState<string | null>(null);
-  const [identity, setIdentity] = useState("Assistant");
+  const [identity, setIdentity] = useState(DEFAULT_IDENTITY);
   const [draft, setDraft] = useState("");
   const [attachments, setAttachments] = useState<ChatAttachment[]>([]);
   const [sending, setSending] = useState(false);
@@ -227,8 +417,13 @@ export default function Home() {
   const [transcribing, setTranscribing] = useState(false);
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [compact, setCompact] = useState(false);
+  const [gaugeView, setGaugeView] = useState<"gauges" | "memory3d">("gauges");
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission | "unsupported">("default");
+  const [soundUnlocked, setSoundUnlocked] = useState(false);
+  const [speechEnabled, setSpeechEnabled] = useState(false);
 
   const textRef = useRef<HTMLTextAreaElement | null>(null);
+  const tuiInputRef = useRef<HTMLInputElement | null>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
   const messagesRef = useRef<HTMLDivElement | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
@@ -236,16 +431,24 @@ export default function Home() {
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<BlobPart[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
+  const spokenMessageIdsRef = useRef<Set<string>>(new Set());
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const metrics = dbStatus?.metrics ?? {};
   const rawCpuGHz = Number(dbStatus?.details?.cpuGHz ?? 0);
   const cpuCapacityGHz = Number(dbStatus?.details?.cpuCapacityGHz ?? 0);
   const cpuGHz = formatGHz(rawCpuGHz);
   const cpuRatio = Math.min(1, Math.max(0, rawCpuGHz / Math.max(cpuCapacityGHz, 1)));
+  const memoryUsedBytes = Number(dbStatus?.details?.memoryUsedBytes ?? 0);
+  const memoryTotalBytes = Number(dbStatus?.details?.memoryTotalBytes ?? 0);
+  const memoryUsedPercent = Number(dbStatus?.details?.memoryUsedPercent ?? 0);
+  const memoryRatio = Math.min(1, Math.max(0, memoryUsedPercent / 100));
   const dragActive = dragDepth > 0;
   const canSend = (draft.trim().length > 0 || attachments.length > 0) && !sending && !uploading;
 
   const latestAssistant = useMemo(() => [...messages].reverse().find((m) => m.role === "assistant"), [messages]);
+  const memory3dFrameSrc = useMemo(() => buildMemory3dFrameSrc(theme), [theme]);
+  const alertStatus = notificationPermission === "unsupported" ? "alerts unavailable" : notificationPermission === "granted" && soundUnlocked ? "alerts + speech ready" : notificationPermission === "denied" ? "alerts blocked" : soundUnlocked ? "sound ready" : "alerts + speech off";
 
   const showNotice = useCallback((message: string | null, durationMs = 0) => {
     if (noticeTimerRef.current) {
@@ -285,6 +488,31 @@ export default function Home() {
     setActivity(data || null);
   }, []);
 
+  const loadTui = useCallback(async () => {
+    const res = await fetch("/api/tui", { cache: "no-store" });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data?.error || "TUI unavailable");
+    setTui(data || null);
+  }, []);
+
+  const postTui = useCallback(async (body: Record<string, string>) => {
+    setTuiBusy(true);
+    try {
+      const res = await fetch("/api/tui", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.error || "TUI command failed");
+      setTui(data || null);
+    } catch (error) {
+      setTui((current) => ({ ...(current || {}), error: error instanceof Error ? error.message : "TUI command failed" }));
+    } finally {
+      setTuiBusy(false);
+    }
+  }, []);
+
   const loadDb = useCallback(async () => {
     const [statusRes, queriesRes] = await Promise.allSettled([
       fetch("/api/db/status", { cache: "no-store" }).then((r) => (r.ok ? r.json() : Promise.reject(new Error("DB gauges unavailable")))),
@@ -305,23 +533,49 @@ export default function Home() {
     if (saved) setDraft(saved);
     const savedTheme = localStorage.getItem("lan-chat:theme");
     setTheme(savedTheme === "dark" ? "dark" : "light");
+    const savedGaugeView = localStorage.getItem(GAUGE_VIEW_KEY);
+    setGaugeView(savedGaugeView === "memory3d" ? "memory3d" : "gauges");
     loadHistory().catch((err) => setNotice(err.message));
     loadStatus().catch(() => undefined);
     loadActivity().catch(() => undefined);
+    loadTui().catch((err) => setTui({ error: err instanceof Error ? err.message : "TUI unavailable" }));
     loadDb().catch(() => undefined);
-    const chatTimer = window.setInterval(() => {
+    const refreshWhenVisible = () => {
+      if (document.hidden) return;
       loadHistory().catch(() => undefined);
       loadStatus().catch(() => undefined);
       loadActivity().catch(() => undefined);
-    }, CHAT_POLL_MS);
-    const dbTimer = window.setInterval(() => loadDb().catch(() => undefined), DB_POLL_MS);
+      loadTui().catch(() => undefined);
+    };
+    const refreshDbWhenVisible = () => {
+      if (document.hidden) return;
+      loadDb().catch(() => undefined);
+    };
+    const onVisibilityChange = () => {
+      if (document.hidden) return;
+      refreshWhenVisible();
+      refreshDbWhenVisible();
+    };
+    const chatTimer = window.setInterval(refreshWhenVisible, CHAT_POLL_MS);
+    const dbTimer = window.setInterval(refreshDbWhenVisible, DB_POLL_MS);
+    document.addEventListener("visibilitychange", onVisibilityChange);
     return () => {
       window.clearInterval(chatTimer);
       window.clearInterval(dbTimer);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
       if (noticeTimerRef.current) window.clearTimeout(noticeTimerRef.current);
       streamRef.current?.getTracks().forEach((track) => track.stop());
+      audioRef.current?.pause();
+      audioRef.current = null;
     };
-  }, [loadActivity, loadDb, loadHistory, loadStatus]);
+  }, [loadActivity, loadDb, loadHistory, loadStatus, loadTui]);
+
+  function sendTuiInput() {
+    const input = tuiInput.trimEnd();
+    if (!input) return;
+    setTuiInput("");
+    void postTui({ action: "send", input });
+  }
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, draft);
@@ -330,6 +584,18 @@ export default function Home() {
   useEffect(() => {
     localStorage.setItem("lan-chat:theme", theme);
   }, [theme]);
+
+  useEffect(() => {
+    localStorage.setItem(GAUGE_VIEW_KEY, gaugeView);
+  }, [gaugeView]);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !("Notification" in window)) {
+      setNotificationPermission("unsupported");
+      return;
+    }
+    setNotificationPermission(Notification.permission);
+  }, []);
 
   useEffect(() => {
     const el = messagesRef.current;
@@ -372,7 +638,8 @@ export default function Home() {
     const optimistic: ChatMessage = {
       id: `local-${Date.now()}`,
       role: "user",
-      text: [message, attachments.length ? attachments.map((a) => `📎 ${a.name} (${formatBytes(a.size)})`).join("\n") : ""].filter(Boolean).join("\n\n"),
+      text: message || (attachments.length ? "Attached files" : ""),
+      attachments,
       timestamp: Date.now(),
     };
     setMessages((current) => [...current, optimistic]);
@@ -431,6 +698,118 @@ export default function Home() {
     if (event.dataTransfer.files?.length) void uploadFiles(event.dataTransfer.files);
   }
 
+  function markExistingAssistantMessagesSpoken() {
+    spokenMessageIdsRef.current = new Set(messages.filter((message) => message.role === "assistant").map((message) => message.id));
+  }
+
+  async function unlockBrowserSound() {
+    const AudioContextCtor = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!AudioContextCtor) throw new Error("This browser does not expose Web Audio for sound unlock.");
+    const context = new AudioContextCtor();
+    if (context.state === "suspended") await context.resume();
+    const oscillator = context.createOscillator();
+    const gain = context.createGain();
+    gain.gain.value = 0.025;
+    oscillator.type = "sine";
+    oscillator.frequency.value = 880;
+    oscillator.connect(gain);
+    gain.connect(context.destination);
+    oscillator.start();
+    oscillator.stop(context.currentTime + 0.08);
+    window.setTimeout(() => void context.close().catch(() => undefined), 220);
+  }
+
+  async function requestAlertsAndSpeech() {
+    if (speechEnabled) {
+      setSpeechEnabled(false);
+      showNotice("Browser speech paused. Alerts stay at the browser permission setting.", 2600);
+      return;
+    }
+
+    if (typeof window === "undefined") return;
+    if (!window.isSecureContext) {
+      showNotice(`Browser alerts and speech unlock require the secure HTTPS console: ${secureMicUrl()}`, 9000);
+      return;
+    }
+
+    try {
+      let permission: NotificationPermission | "unsupported" = "unsupported";
+      if ("Notification" in window) {
+        permission = Notification.permission;
+        if (permission === "default") permission = await Notification.requestPermission();
+        setNotificationPermission(permission);
+        if (permission === "granted") {
+          new Notification("LAN Command Chat alerts enabled", { body: "Browser alerts are ready for new assistant replies." });
+        }
+      } else {
+        setNotificationPermission("unsupported");
+      }
+
+      await unlockBrowserSound();
+      markExistingAssistantMessagesSpoken();
+      setSoundUnlocked(true);
+      setSpeechEnabled(true);
+      showNotice(permission === "granted" ? "Alerts and browser speech are enabled." : "Browser speech is enabled. Alerts are not granted.", 3600);
+    } catch (error) {
+      setSoundUnlocked(false);
+      setSpeechEnabled(false);
+      showNotice(error instanceof Error ? error.message : "Could not enable browser alerts and speech.", 7000);
+    }
+  }
+
+  const notifyAssistantReply = useCallback((message: ChatMessage) => {
+    if (notificationPermission !== "granted" || typeof window === "undefined" || !("Notification" in window)) return;
+    const body = redactSensitiveText(message.text).replace(/\s+/g, " ").slice(0, 180) || "New assistant reply is ready.";
+    try {
+      new Notification(`${identity} replied`, { body });
+    } catch {
+      // Browser notification delivery is best effort after permission is granted.
+    }
+  }, [identity, notificationPermission]);
+
+  const speakAssistantReply = useCallback(async (message: ChatMessage) => {
+    const text = redactSensitiveText(message.text).trim();
+    if (!text) return;
+
+    try {
+      const res = await fetch("/api/tts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      });
+      if (res.ok) {
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        audioRef.current?.pause();
+        const audio = new Audio(url);
+        audioRef.current = audio;
+        audio.onended = () => URL.revokeObjectURL(url);
+        audio.onerror = () => URL.revokeObjectURL(url);
+        await audio.play();
+        return;
+      }
+    } catch {
+      // Fall through to browser-native speech synthesis when the LAN TTS service is unavailable.
+    }
+
+    if ("speechSynthesis" in window && "SpeechSynthesisUtterance" in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text.slice(0, 1800));
+      window.speechSynthesis.speak(utterance);
+      return;
+    }
+
+    throw new Error("Browser speech is unavailable: LAN TTS failed and this browser has no speech synthesis API.");
+  }, []);
+
+  useEffect(() => {
+    if (!speechEnabled || !soundUnlocked || !latestAssistant) return;
+    if (spokenMessageIdsRef.current.has(latestAssistant.id)) return;
+    spokenMessageIdsRef.current.add(latestAssistant.id);
+    notifyAssistantReply(latestAssistant);
+    speakAssistantReply(latestAssistant).catch((error) => showNotice(error instanceof Error ? error.message : "Browser speech failed", 7000));
+  }, [latestAssistant, notifyAssistantReply, showNotice, soundUnlocked, speakAssistantReply, speechEnabled]);
+
   async function toggleRecording() {
     if (recording) {
       recorderRef.current?.stop();
@@ -438,21 +817,38 @@ export default function Home() {
       return;
     }
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const unavailable = micUnavailableReason();
+      if (unavailable) {
+        throw new Error(unavailable);
+      }
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        },
+      });
       streamRef.current = stream;
       chunksRef.current = [];
-      const recorder = new MediaRecorder(stream);
+      const mimeType = pickAudioMimeType();
+      const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
       recorderRef.current = recorder;
       recorder.ondataavailable = (event) => {
         if (event.data.size) chunksRef.current.push(event.data);
       };
+      recorder.onerror = (event) => {
+        setNotice(`Microphone recorder error: ${event.error?.message || "unknown recorder error"}`);
+      };
       recorder.onstop = async () => {
         stream.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
         setTranscribing(true);
         try {
           const blob = new Blob(chunksRef.current, { type: recorder.mimeType || "audio/webm" });
+          if (!blob.size) throw new Error("No microphone audio was recorded.");
           const form = new FormData();
-          form.append("audio", blob, "lan-chat-voice.webm");
+          const ext = recorder.mimeType.includes("mp4") ? "m4a" : recorder.mimeType.includes("ogg") ? "ogg" : "webm";
+          form.append("audio", blob, `lan-chat-voice.${ext}`);
           const res = await fetch("/api/transcribe", { method: "POST", body: form });
           const data = await res.json().catch(() => ({}));
           if (!res.ok) throw new Error(data?.error || "transcription failed");
@@ -464,10 +860,14 @@ export default function Home() {
           setTranscribing(false);
         }
       };
-      recorder.start();
+      recorder.start(1000);
       setRecording(true);
       setNotice("Recording voice note… tap again to stop.");
     } catch (error) {
+      streamRef.current?.getTracks().forEach((track) => track.stop());
+      audioRef.current?.pause();
+      audioRef.current = null;
+      streamRef.current = null;
       setNotice(error instanceof Error ? error.message : "Microphone unavailable");
     }
   }
@@ -494,45 +894,79 @@ export default function Home() {
 
       <header className="topbar panel">
         <div>
-          <p className="eyebrow">LAN Command Chat · port 3001</p>
+          <p className="eyebrow">LAN Command Chat</p>
           <h1>{identity}</h1>
-          <p className="subtle">Local-first back channel for the operator, the agent, and authorized LAN agents.</p>
+          <p className="subtle">Local-first back channel for the operator, this agent, and authorized LAN agents.</p>
         </div>
         <div className="top-actions">
           <button className="ghost" onClick={() => setTheme((value) => (value === "light" ? "dark" : "light"))}>{theme === "light" ? "Dark" : "Light"} mode</button>
           <button className="ghost" onClick={() => setCompact((value) => !value)}>{compact ? "Roomy" : "Compact"}</button>
-          <button className="ghost" onClick={() => void loadHistory()}>Refresh</button>
-          <button className="primary" onClick={() => textRef.current?.focus()}>Command</button>
+          <button className={cx("ghost", speechEnabled && "selected")} onClick={() => void requestAlertsAndSpeech()}>{speechEnabled ? "Speech on" : "Enable alerts + speech"}</button>
+          <button className="ghost" onClick={() => { void loadHistory(); void loadStatus(); void loadActivity(); void loadTui(); void loadDb(); }}>Refresh</button>
+          <button className="primary" onClick={() => tuiInputRef.current?.focus()}>Command</button>
         </div>
       </header>
 
       <section className="status-strip">
-        <div className="chip"><span>Session</span><b>{status.label || "main"}</b></div>
-        <div className="chip"><span>Agent</span><b>{status.agentId || "main"}</b></div>
-        <div className="chip wide"><span>Model</span><b>{status.model || "unavailable"}</b></div>
-        <div className="chip"><span>Thinking</span><b>{status.thinking || "unknown"}</b></div>
+        <div className="chip"><span>Model</span><b>{status.model || "unavailable"}</b></div>
+        <div className="chip"><span>Thinking</span><b>{displayThinking(status.thinking)}</b></div>
+        <div className="chip wide"><span>Tokens transmitted</span><b>{formatTokenCount(status)}</b></div>
+        <div className="chip memory-chip">
+          <span>Memory</span>
+          <b>{formatMemoryUsage(memoryUsedBytes, memoryTotalBytes, memoryUsedPercent)}</b>
+          <div className="cpu-spike memory-spike" aria-label="Local memory usage live level">
+            <span style={{ ["--cpu-ratio" as string]: memoryRatio }} />
+          </div>
+        </div>
         <div className="chip"><span>Sync</span><b>{formatTime(lastSync || undefined)}</b></div>
+        <div className="chip"><span>Browser audio</span><b>{alertStatus}</b></div>
       </section>
 
       <div className="workspace-grid">
         <aside className="left-rail">
-          <section className="panel gauge-panel">
+          <section className={cx("panel gauge-panel", gaugeView === "memory3d" && "memory3d-panel")}>
             <div className="panel-title-row gauge-title-row">
-              <span className={cx("health cpu-ghz", dbStatus?.degraded && "warn")}>{dbError || cpuGHz}</span>
-              <div className="cpu-spike" aria-label="CPU GHz live level">
-                <span style={{ ["--cpu-ratio" as string]: cpuRatio }} />
+              {gaugeView === "gauges" ? (
+                <>
+                  <span className={cx("health cpu-ghz", dbStatus?.degraded && "warn")}>{dbError || cpuGHz}</span>
+                  <div className="cpu-spike" aria-label="CPU GHz live level">
+                    <span style={{ ["--cpu-ratio" as string]: cpuRatio }} />
+                  </div>
+                </>
+              ) : (
+                <span className="health memory3d-health">Zorg Memory DB 3D</span>
+              )}
+              <button className="ghost gauge-switch" onClick={() => setGaugeView((value) => (value === "gauges" ? "memory3d" : "gauges"))}>
+                {gaugeView === "gauges" ? "Memory 3D" : "Gauges"}
+              </button>
+            </div>
+            {gaugeView === "memory3d" ? (
+              <div className="memory3d-frame-wrap">
+                {memory3dFrameSrc ? (
+                  <iframe
+                    key={memory3dFrameSrc}
+                    className="memory3d-frame"
+                    src={memory3dFrameSrc}
+                    title="Zorg Memory DB 3D"
+                    loading="eager"
+                    allow="fullscreen"
+                  />
+                ) : null}
               </div>
-            </div>
-            <div className="gauges">
-              <Gauge label={metricLabel("queriesPerSecond")} metric={metrics.queriesPerSecond} />
-              <Gauge label={metricLabel("cacheHitRatio")} metric={metrics.cacheHitRatio} />
-              <Gauge label={metricLabel("writesPerSecond")} metric={metrics.writesPerSecond} />
-              <Gauge label={metricLabel("dbSize")} metric={metrics.dbSize} />
-            </div>
-            <div className="db-detail-grid">
-              <span>DB size <b>{formatBytes(Number(dbStatus?.details?.dbSizeBytes ?? 0))}</b></span>
-              <span>Free space <b>{formatBytes(Number(dbStatus?.details?.storageFreeBytes ?? 0))}</b></span>
-            </div>
+            ) : (
+              <>
+                <div className="gauges">
+                  <Gauge label={metricLabel("queriesPerSecond")} metric={metrics.queriesPerSecond} />
+                  <Gauge label={metricLabel("cacheHitRatio")} metric={metrics.cacheHitRatio} />
+                  <Gauge label={metricLabel("writesPerSecond")} metric={metrics.writesPerSecond} />
+                  <Gauge label={metricLabel("dbSize")} metric={metrics.dbSize} />
+                </div>
+                <div className="db-detail-grid">
+                  <span>DB size <b>{formatBytes(Number(dbStatus?.details?.dbSizeBytes ?? 0))}</b></span>
+                  <span>Free space <b>{formatBytes(Number(dbStatus?.details?.storageFreeBytes ?? 0))}</b></span>
+                </div>
+              </>
+            )}
           </section>
           <QueryReadout payload={dbQueries} error={queryError} />
         </aside>
@@ -540,10 +974,22 @@ export default function Home() {
         <section className="chat-panel panel">
           <div className="panel-title-row chat-title">
             <div>
-              <p className="eyebrow">Conversation</p>
+              <p className="eyebrow">Command line</p>
             </div>
-            {latestAssistant ? <span className="mini">last reply {formatTime(latestAssistant.timestamp)}</span> : <span className="mini">ready</span>}
+            <span className="mini">{tui?.active ? "openclaw tui open" : "ready"}</span>
           </div>
+          <TuiConsole
+            payload={tui}
+            input={tuiInput}
+            busy={tuiBusy}
+            onInput={setTuiInput}
+            onSend={sendTuiInput}
+            onStart={() => void postTui({ action: "start" })}
+            onRestart={() => void postTui({ action: "restart" })}
+            onKey={(key) => void postTui({ action: "key", key })}
+            inputRef={tuiInputRef}
+          />
+          {notice ? <div className="notice command-notice" onClick={() => showNotice(null)}>{notice}</div> : null}
           <section className={cx("activity-card", activity?.active && "active", activity?.label === "Reply ready" && "ready", activity?.degraded && "unavailable")}>
             <div className="activity-head">
               <span className="activity-dot" />
@@ -562,50 +1008,6 @@ export default function Home() {
               {(!activity?.events || activity.events.length === 0) ? <div className="activity-event"><b>No current run</b><span>Messages will show thinking/tools here while this agent works.</span></div> : null}
             </div>
           </section>
-          <div className="messages" ref={messagesRef} aria-live="polite">
-            {messages.length === 0 ? (
-              <div className="empty-state">
-                <strong>Local channel is ready.</strong>
-                <p>Type, paste, drag files, or dictate a command.</p>
-              </div>
-            ) : null}
-            {messages.map((message) => <MessageBubble key={message.id} message={message} identity={identity} />)}
-            {sending ? <div className="working">Sending<span>.</span><span>.</span><span>.</span></div> : null}
-            <div ref={bottomRef} />
-          </div>
-
-          <footer className="composer">
-            {notice ? <div className="notice" onClick={() => showNotice(null)}>{notice}</div> : null}
-            {attachments.length ? (
-              <div className="attachment-shelf">
-                {attachments.map((file, index) => (
-                  <button key={`${file.url}-${index}`} onClick={() => setAttachments((current) => current.filter((_, i) => i !== index))} title="Remove attachment">
-                    <span>📎 {file.name}</span>
-                    <b>{formatBytes(file.size)}</b>
-                  </button>
-                ))}
-              </div>
-            ) : null}
-            <div className="mode-row">
-              <span className="hint">Everything is chat · Drag files anywhere · Ctrl/⌘ Enter sends</span>
-            </div>
-            <div className="compose-box">
-              <textarea
-                ref={textRef}
-                value={draft}
-                onChange={(event) => setDraft(event.target.value)}
-                onKeyDown={onKeyDown}
-                placeholder={`Send a command to ${identity}…`}
-                spellCheck
-              />
-              <div className="compose-actions">
-                <input ref={fileRef} type="file" multiple hidden onChange={(event) => event.target.files && void uploadFiles(event.target.files)} />
-                <button className="ghost" onClick={() => fileRef.current?.click()} disabled={uploading}>{uploading ? "Uploading" : "Attach"}</button>
-                <button className={cx("ghost", recording && "danger")} onClick={() => void toggleRecording()} disabled={transcribing}>{recording ? "Stop" : transcribing ? "Transcribing" : "Mic"}</button>
-                <button className="primary send" onClick={() => void sendMessage()} disabled={!canSend}>{sending ? "Sending" : "Send"}</button>
-              </div>
-            </div>
-          </footer>
         </section>
       </div>
 

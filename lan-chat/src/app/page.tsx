@@ -4,13 +4,15 @@ import { FormEvent, useEffect, useState } from "react";
 
 type IdentityPayload = { name?: string };
 
+const DEFAULT_IDENTITY = "Zorg Rush";
+
 function cx(...parts: Array<string | false | null | undefined>) {
   return parts.filter(Boolean).join(" ");
 }
 
 export default function LoginPage() {
   const [theme, setTheme] = useState<"light" | "dark">("light");
-  const [identity, setIdentity] = useState("Assistant");
+  const [identity, setIdentity] = useState(DEFAULT_IDENTITY);
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -20,8 +22,8 @@ export default function LoginPage() {
     setTheme(savedTheme === "dark" ? "dark" : "light");
     fetch("/api/chat/identity", { cache: "no-store" })
       .then((res) => (res.ok ? res.json() : Promise.reject(new Error("identity unavailable"))))
-      .then((data: IdentityPayload) => setIdentity(data.name || "Assistant"))
-      .catch(() => setIdentity("Assistant"));
+      .then((data: IdentityPayload) => setIdentity(data.name || DEFAULT_IDENTITY))
+      .catch(() => setIdentity(DEFAULT_IDENTITY));
   }, []);
 
   useEffect(() => {

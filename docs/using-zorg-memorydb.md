@@ -14,6 +14,12 @@ Install guide: https://docs.openclaw.ai/install
 
 Zorg MemoryDB is installed as an additive branch or fork of upstream OpenClaw. OpenClaw still supplies the Gateway, Control UI, TUI, chat channels, device pairing, and gateway authentication behavior. Zorg MemoryDB adds DB-backed recall, public-safe operating-rule templates, the local LAN command chat, and the Zorg Memory 3D brain map on top of that normal OpenClaw runtime.
 
+For LLM agents that support skills, install or expose the `db-memory` skill and
+instruct agents to load it before MemoryDB recall, inspection, repair, health
+checks, DB-backed writes, or MemoryDB documentation work. The skill is the
+portable operating procedure; the markdown files remain bootstrap and
+public-safe recovery documentation.
+
 ## The Three Ways to Talk to the Assistant
 
 A finished install should give the operator at least one of these access paths:

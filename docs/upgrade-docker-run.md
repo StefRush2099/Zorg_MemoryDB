@@ -29,7 +29,7 @@ Do not delete `openclaw-home/`. The upgrade replaces the container wrapper and i
 
 ```bash INSTALL_ID="${PWD##*/}" ```
 
-What this does: saves the current folder name, such as `front-desk-assistant`, into `INSTALL_ID`. The next commands use that value to find the existing container name. If your folder is `front-desk-assistant`, the container name is `front-desk-assistant-zorg-memorydb`.
+What this does: saves the current folder name, such as `front-desk-assistant`, into `INSTALL_ID`. The next commands use that value to find the existing container name. If your folder is `front-desk-assistant`, the container name is `front-desk-example-placeholder`.
 
 ## Step 4: Download the New Image
 

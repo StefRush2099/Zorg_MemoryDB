@@ -381,6 +381,13 @@ const shapeGeometryBuilders = {
 };
 const nodeGeometryCache = new Map();
 
+function geometryFaceCount(geometry) {
+  const indexedTriangles = Number(geometry?.index?.count) / 3;
+  if (Number.isFinite(indexedTriangles) && indexedTriangles > 0) return Math.floor(indexedTriangles);
+  const positionTriangles = Number(geometry?.attributes?.position?.count) / 3;
+  return Number.isFinite(positionTriangles) && positionTriangles > 0 ? Math.floor(positionTriangles) : null;
+}
+
 function createNodeGeometry(shape, radius) {
   const builder = shapeGeometryBuilders[shape];
   if (!builder) throw new Error(`Unavailable 3D geometry for node shape: ${shape}`);
@@ -391,6 +398,19 @@ function createNodeGeometry(shape, radius) {
   geometry.computeBoundingSphere();
   nodeGeometryCache.set(cacheKey, geometry);
   return geometry;
+}
+
+function nodeGeometryFaceCount(node) {
+  if (!node?.id) return null;
+  try {
+    const size = visualNodeVal(node);
+    const radius = Math.max(1.8, size * 0.88);
+    const geometry = createNodeGeometry(visualNodeShape(node), radius);
+    return geometryFaceCount(geometry);
+  } catch (error) {
+    console.warn("Unable to count node geometry faces", error);
+    return null;
+  }
 }
 
 function buildNodeObject(node) {
@@ -416,6 +436,7 @@ function buildNodeObject(node) {
   const mesh = new THREE.Mesh(geometry, material);
   mesh.renderOrder = Number.isFinite(Number(materialDescriptor.renderOrder)) ? Number(materialDescriptor.renderOrder) : 0;
   mesh.userData.node = node;
+  mesh.userData.objectFaceCount = geometryFaceCount(geometry);
   return mesh;
 }
 
@@ -1243,6 +1264,7 @@ function renderSelectedNode(node = null) {
   }
   const rows = [
     ["3D object", selectedNodeShapeText(current)],
+    ["Object faces", formatNumber(nodeGeometryFaceCount(current))],
     ["Type", current.group || current.type || "unavailable"],
     ["Location", formatLocation(current)],
     ["Timestamp", formatTimestamp(current.timestampMs || current.lastSeen)],
@@ -1604,7 +1626,7 @@ try {
     .linkDirectionalParticles(0)
     .d3VelocityDecay(0.58)
     .cooldownTicks(0)
-    .enableNodeDrag(false)
+    .enableNodeDrag(true)
     .onNodeClick((node) => {
       focusNodeFromClick(node);
     })
@@ -1655,6 +1677,10 @@ window.zorgMemory3D = {
   getCamera: () => (typeof Graph?.camera === "function" ? Graph.camera() : null),
   getFocusedNodeId: () => focusedNodeId,
   getSelectedNodeId: () => selectedNodeId,
+  getSelectedNodeFaceCount: () => {
+    const node = selectedNodeId ? findNodeById(selectedNodeId) : null;
+    return nodeGeometryFaceCount(node);
+  },
   getLastPointerFocusAttempt: () => lastPointerFocusAttempt,
   pickNodeAt: (x, y) => nearestNodeAtScreenPoint(x, y)?.id || null,
   projectNodeToScreen,

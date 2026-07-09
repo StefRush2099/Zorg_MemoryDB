@@ -1,4 +1,4 @@
-import { createHmac, timingSafeEqual } from "node:crypto";
+import { createHmac, pbkdf2Sync, timingSafeEqual } from "node:crypto";
 
 export const AUTH_COOKIE = "lan_chat_auth";
 export const AUTH_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
@@ -29,7 +29,6 @@ export function verifyPassword(password: string) {
   if (version !== "pbkdf2-sha256" || !iterationsRaw || !salt || !expected) return false;
   const iterations = Number.parseInt(iterationsRaw, 10);
   if (!Number.isFinite(iterations) || iterations < 100000) return false;
-  const { pbkdf2Sync } = require("node:crypto") as typeof import("node:crypto");
   const actual = pbkdf2Sync(password, salt, iterations, 32, "sha256").toString("base64url");
   const actualBuffer = Buffer.from(actual);
   const expectedBuffer = Buffer.from(expected);

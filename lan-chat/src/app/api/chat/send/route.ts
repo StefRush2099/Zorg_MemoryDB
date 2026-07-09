@@ -11,6 +11,24 @@ interface ChatSendResponse {
   status?: string;
 }
 
+type IncomingAttachment = {
+  name?: unknown;
+  type?: unknown;
+  size?: unknown;
+  url?: unknown;
+  path?: unknown;
+  containerPath?: unknown;
+};
+
+type NormalizedAttachment = {
+  name: string;
+  type: string;
+  size: number;
+  url: string;
+  path: string;
+  containerPath: string;
+};
+
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
@@ -23,14 +41,23 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Message or attachment is required" }, { status: 400 });
     }
 
-    const attachmentLines = attachments
-      .map((file: any) => {
-        const name = typeof file?.name === "string" ? file.name : "file";
-        const type = typeof file?.type === "string" ? file.type : "application/octet-stream";
-        const size = typeof file?.size === "number" ? `${Math.round(file.size / 1024)}KB` : "";
-        const url = typeof file?.url === "string" ? file.url : "";
-        const localPath = typeof file?.path === "string" ? file.path : "";
-        const containerPath = typeof file?.containerPath === "string" ? file.containerPath : "";
+    const normalizedAttachments: NormalizedAttachment[] = (attachments as IncomingAttachment[])
+      .map((file) => ({
+        name: typeof file?.name === "string" ? file.name : "file",
+        type: typeof file?.type === "string" ? file.type : "application/octet-stream",
+        size: typeof file?.size === "number" ? file.size : 0,
+        url: typeof file?.url === "string" ? file.url : "",
+        path: typeof file?.path === "string" ? file.path : "",
+        containerPath: typeof file?.containerPath === "string" ? file.containerPath : "",
+      }))
+      .filter((file) => file.url || file.path || file.containerPath);
+
+    const attachmentLines = normalizedAttachments
+      .map((file) => {
+        const { name, type, url } = file;
+        const size = file.size ? `${Math.round(file.size / 1024)}KB` : "";
+        const localPath = file.path;
+        const containerPath = file.containerPath;
         if (!url && !localPath && !containerPath) return "";
         return `- ${name} (${type}${size ? `, ${size}` : ""})${url ? ` -> ${url}` : ""}${localPath ? ` | local_path=${localPath}` : ""}${containerPath ? ` | container_path=${containerPath}` : ""}`;
       })
@@ -68,7 +95,7 @@ export async function POST(request: Request) {
       source: "lan-chat",
       message,
       compiledPrompt,
-      attachmentSummary: attachmentLines.length ? attachmentLines.join("\n") : null,
+      attachmentSummary: normalizedAttachments.length ? JSON.stringify(normalizedAttachments) : null,
     });
 
     const idempotencyKey = randomUUID();

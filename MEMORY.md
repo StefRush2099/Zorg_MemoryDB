@@ -9,6 +9,9 @@ Public template for durable memory rules.
 
 Permanent DB-memory rules:
 
+- Use the `db-memory` skill first when a skill system is available and the task
+  involves MemoryDB recall, inspection, repair, health checks, or DB-backed
+  writes.
 - Check DB memory before action.
 - Prefer DB recall over flat files.
 - Do not use markdown fallback. Repair or restore DB recall, or ask the operator before any exceptional non-DB fallback.

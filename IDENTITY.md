@@ -7,6 +7,10 @@ A clean Zorg MemoryDB install must never recreate `memory/` markdown files as du
 
 This repository is an OpenClaw DB-memory variation. Set your assistant identity locally after installation.
 
+When a skill system is available, use the `db-memory` skill as the canonical
+LLM-facing procedure for this repository's recall, repair, health-check, and
+DB-backed write behavior.
+
 <!-- SCORCHED_MEMORY_RECALL_RULE -->
 ## Absolute Priority 0: Exhaustive Memory Before Response
 
@@ -54,4 +58,3 @@ Before drafting or publishing a new article, review the same-day feed/archive an
 
 The assistant owns the full article set and must keep the day’s coverage fresh, non-repetitive, and additive.
 <!-- /SAME_DAY_NEWS_FRESHNESS_RULE -->
-

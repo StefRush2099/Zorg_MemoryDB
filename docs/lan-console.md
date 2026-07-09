@@ -4,11 +4,12 @@ Zorg MemoryDB includes a LAN web console (`lan-chat`) as a built-in local comman
 
 ![LAN command console in use](assets/lan-console-in-use-2026-05-14.png)
 
-_Public-safe documentation screenshot. The live console should show the local agent identity, runtime/database readouts, and the unified latest-20 command stream without exposing private messages in public docs._
+_Public-safe documentation screenshot. The live console should show the local agent identity, runtime/database readouts, and a browser command line attached to the local OpenClaw TUI without exposing private messages in public docs._
 
 Purpose:
 
 - provide a browser-accessible local chat surface when another channel, such as Telegram, is unavailable,
+- provide a browser command line that opens and controls the local `openclaw tui`,
 - preserve chat traffic into the PostgreSQL-backed memory system,
 - expose useful runtime/database status in the UI,
 - keep operator communication recoverable from the local network,
@@ -50,7 +51,8 @@ Those additions should harden the local surface while preserving the core privac
 - It connects to the OpenClaw gateway over the compose network using `GATEWAY_HOST=openclaw` in Docker, or `127.0.0.1` on native installs.
 - Chat messages are stored as DB memory rows so the LAN console becomes part of durable recall.
 - The browser tab title uses the running agent's full identity name instead of a hard-coded product title.
-- The conversation command stream is unified and limited to the latest 20 visible items from LAN/back-channel messages, Gateway/session history, local transcript history, and DB-ingested chat rows.
+- The main command tile is a tmux-backed web command line attached to `openclaw tui`.
+- Status, activity, DB gauges, live query readout, browser audio state, and Memory 3D remain visible around the TUI panel.
 
 ## Install and verification
 
@@ -84,6 +86,10 @@ Verify with:
 systemctl --user status lan-chat.service
 curl -fsS http://127.0.0.1:${LAN_CHAT_PORT:-3001}/ | grep -i '<title>'
 ```
+
+After login, verify the browser UI or authenticated local curls can reach
+`/api/tui`, `/api/chat/status`, `/api/chat/activity`, `/api/db/status`, and
+`/api/db/queries`.
 
 ## Runtime notes
 

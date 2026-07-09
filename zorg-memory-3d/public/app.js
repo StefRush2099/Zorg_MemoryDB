@@ -5,6 +5,7 @@ const detailsEl = document.getElementById("details");
 const themeToggle = document.getElementById("themeToggle");
 const memoryDbNameEl = document.getElementById("memoryDbName");
 const memoryStatusTitleEl = document.getElementById("memoryStatusTitle");
+const engineCountEls = document.querySelectorAll("[data-engine-count]");
 const urlParams = new URLSearchParams(location.search);
 const proxyPrefix = location.pathname.startsWith("/zorg-memory-3d") ? "/zorg-memory-3d" : "";
 const embedMode = urlParams.get("embed") === "1";
@@ -1740,6 +1741,21 @@ function numberSetting(input, key, fallback, min, max, round = false) {
   return round ? Math.round(bounded) : bounded;
 }
 
+function compactInteger(value) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return "--";
+  return new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }).format(number);
+}
+
+function renderEngineDisplayCounts(engine = engineState) {
+  const counts = engine?.historyDisplayCounts || {};
+  for (const item of engineCountEls) {
+    const key = item.dataset.engineCount;
+    const valueEl = item.querySelector("strong");
+    if (valueEl) valueEl.textContent = compactInteger(counts[key]);
+  }
+}
+
 function refreshRuntimeVisuals() {
   if (!Graph) return;
   Graph.linkWidth(visualLinkWidth);
@@ -1792,6 +1808,7 @@ function setGraphData(graph, options = {}) {
   };
   applyMemoryIdentity(graph.engine?.identity);
   applyRuntimeEngineConfig(graph.engine?.engineConfig);
+  renderEngineDisplayCounts(graph.engine);
   resize();
   if (Graph) {
     Graph.graphData(rawGraph);
@@ -1821,6 +1838,7 @@ function applyMemoryIdentity(identity = null) {
 function applyEngineEvents(events = [], engine = null) {
   if (engine) engineState = engine;
   applyRuntimeEngineConfig(engineState?.engineConfig);
+  renderEngineDisplayCounts(engineState);
   if (!events.length) return;
 
   const nodes = new Map((rawGraph.nodes || []).map((node) => [node.id, node]));

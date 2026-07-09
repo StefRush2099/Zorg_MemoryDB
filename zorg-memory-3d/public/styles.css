@@ -179,6 +179,11 @@ button.active {
   background: rgba(45, 212, 191, 0.16);
 }
 
+.panel-engine-counts {
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+}
+
 :root[data-theme="light"] .panel-admin-link {
   background: rgba(255, 255, 255, 0.72);
 }
@@ -452,6 +457,64 @@ button.active {
 
 .admin-engine-toggle output {
   min-width: 70px;
+}
+
+.switch-toggle {
+  justify-self: start;
+  width: 54px;
+  min-width: 54px;
+  height: 30px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.switch-toggle:hover {
+  border-color: rgba(45, 212, 191, 0.7);
+  background: rgba(45, 212, 191, 0.12);
+}
+
+.switch-toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.switch-track {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+}
+
+.switch-thumb {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: var(--muted);
+  transition: transform 160ms ease, background 160ms ease;
+}
+
+.switch-toggle[data-on="true"] {
+  border-color: rgba(45, 212, 191, 0.78);
+  background: rgba(45, 212, 191, 0.22);
+}
+
+.switch-toggle[data-on="true"] .switch-thumb {
+  transform: translateX(24px);
+  background: var(--accent);
+}
+
+:root[data-theme="light"] .switch-toggle {
+  background: rgba(255, 255, 255, 0.72);
+}
+
+:root[data-theme="light"] .switch-toggle[data-on="true"] {
+  background: rgba(0, 122, 114, 0.16);
 }
 
 .engine-counts {

@@ -133,7 +133,11 @@ function renderEngineStatus(engine = currentEngine) {
   const toggle = document.getElementById("enginePauseToggle");
   const state = document.getElementById("enginePauseState");
   const counts = currentEngine?.historyDisplayCounts || {};
-  if (toggle) toggle.checked = Boolean(currentEngine?.paused);
+  if (toggle) {
+    const paused = Boolean(currentEngine?.paused);
+    toggle.dataset.on = paused ? "true" : "false";
+    toggle.setAttribute("aria-checked", paused ? "true" : "false");
+  }
   if (state) state.textContent = engineStateText(currentEngine);
   for (const [key, value] of Object.entries({
     nodesDisplayed: counts.nodesDisplayed,
@@ -191,18 +195,28 @@ function buildEngineControlSection() {
   label.className = "admin-control-label";
   label.textContent = "Pause engine";
 
-  const input = document.createElement("input");
+  const input = document.createElement("button");
   input.id = "enginePauseToggle";
-  input.type = "checkbox";
-  input.checked = Boolean(currentEngine?.paused);
+  input.className = "switch-toggle";
+  input.type = "button";
+  input.setAttribute("role", "switch");
+  input.setAttribute("aria-label", "Pause engine");
+  input.dataset.on = Boolean(currentEngine?.paused) ? "true" : "false";
+  input.setAttribute("aria-checked", Boolean(currentEngine?.paused) ? "true" : "false");
+  const track = document.createElement("span");
+  track.className = "switch-track";
+  const thumb = document.createElement("span");
+  thumb.className = "switch-thumb";
+  track.append(thumb);
+  input.append(track);
 
   const output = document.createElement("output");
   output.id = "enginePauseState";
   output.textContent = engineStateText(currentEngine);
 
-  input.addEventListener("input", () => {
-    setEnginePaused(input.checked).catch((error) => {
-      input.checked = !input.checked;
+  input.addEventListener("click", () => {
+    const nextPaused = input.dataset.on !== "true";
+    setEnginePaused(nextPaused).catch((error) => {
       renderEngineStatus(currentEngine);
       setStatus(`Engine control unavailable: ${error.message}`, "danger");
     });

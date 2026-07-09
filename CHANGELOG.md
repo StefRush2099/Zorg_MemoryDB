@@ -7,9 +7,9 @@ All meaningful changes to this project are documented here and released with a G
 ### Changed
 
 - Replaced the LAN command chat's main Conversation tile with a tmux-backed web
-  command line that opens and controls the local `openclaw tui`, while keeping
-  status, activity, DB gauges, query readout, browser audio, and Memory 3D
-  readouts visible.
+  command line that opens and controls the local `openclaw tui`, moved the
+  thinking/tool activity readout above the TUI, removed the extra command-line
+  titles, and removed the retired browser alerts/speech control path.
 
 - Added Zorg Memory 3D as a built-in native Standard Ubuntu install service,
   including the brain map app, installer helper, docs, ADMIN-page explanation,

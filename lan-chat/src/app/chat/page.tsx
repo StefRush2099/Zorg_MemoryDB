@@ -357,10 +357,6 @@ function TuiConsole({
   return (
     <section className="tui-panel">
       <div className="tui-toolbar">
-        <div>
-          <p className="eyebrow">OpenClaw TUI</p>
-          <h2>Web command line</h2>
-        </div>
         <div className="tui-actions">
           <button className="ghost" onClick={onStart} disabled={busy}>Open</button>
           <button className="ghost" onClick={() => onKey("ctrlc")} disabled={busy}>Ctrl-C</button>
@@ -418,9 +414,6 @@ export default function Home() {
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [compact, setCompact] = useState(false);
   const [gaugeView, setGaugeView] = useState<"gauges" | "memory3d">("gauges");
-  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission | "unsupported">("default");
-  const [soundUnlocked, setSoundUnlocked] = useState(false);
-  const [speechEnabled, setSpeechEnabled] = useState(false);
 
   const textRef = useRef<HTMLTextAreaElement | null>(null);
   const tuiInputRef = useRef<HTMLInputElement | null>(null);
@@ -431,8 +424,6 @@ export default function Home() {
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<BlobPart[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
-  const spokenMessageIdsRef = useRef<Set<string>>(new Set());
-  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const metrics = dbStatus?.metrics ?? {};
   const rawCpuGHz = Number(dbStatus?.details?.cpuGHz ?? 0);
@@ -446,9 +437,7 @@ export default function Home() {
   const dragActive = dragDepth > 0;
   const canSend = (draft.trim().length > 0 || attachments.length > 0) && !sending && !uploading;
 
-  const latestAssistant = useMemo(() => [...messages].reverse().find((m) => m.role === "assistant"), [messages]);
   const memory3dFrameSrc = useMemo(() => buildMemory3dFrameSrc(theme), [theme]);
-  const alertStatus = notificationPermission === "unsupported" ? "alerts unavailable" : notificationPermission === "granted" && soundUnlocked ? "alerts + speech ready" : notificationPermission === "denied" ? "alerts blocked" : soundUnlocked ? "sound ready" : "alerts + speech off";
 
   const showNotice = useCallback((message: string | null, durationMs = 0) => {
     if (noticeTimerRef.current) {
@@ -565,8 +554,6 @@ export default function Home() {
       document.removeEventListener("visibilitychange", onVisibilityChange);
       if (noticeTimerRef.current) window.clearTimeout(noticeTimerRef.current);
       streamRef.current?.getTracks().forEach((track) => track.stop());
-      audioRef.current?.pause();
-      audioRef.current = null;
     };
   }, [loadActivity, loadDb, loadHistory, loadStatus, loadTui]);
 
@@ -588,14 +575,6 @@ export default function Home() {
   useEffect(() => {
     localStorage.setItem(GAUGE_VIEW_KEY, gaugeView);
   }, [gaugeView]);
-
-  useEffect(() => {
-    if (typeof window === "undefined" || !("Notification" in window)) {
-      setNotificationPermission("unsupported");
-      return;
-    }
-    setNotificationPermission(Notification.permission);
-  }, []);
 
   useEffect(() => {
     const el = messagesRef.current;
@@ -698,118 +677,6 @@ export default function Home() {
     if (event.dataTransfer.files?.length) void uploadFiles(event.dataTransfer.files);
   }
 
-  function markExistingAssistantMessagesSpoken() {
-    spokenMessageIdsRef.current = new Set(messages.filter((message) => message.role === "assistant").map((message) => message.id));
-  }
-
-  async function unlockBrowserSound() {
-    const AudioContextCtor = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-    if (!AudioContextCtor) throw new Error("This browser does not expose Web Audio for sound unlock.");
-    const context = new AudioContextCtor();
-    if (context.state === "suspended") await context.resume();
-    const oscillator = context.createOscillator();
-    const gain = context.createGain();
-    gain.gain.value = 0.025;
-    oscillator.type = "sine";
-    oscillator.frequency.value = 880;
-    oscillator.connect(gain);
-    gain.connect(context.destination);
-    oscillator.start();
-    oscillator.stop(context.currentTime + 0.08);
-    window.setTimeout(() => void context.close().catch(() => undefined), 220);
-  }
-
-  async function requestAlertsAndSpeech() {
-    if (speechEnabled) {
-      setSpeechEnabled(false);
-      showNotice("Browser speech paused. Alerts stay at the browser permission setting.", 2600);
-      return;
-    }
-
-    if (typeof window === "undefined") return;
-    if (!window.isSecureContext) {
-      showNotice(`Browser alerts and speech unlock require the secure HTTPS console: ${secureMicUrl()}`, 9000);
-      return;
-    }
-
-    try {
-      let permission: NotificationPermission | "unsupported" = "unsupported";
-      if ("Notification" in window) {
-        permission = Notification.permission;
-        if (permission === "default") permission = await Notification.requestPermission();
-        setNotificationPermission(permission);
-        if (permission === "granted") {
-          new Notification("LAN Command Chat alerts enabled", { body: "Browser alerts are ready for new assistant replies." });
-        }
-      } else {
-        setNotificationPermission("unsupported");
-      }
-
-      await unlockBrowserSound();
-      markExistingAssistantMessagesSpoken();
-      setSoundUnlocked(true);
-      setSpeechEnabled(true);
-      showNotice(permission === "granted" ? "Alerts and browser speech are enabled." : "Browser speech is enabled. Alerts are not granted.", 3600);
-    } catch (error) {
-      setSoundUnlocked(false);
-      setSpeechEnabled(false);
-      showNotice(error instanceof Error ? error.message : "Could not enable browser alerts and speech.", 7000);
-    }
-  }
-
-  const notifyAssistantReply = useCallback((message: ChatMessage) => {
-    if (notificationPermission !== "granted" || typeof window === "undefined" || !("Notification" in window)) return;
-    const body = redactSensitiveText(message.text).replace(/\s+/g, " ").slice(0, 180) || "New assistant reply is ready.";
-    try {
-      new Notification(`${identity} replied`, { body });
-    } catch {
-      // Browser notification delivery is best effort after permission is granted.
-    }
-  }, [identity, notificationPermission]);
-
-  const speakAssistantReply = useCallback(async (message: ChatMessage) => {
-    const text = redactSensitiveText(message.text).trim();
-    if (!text) return;
-
-    try {
-      const res = await fetch("/api/tts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text }),
-      });
-      if (res.ok) {
-        const blob = await res.blob();
-        const url = URL.createObjectURL(blob);
-        audioRef.current?.pause();
-        const audio = new Audio(url);
-        audioRef.current = audio;
-        audio.onended = () => URL.revokeObjectURL(url);
-        audio.onerror = () => URL.revokeObjectURL(url);
-        await audio.play();
-        return;
-      }
-    } catch {
-      // Fall through to browser-native speech synthesis when the LAN TTS service is unavailable.
-    }
-
-    if ("speechSynthesis" in window && "SpeechSynthesisUtterance" in window) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text.slice(0, 1800));
-      window.speechSynthesis.speak(utterance);
-      return;
-    }
-
-    throw new Error("Browser speech is unavailable: LAN TTS failed and this browser has no speech synthesis API.");
-  }, []);
-
-  useEffect(() => {
-    if (!speechEnabled || !soundUnlocked || !latestAssistant) return;
-    if (spokenMessageIdsRef.current.has(latestAssistant.id)) return;
-    spokenMessageIdsRef.current.add(latestAssistant.id);
-    notifyAssistantReply(latestAssistant);
-    speakAssistantReply(latestAssistant).catch((error) => showNotice(error instanceof Error ? error.message : "Browser speech failed", 7000));
-  }, [latestAssistant, notifyAssistantReply, showNotice, soundUnlocked, speakAssistantReply, speechEnabled]);
-
   async function toggleRecording() {
     if (recording) {
       recorderRef.current?.stop();
@@ -865,8 +732,6 @@ export default function Home() {
       setNotice("Recording voice note… tap again to stop.");
     } catch (error) {
       streamRef.current?.getTracks().forEach((track) => track.stop());
-      audioRef.current?.pause();
-      audioRef.current = null;
       streamRef.current = null;
       setNotice(error instanceof Error ? error.message : "Microphone unavailable");
     }
@@ -901,7 +766,6 @@ export default function Home() {
         <div className="top-actions">
           <button className="ghost" onClick={() => setTheme((value) => (value === "light" ? "dark" : "light"))}>{theme === "light" ? "Dark" : "Light"} mode</button>
           <button className="ghost" onClick={() => setCompact((value) => !value)}>{compact ? "Roomy" : "Compact"}</button>
-          <button className={cx("ghost", speechEnabled && "selected")} onClick={() => void requestAlertsAndSpeech()}>{speechEnabled ? "Speech on" : "Enable alerts + speech"}</button>
           <button className="ghost" onClick={() => { void loadHistory(); void loadStatus(); void loadActivity(); void loadTui(); void loadDb(); }}>Refresh</button>
           <button className="primary" onClick={() => tuiInputRef.current?.focus()}>Command</button>
         </div>
@@ -919,7 +783,6 @@ export default function Home() {
           </div>
         </div>
         <div className="chip"><span>Sync</span><b>{formatTime(lastSync || undefined)}</b></div>
-        <div className="chip"><span>Browser audio</span><b>{alertStatus}</b></div>
       </section>
 
       <div className="workspace-grid">
@@ -972,24 +835,6 @@ export default function Home() {
         </aside>
 
         <section className="chat-panel panel">
-          <div className="panel-title-row chat-title">
-            <div>
-              <p className="eyebrow">Command line</p>
-            </div>
-            <span className="mini">{tui?.active ? "openclaw tui open" : "ready"}</span>
-          </div>
-          <TuiConsole
-            payload={tui}
-            input={tuiInput}
-            busy={tuiBusy}
-            onInput={setTuiInput}
-            onSend={sendTuiInput}
-            onStart={() => void postTui({ action: "start" })}
-            onRestart={() => void postTui({ action: "restart" })}
-            onKey={(key) => void postTui({ action: "key", key })}
-            inputRef={tuiInputRef}
-          />
-          {notice ? <div className="notice command-notice" onClick={() => showNotice(null)}>{notice}</div> : null}
           <section className={cx("activity-card", activity?.active && "active", activity?.label === "Reply ready" && "ready", activity?.degraded && "unavailable")}>
             <div className="activity-head">
               <span className="activity-dot" />
@@ -1008,6 +853,18 @@ export default function Home() {
               {(!activity?.events || activity.events.length === 0) ? <div className="activity-event"><b>No current run</b><span>Messages will show thinking/tools here while this agent works.</span></div> : null}
             </div>
           </section>
+          <TuiConsole
+            payload={tui}
+            input={tuiInput}
+            busy={tuiBusy}
+            onInput={setTuiInput}
+            onSend={sendTuiInput}
+            onStart={() => void postTui({ action: "start" })}
+            onRestart={() => void postTui({ action: "restart" })}
+            onKey={(key) => void postTui({ action: "key", key })}
+            inputRef={tuiInputRef}
+          />
+          {notice ? <div className="notice command-notice" onClick={() => showNotice(null)}>{notice}</div> : null}
         </section>
       </div>
 

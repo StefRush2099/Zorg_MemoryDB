@@ -14,11 +14,10 @@ The console provides a local browser chat surface that talks to the OpenClaw Gat
 
 ## Features
 
-- Local web command-line UI backed by a tmux `openclaw tui` session
+- Local web chat UI
 - Gateway-backed `chat.send` / history access
 - PostgreSQL memory ingestion for LAN chat messages
 - Runtime and database status display
-- `/api/tui` starts, captures, restarts, and sends keys/input to the local OpenClaw TUI session
 - Runtime token/thinking telemetry follows the freshest relevant OpenClaw command session. The status and activity endpoints inspect a broad sessions.list window and prefer the active/recent LAN chat, main, Telegram direct, or webchat session instead of pinning telemetry to a stale configured session.
 - Optional file upload support
 - Nginx front-end for simple LAN access
@@ -48,19 +47,13 @@ Do not commit `.env.local`, live OpenClaw state, credentials, uploaded files, bu
 
 The default landing page is a password login gate for the LAN command chat. To rotate access, generate a new strong random password, update `LAN_CHAT_PASSWORD_HASH` with a salted PBKDF2-SHA256 hash, update/keep `LAN_CHAT_AUTH_SECRET` for signed login cookies, rebuild/restart `lan-chat`, then send the new plaintext password to the operator at the approved email address. If email is unavailable, use the backup secure-channel procedure: direct the operator/user to open the OpenClaw TUI on the LAN and provide the password there, keeping the password on an internal LAN channel. Do not commit plaintext passwords.
 
-## Browser alerts and speech unlock
-
-The command chat can request browser notification permission and unlock audio playback from a user click via the **Enable alerts + speech** button. This follows browser autoplay/notification policy: notification permission and audio playback must be initiated from a user gesture, and secure contexts are required for the browser prompt. When enabled, new assistant replies may trigger a browser notification and play speech through `/api/tts`; if a browser/API blocks either path, the UI reports the degraded state instead of pretending it is active.
-
 Visual verification for UI changes must include desktop light mode, desktop dark mode, and mobile viewport screenshots, and screenshots must be sent to Stefan rather than only saved locally.
 
 ## Telemetry verification
 
 The live UI reads:
 
-- /api/tui for the browser command-line panel attached to `openclaw tui`.
 - /api/chat/status for model, thinking level, token counters, and current session identity.
 - /api/chat/activity for the current thinking/tool/result/reply activity feed.
-- /api/db/status and /api/db/queries for DB gauges and the PostgreSQL live query readout.
 
-After OpenClaw or LAN chat upgrades, verify these endpoints against the browser UI. The TUI panel should show a real OpenClaw TUI screen, token counters should show non-zero input/output or total usage for the freshest active command session, and activity should follow the same session rather than old LAN-chat history. If any readout falls back to stale data, check the session-selection logic before changing routing, login, or nginx.
+After OpenClaw or LAN chat upgrades, verify both endpoints against the browser UI. Token counters should show non-zero input/output or total usage for the freshest active command session, and activity should follow the same session rather than old LAN-chat history. If either endpoint falls back to stale data, check the session-selection logic before changing routing, login, or nginx.

@@ -52,7 +52,8 @@ Those additions should harden the local surface while preserving the core privac
 - Chat messages are stored as DB memory rows so the LAN console becomes part of durable recall.
 - The browser tab title uses the running agent's full identity name instead of a hard-coded product title.
 - The main command tile is a tmux-backed web command line attached to `openclaw tui`.
-- Status, activity, DB gauges, live query readout, browser audio state, and Memory 3D remain visible around the TUI panel.
+- The thinking/tool activity readout sits above the TUI panel, while status,
+  DB gauges, live query readout, and Memory 3D remain visible around it.
 
 ## Install and verification
 

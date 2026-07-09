@@ -1751,6 +1751,8 @@ class MemoryGameEngine {
     this.physicsTimer = null;
     this.snapshotTimer = null;
     this.running = false;
+    this.paused = false;
+    this.pausedAt = null;
     this.syncInFlight = false;
     this.graphRefreshInFlight = false;
     this.stats = {};
@@ -2126,6 +2128,7 @@ class MemoryGameEngine {
   }
 
   async sync(reason = "db-poll") {
+    if (this.paused) return [];
     if (this.graphRefreshInFlight) return [];
     this.graphRefreshInFlight = true;
     try {
@@ -2841,17 +2844,19 @@ class MemoryGameEngine {
         )
       ) {
         this.resetHistoryStage("admin-history-window-change");
-        this.sync("history-window-change").catch((error) => {
-          this.lastError = error.message;
-          console.error(`${memoryConsoleLabel()} history-window resync failed`, error);
-        });
+        if (!this.paused) {
+          this.sync("history-window-change").catch((error) => {
+            this.lastError = error.message;
+            console.error(`${memoryConsoleLabel()} history-window resync failed`, error);
+          });
+        }
       }
     }
     return changed;
   }
 
   advanceGameFrame() {
-    if (!this.running || this.nodes.size === 0) return 0;
+    if (!this.running || this.paused || this.nodes.size === 0) return 0;
     if (this.graphRefreshInFlight) return 0;
     const nodeList = [...this.nodes.values()];
     let moved = 0;
@@ -2917,6 +2922,100 @@ class MemoryGameEngine {
     return moved;
   }
 
+  setPaused(paused, reason = "admin-engine-control") {
+    const next = Boolean(paused);
+    if (this.paused === next) return false;
+    this.paused = next;
+    this.pausedAt = next ? new Date().toISOString() : null;
+    const event = {
+      type: next ? "engine_paused" : "engine_resumed",
+      rule: "admin-controls-server-side-game-engine-clock",
+      reason,
+      paused: next,
+    };
+    this.recordEvents([event], reason).catch((error) => {
+      this.lastError = error.message;
+      console.error(`${memoryConsoleLabel()} engine pause event recording failed`, error);
+    });
+    broadcastGameEvents([event]);
+    broadcastGameSnapshot();
+    if (!next) {
+      this.sync("engine-resume").catch((error) => {
+        this.lastError = error.message;
+        console.error(`${memoryConsoleLabel()} engine resume sync failed`, error);
+      });
+    }
+    return true;
+  }
+
+  historyDisplayCounts() {
+    const stagedBuild = this.stats?.stagedBuild || {};
+    const targetNodes = Math.max(
+      this.nodes.size,
+      Number(stagedBuild.targetNodes ?? this.buildState?.enteredNodeIds?.size ?? this.nodes.size) || 0,
+    );
+    const targetVectors = Math.max(
+      this.links.size,
+      Number(stagedBuild.targetLinks ?? this.buildState?.stagedLinkKeys?.size ?? this.links.size) || 0,
+    );
+    const nodesDisplayed = this.nodes.size;
+    const vectorsDisplayed = this.links.size;
+    return {
+      nodesDisplayed,
+      vectorsDisplayed,
+      nodesRemaining: Math.max(0, targetNodes - nodesDisplayed),
+      vectorsRemaining: Math.max(0, targetVectors - vectorsDisplayed),
+      targetNodes,
+      targetVectors,
+      complete: Boolean(this.buildState?.complete && this.historyStageState?.complete),
+      historyStage: this.historyStageSummary(),
+      source: "server-game-engine-current-history-window",
+    };
+  }
+
+  status() {
+    return {
+      id: engineId,
+      mode: "persistent-game-engine",
+      running: this.running,
+      paused: this.paused,
+      pausedAt: this.pausedAt,
+      syncInFlight: this.syncInFlight,
+      graphRefreshInFlight: this.graphRefreshInFlight,
+      tick: this.tick,
+      frame: this.frame,
+      pollMs: enginePollMs,
+      physicsTickMs: enginePhysicsTickMs,
+      lastSnapshotAt: this.lastSnapshotAt,
+      lastGraphVersion: this.lastGraphVersion,
+      lastError: this.lastError,
+      browserRole: "thin-render-client",
+      identity: this.identity,
+      physicsRules: engineRuleSummary(this.rules),
+      engineConfig: engineConfigSummary(this.config),
+      physicsRuleStats: this.ruleStats,
+      collisionSettlementBudget: this.lastCollisionSettlementBudget,
+      historyDisplayCounts: this.historyDisplayCounts(),
+      physicsSectionsIndependent: true,
+      serverOwns: {
+        physics: true,
+        collision: Boolean(this.rules.collisionBoundary),
+        vectorCollision: Boolean(this.rules.vectorCollisionBoundary),
+        fixedPositions: false,
+        substituteRendering: false,
+        nodePositionUpdates: true,
+        vectorDistance: false,
+        dynamicAssociationOrbits: Boolean(this.rules.dynamicAssociationOrbit),
+        gamePieceFeatureLayers: true,
+        enginePausedState: true,
+        historyDisplayCounts: true,
+      },
+      runtimeCollisions: this.lastRuntimeCollisions,
+      runtimeVectorCollisions: this.lastRuntimeVectorCollisions,
+      eventSummary: eventSummary(this.events),
+    };
+  }
+
   async recordEvents(events, reason) {
     const limited = events.slice(0, engineEventLimit);
     this.events.push(
@@ -2949,41 +3048,7 @@ class MemoryGameEngine {
       .filter((event) => event.type === "vector_data_packet")
       .slice(-snapshotPacketEventLimit);
     return {
-      engine: {
-        id: engineId,
-        mode: "persistent-game-engine",
-        running: this.running,
-        syncInFlight: this.syncInFlight,
-        graphRefreshInFlight: this.graphRefreshInFlight,
-        tick: this.tick,
-        frame: this.frame,
-        pollMs: enginePollMs,
-        physicsTickMs: enginePhysicsTickMs,
-        lastSnapshotAt: this.lastSnapshotAt,
-        lastGraphVersion: this.lastGraphVersion,
-        lastError: this.lastError,
-        browserRole: "thin-render-client",
-        identity: this.identity,
-        physicsRules: engineRuleSummary(this.rules),
-        engineConfig: engineConfigSummary(this.config),
-        physicsRuleStats: this.ruleStats,
-        collisionSettlementBudget: this.lastCollisionSettlementBudget,
-        physicsSectionsIndependent: true,
-        serverOwns: {
-          physics: true,
-          collision: Boolean(this.rules.collisionBoundary),
-          vectorCollision: Boolean(this.rules.vectorCollisionBoundary),
-          fixedPositions: false,
-          substituteRendering: false,
-          nodePositionUpdates: true,
-          vectorDistance: false,
-          dynamicAssociationOrbits: Boolean(this.rules.dynamicAssociationOrbit),
-          gamePieceFeatureLayers: true,
-        },
-        runtimeCollisions: this.lastRuntimeCollisions,
-        runtimeVectorCollisions: this.lastRuntimeVectorCollisions,
-        eventSummary: eventSummary(this.events),
-      },
+      engine: this.status(),
       recentPacketEvents,
       generatedAt: new Date().toISOString(),
       dataSource: {
@@ -4555,6 +4620,7 @@ app.get("/api/game/config", async (_req, res) => {
       config: engineConfigSummary(gameEngine.config),
       rules: engineRuleSummary(gameEngine.rules),
       stats: gameEngine.ruleStats,
+      engine: gameEngine.status(),
       identity: gameEngine.identity,
       independent: true,
     });
@@ -4585,10 +4651,33 @@ app.patch("/api/game/config", async (req, res) => {
       config: engineConfigSummary(gameEngine.config),
       rules: engineRuleSummary(gameEngine.rules),
       identity: gameEngine.identity,
+      engine: gameEngine.status(),
       stats: gameEngine.ruleStats,
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+});
+
+app.get("/api/game/control", async (_req, res) => {
+  try {
+    if (!gameEngine) return res.status(503).json({ error: "game engine not started" });
+    res.json({ ok: true, engine: gameEngine.status() });
+  } catch (error) {
+    res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
+app.patch("/api/game/control", async (req, res) => {
+  try {
+    if (!gameEngine) return res.status(503).json({ error: "game engine not started" });
+    if (!Object.prototype.hasOwnProperty.call(req.body || {}, "paused")) {
+      return res.status(400).json({ ok: false, error: "paused boolean is required" });
+    }
+    const changed = gameEngine.setPaused(Boolean(req.body.paused));
+    res.json({ ok: true, changed, engine: gameEngine.status() });
+  } catch (error) {
+    res.status(500).json({ ok: false, error: error.message });
   }
 });
 

@@ -444,6 +444,44 @@ button.active {
   font-size: 13px;
 }
 
+.admin-engine-control {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.admin-engine-toggle output {
+  min-width: 70px;
+}
+
+.engine-counts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+}
+
+.engine-count-item {
+  min-width: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.engine-count-item span,
+.engine-count-item strong {
+  display: block;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.engine-count-item strong {
+  margin-top: 2px;
+  color: var(--accent);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
 .history-estimate {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -491,6 +529,10 @@ button.active {
   }
 
   .history-estimate {
+    grid-template-columns: 1fr;
+  }
+
+  .engine-counts {
     grid-template-columns: 1fr;
   }
 }

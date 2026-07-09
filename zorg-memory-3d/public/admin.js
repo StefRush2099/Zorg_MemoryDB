@@ -73,9 +73,11 @@ const controlGroups = [
 
 let currentConfig = {};
 let currentRules = {};
+let currentEngine = null;
 let saveTimer = null;
 let ruleSaveTimer = null;
 let historyEstimateTimer = null;
+let engineStatusTimer = null;
 let historyEstimateEl = null;
 
 function setStatus(text, state = "neutral") {
@@ -119,6 +121,117 @@ function megabyteText(value) {
   const number = Number(value);
   if (!Number.isFinite(number)) return "--";
   return `${number.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MB`;
+}
+
+function engineStateText(engine = currentEngine) {
+  if (!engine?.running) return "Stopped";
+  return engine.paused ? "Paused" : "Running";
+}
+
+function renderEngineStatus(engine = currentEngine) {
+  currentEngine = engine || currentEngine;
+  const toggle = document.getElementById("enginePauseToggle");
+  const state = document.getElementById("enginePauseState");
+  const counts = currentEngine?.historyDisplayCounts || {};
+  if (toggle) toggle.checked = Boolean(currentEngine?.paused);
+  if (state) state.textContent = engineStateText(currentEngine);
+  for (const [key, value] of Object.entries({
+    nodesDisplayed: counts.nodesDisplayed,
+    vectorsDisplayed: counts.vectorsDisplayed,
+    nodesRemaining: counts.nodesRemaining,
+    vectorsRemaining: counts.vectorsRemaining
+  })) {
+    const el = document.querySelector(`[data-engine-count="${key}"] strong`);
+    if (el) el.textContent = compactInteger(value);
+  }
+}
+
+function scheduleEngineStatusRefresh() {
+  if (engineStatusTimer) clearTimeout(engineStatusTimer);
+  engineStatusTimer = setTimeout(() => {
+    loadEngineStatus()
+      .catch((error) => setStatus(`Engine status unavailable: ${error.message}`, "danger"))
+      .finally(scheduleEngineStatusRefresh);
+  }, 5000);
+}
+
+async function loadEngineStatus() {
+  const response = await fetch(proxiedPath("/api/game/control"));
+  if (!response.ok) throw new Error(await response.text());
+  const data = await response.json();
+  renderEngineStatus(data.engine);
+}
+
+async function setEnginePaused(paused) {
+  setStatus(paused ? "Pausing game engine..." : "Resuming game engine...", "neutral");
+  const response = await fetch(proxiedPath("/api/game/control"), {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ paused })
+  });
+  if (!response.ok) throw new Error(await response.text());
+  const data = await response.json();
+  renderEngineStatus(data.engine);
+  setStatus(paused ? "Game engine paused." : "Game engine resumed.", "success");
+}
+
+function buildEngineControlSection() {
+  const section = document.createElement("section");
+  section.className = "admin-group admin-engine-control";
+  section.dataset.group = "engine";
+
+  const title = document.createElement("h2");
+  title.textContent = "Engine";
+
+  const pauseRow = document.createElement("label");
+  pauseRow.className = "admin-control admin-engine-toggle";
+  pauseRow.dataset.key = "engine.paused";
+
+  const label = document.createElement("span");
+  label.className = "admin-control-label";
+  label.textContent = "Pause engine";
+
+  const input = document.createElement("input");
+  input.id = "enginePauseToggle";
+  input.type = "checkbox";
+  input.checked = Boolean(currentEngine?.paused);
+
+  const output = document.createElement("output");
+  output.id = "enginePauseState";
+  output.textContent = engineStateText(currentEngine);
+
+  input.addEventListener("input", () => {
+    setEnginePaused(input.checked).catch((error) => {
+      input.checked = !input.checked;
+      renderEngineStatus(currentEngine);
+      setStatus(`Engine control unavailable: ${error.message}`, "danger");
+    });
+  });
+
+  pauseRow.append(label, input, output);
+
+  const countGrid = document.createElement("div");
+  countGrid.className = "engine-counts";
+  const countItems = [
+    ["nodesDisplayed", "Nodes shown"],
+    ["vectorsDisplayed", "Vectors shown"],
+    ["nodesRemaining", "Nodes remaining"],
+    ["vectorsRemaining", "Vectors remaining"]
+  ];
+  for (const [key, labelText] of countItems) {
+    const item = document.createElement("span");
+    item.className = "engine-count-item";
+    item.dataset.engineCount = key;
+    const itemLabel = document.createElement("span");
+    itemLabel.textContent = labelText;
+    const itemValue = document.createElement("strong");
+    itemValue.textContent = compactInteger(currentEngine?.historyDisplayCounts?.[key]);
+    item.append(itemLabel, itemValue);
+    countGrid.append(item);
+  }
+
+  section.append(title, pauseRow, countGrid);
+  return section;
 }
 
 function renderHistoryEstimate(data) {
@@ -325,7 +438,9 @@ function renderControls(config) {
     targetColumn.append(section);
   }
   columns.right.prepend(buildFeatureModuleSection(currentRules));
+  columns.left.prepend(buildEngineControlSection());
   controlsEl.append(columns.left, columns.center, columns.right);
+  renderEngineStatus(currentEngine);
 }
 
 function scheduleSave(partialConfig) {
@@ -343,7 +458,9 @@ async function saveConfig(partialConfig) {
   if (!response.ok) throw new Error(await response.text());
   const data = await response.json();
   currentConfig = data.config;
+  currentEngine = data.engine || currentEngine;
   setStatus("Live config applied and persisted.", "success");
+  renderEngineStatus(currentEngine);
 }
 
 function scheduleRuleSave(partialRules) {
@@ -371,6 +488,7 @@ async function loadConfig() {
   const data = await response.json();
   currentConfig = data.config;
   currentRules = data.rules || {};
+  currentEngine = data.engine || currentEngine;
   if (data.identity?.databaseLabel && dbNameEl) dbNameEl.textContent = data.identity.databaseLabel;
   if (data.identity?.adminTitle) {
     document.title = data.identity.adminTitle;
@@ -378,6 +496,7 @@ async function loadConfig() {
   }
   renderControls(currentConfig);
   setStatus("Live engine config loaded.", "success");
+  scheduleEngineStatusRefresh();
 }
 
 loadConfig().catch((error) => {

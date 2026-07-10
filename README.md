@@ -2,7 +2,7 @@
 
 Zorg MemoryDB is the PostgreSQL-backed memory package for OpenClaw-based assistants.
 
-This repository is intentionally **not** a full OpenClaw fork. OpenClaw is the base install and runtime. This repo carries the Zorg MemoryDB layer: the `zorg-db-memory` skill, public-safe database/install code, recovery procedures, LAN Command Chat source package, and documentation needed to reproduce the memory behavior without falling back to markdown files.
+This repository is intentionally **not** a GitHub fork or full source fork of OpenClaw. OpenClaw is the base install and runtime. This repo carries the Zorg MemoryDB layer: the `zorg-db-memory` skill, public-safe database/install code, recovery procedures, LAN Command Chat source package, and documentation needed to reproduce the memory behavior without falling back to markdown files.
 
 ## Release Focus
 

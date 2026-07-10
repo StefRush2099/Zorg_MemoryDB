@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-version="${1:-1.2.67}"
+version="${1:-1.2.68}"
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 out_dir="$root/release"
 mkdir -p "$out_dir"
@@ -21,6 +21,6 @@ tar \
   --exclude='release/*.tar.gz' \
   -czf "$archive" \
   -C "$root" \
-  README.md CHANGELOG.md LICENSE package.json skills package docs scripts
+  README.md CHANGELOG.md LICENSE package.json skills package docs scripts release
 
 echo "$archive"

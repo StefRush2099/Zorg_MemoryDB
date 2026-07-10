@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.2.68 - 2026-07-10
+
+- Corrects GitHub repository metadata so the project is no longer positioned as an OpenClaw fork.
+- Clarifies current documentation wording: Zorg MemoryDB is an add-on package for OpenClaw, not a GitHub fork or vendored source copy.
+- Extends the GitHub posting/release rule to require repository metadata and fork-network verification as part of full-surface release checks.
+
 ## v1.2.67 - 2026-07-10
 
 - Corrects the packaged `zorg-db-memory` skill metadata description after the GitHub posting gate restore.

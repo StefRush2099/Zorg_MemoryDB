@@ -36,14 +36,14 @@ Use `references/github-posting-release-rule.md` before any Zorg_MemoryDB GitHub 
 Required hard gates:
 - Run backend PostgreSQL/Zorg MemoryDB recall before any visible reply or work.
 - Load `zorg-db-memory` and GitHub guidance before using `git`, `gh`, release tooling, screenshots, or browser verification.
-- Inspect the local worktree, branch, tag state, remote `origin/main`, release state, and dirty files before editing.
+- Inspect the local worktree, branch, tag state, remote `origin/main`, release state, dirty files, and GitHub repository metadata before editing.
 - Preserve existing public assets additively unless exact removal was requested.
 - For screenshot work, visually inspect the image content before committing or sending it; filename checks and API tree checks are not enough.
 - Use the correct source system for screenshots. Local/personal OpenClaw screenshots must show `Zorg Rush` / `10.7.69.200`. Dark-mode screenshots must actually be dark mode and light-mode screenshots must actually be light mode.
-- Update all affected surfaces together: README, docs, screenshots, changelog, release notes, package metadata, package scripts, verification scripts, skill package files, public-safe support code, package tarball, Git tag, GitHub Release body, and GitHub Release asset.
+- Update all affected surfaces together: GitHub repository metadata, README, docs, screenshots, changelog, release notes, package metadata, package scripts, verification scripts, skill package files, public-safe support code, package tarball, Git tag, GitHub Release body, and GitHub Release asset.
 - Rebuild the package artifact after every repo/package content change.
 - Run public package verification, generated-artifact scan, secret scan, archive-content check, and DB health checks before publishing.
-- Verify the affected rendered GitHub pages in a real browser after push before claiming success.
+- Verify GitHub `isFork`, parent, description, homepage, topics, default branch, affected rendered GitHub pages, and release pages after push before claiming success.
 - Report the full result with commit, tag, release URL, asset name, exact changed surfaces, verification checks, and the required backend DB time summary.
 
 Failure condition: if any required surface is missing, stale, visually wrong, incorrectly ordered, or cannot be verified on rendered GitHub pages, do not claim the release is done.

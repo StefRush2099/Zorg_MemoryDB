@@ -1,26 +1,8 @@
 # Screenshots
 
-The current public screenshot set documents the Memory Brain 3D map and the LAN Command Chat UI that supports Zorg MemoryDB operations. These images are public-safe UI captures only; they do not include private transcripts, credentials, browser profiles, database dumps, or live database rows.
+The current public screenshot set documents the LAN Command Chat UI and the Memory Brain 3D map that support Zorg MemoryDB operations. These images are public-safe UI captures only; they do not include private transcripts, credentials, browser profiles, database dumps, or live database rows.
 
-The Memory Brain 3D screenshots are additive. Existing LAN Command Chat screenshots must remain available; do not replace or remove them when adding new Memory 3D screenshots.
-
-## Memory Brain 3D
-
-Desktop dark mode:
-
-![Memory Brain 3D desktop dark](screenshots/memory-brain-3d-desktop-dark.png)
-
-Desktop light mode:
-
-![Memory Brain 3D desktop light](screenshots/memory-brain-3d-desktop-light.png)
-
-Mobile dark mode:
-
-![Memory Brain 3D mobile dark](screenshots/memory-brain-3d-mobile-dark.png)
-
-Mobile light mode:
-
-![Memory Brain 3D mobile light](screenshots/memory-brain-3d-mobile-light.png)
+The Memory Brain 3D screenshots are additive and come after the LAN Command Chat screenshots. Existing LAN Command Chat screenshots must remain available; do not replace or remove them when adding new Memory 3D screenshots.
 
 ## LAN Command Chat
 
@@ -67,5 +49,23 @@ Memory 3D toggle panel in LAN Command Chat, mobile light crop:
 Memory 3D toggle panel in LAN Command Chat, mobile dark crop:
 
 ![LAN Command Chat Memory 3D toggle mobile dark](screenshots/lan-command-chat-memory3d-toggle-mobile-dark.png)
+
+## Memory Brain 3D
+
+Desktop dark mode:
+
+![Memory Brain 3D desktop dark](screenshots/memory-brain-3d-desktop-dark.png)
+
+Desktop light mode:
+
+![Memory Brain 3D desktop light](screenshots/memory-brain-3d-desktop-light.png)
+
+Mobile dark mode:
+
+![Memory Brain 3D mobile dark](screenshots/memory-brain-3d-mobile-dark.png)
+
+Mobile light mode:
+
+![Memory Brain 3D mobile light](screenshots/memory-brain-3d-mobile-light.png)
 
 Runtime-private screenshots, internal IP screenshots, browser profiles, and local verification artifacts should not be committed unless they are intentionally sanitized for public documentation.

@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.2.65 - 2026-07-10
+
+- Replaced LAN Command Chat Memory 3D toggle screenshots with reviewed captures from the local `Zorg Rush` system.
+- Corrected the dark-mode toggle screenshots so dark mode is actually active.
+- Reordered README and screenshot docs so original LAN Command Chat screenshots come first and newer Memory Brain 3D screenshots follow.
+
 ## v1.2.64 - 2026-07-10
 
 - Restored screenshots directly on the GitHub main README page.

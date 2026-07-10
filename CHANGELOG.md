@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.2.64 - 2026-07-10
+
+- Restored screenshots directly on the GitHub main README page.
+- Kept original LAN Command Chat screenshots visible from `docs/assets/`.
+- Kept Memory Brain 3D and LAN Command Chat Memory 3D toggle screenshots visible from `docs/screenshots/`.
+
 ## v1.2.63 - 2026-07-10
 
 - Synchronized the packaged `zorg-db-memory` skill metadata with the corrected live canonical skill description.

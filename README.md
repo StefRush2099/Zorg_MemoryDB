@@ -68,7 +68,37 @@ docs/
 
 ## Screenshots
 
-The release includes inspected screenshots for:
+The main GitHub page shows the key inspected screenshots directly, with the original LAN Command Chat images preserved and newer Memory Brain 3D images added.
+
+### Memory Brain 3D
+
+| Desktop dark | Desktop light |
+| --- | --- |
+| ![Memory Brain 3D desktop dark](docs/screenshots/memory-brain-3d-desktop-dark.png) | ![Memory Brain 3D desktop light](docs/screenshots/memory-brain-3d-desktop-light.png) |
+
+| Mobile dark | Mobile light |
+| --- | --- |
+| ![Memory Brain 3D mobile dark](docs/screenshots/memory-brain-3d-mobile-dark.png) | ![Memory Brain 3D mobile light](docs/screenshots/memory-brain-3d-mobile-light.png) |
+
+### LAN Command Chat
+
+Original preserved LAN Command Chat screenshots:
+
+| Page light | Page dark |
+| --- | --- |
+| ![LAN Command Chat page light](docs/assets/lan-command-chat-page-light.png) | ![LAN Command Chat page dark](docs/assets/lan-command-chat-page-dark.png) |
+
+| Desktop light | Desktop dark |
+| --- | --- |
+| ![LAN Command Chat desktop light](docs/assets/lan-command-chat-desktop-light.png) | ![LAN Command Chat desktop dark](docs/assets/lan-command-chat-desktop-dark.png) |
+
+Memory 3D toggle inside LAN Command Chat:
+
+| Desktop light | Desktop dark |
+| --- | --- |
+| ![LAN Command Chat Memory 3D toggle desktop light](docs/screenshots/lan-command-chat-memory3d-toggle-desktop-light.png) | ![LAN Command Chat Memory 3D toggle desktop dark](docs/screenshots/lan-command-chat-memory3d-toggle-desktop-dark.png) |
+
+The full screenshot set includes:
 
 - Memory Brain 3D populated map, desktop dark mode.
 - Memory Brain 3D populated map, desktop light mode.

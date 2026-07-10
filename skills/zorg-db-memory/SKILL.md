@@ -1,6 +1,6 @@
 ---
 name: "zorg-db-memory"
-description: "Restore canonical skill plus GitHub gate."
+description: "Canonical Zorg MemoryDB skill with DB-first memory, repair, context slicing, GitHub release gates, and support services."
 ---
 
 # zorg-db-memory

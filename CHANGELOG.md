@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.2.67 - 2026-07-10
+
+- Corrects the packaged `zorg-db-memory` skill metadata description after the GitHub posting gate restore.
+- Keeps the canonical DB-first, Rule Zero, markdown lockout, supporting-services, and GitHub posting/release rules together in the exported skill.
+- Rebuilds and republishes the package so the live skill and GitHub package metadata match.
+
 ## v1.2.66 - 2026-07-10
 
 - Adds the hard GitHub posting/release rule to the packaged `zorg-db-memory` skill.

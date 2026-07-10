@@ -1,2 +1,0 @@
-import { n as extractOpenRouterImagesFromResponse, t as buildOpenRouterImageGenerationProvider } from "../../image-generation-provider-CL4G_17N.js";
-export { buildOpenRouterImageGenerationProvider, extractOpenRouterImagesFromResponse };

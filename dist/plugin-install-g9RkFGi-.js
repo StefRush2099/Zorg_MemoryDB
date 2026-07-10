@@ -1,2 +1,0 @@
-import { i as reloadChannelSetupPluginRegistryForChannel, n as loadChannelSetupPluginRegistrySnapshotForChannel, r as reloadChannelSetupPluginRegistry, t as ensureChannelSetupPluginInstalled } from "./plugin-install-BvWiJ10m.js";
-export { ensureChannelSetupPluginInstalled, loadChannelSetupPluginRegistrySnapshotForChannel, reloadChannelSetupPluginRegistry, reloadChannelSetupPluginRegistryForChannel };

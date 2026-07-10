@@ -2,6 +2,8 @@
 
 The current public screenshot set documents the Memory Brain 3D map and the LAN Command Chat UI that supports Zorg MemoryDB operations. These images are public-safe UI captures only; they do not include private transcripts, credentials, browser profiles, database dumps, or live database rows.
 
+The Memory Brain 3D screenshots are additive. Existing LAN Command Chat screenshots must remain available; do not replace or remove them when adding new Memory 3D screenshots.
+
 ## Memory Brain 3D
 
 Desktop dark mode:
@@ -21,6 +23,18 @@ Mobile light mode:
 ![Memory Brain 3D mobile light](screenshots/memory-brain-3d-mobile-light.png)
 
 ## LAN Command Chat
+
+Original preserved LAN Command Chat screenshots:
+
+![Original LAN Command Chat light page](assets/lan-command-chat-page-light.png)
+
+![Original LAN Command Chat dark page](assets/lan-command-chat-page-dark.png)
+
+![Original LAN Command Chat light desktop](assets/lan-command-chat-desktop-light.png)
+
+![Original LAN Command Chat dark desktop](assets/lan-command-chat-desktop-dark.png)
+
+Curated release screenshot copies:
 
 Light page:
 

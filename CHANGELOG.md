@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.2.62 - 2026-07-10
+
+- Preserved and documented the original LAN Command Chat screenshots as additive release assets.
+- Added the supporting-services reference to the packaged `zorg-db-memory` skill.
+- Documented expected discovery/install-request behavior for cloudflared, ComfyUI, Kokoro FastAPI, MediaMTX, Ollama, SearXNG, and faster-whisper.
+- Tightened package verification to reject Python cache artifacts.
+- Rebuilt the release package without generated Python cache files.
+
 ## v1.2.61 - 2026-07-10
 
 - Restructured the public repository around `zorg-db-memory`.

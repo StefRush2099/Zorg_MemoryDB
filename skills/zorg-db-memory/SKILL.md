@@ -27,6 +27,23 @@ Going forward, any code changed or created for Zorg MemoryDB access, recall, rep
 
 Small text code is bundled directly as support files. Larger app trees are tracked through source maps until the skill package supports source archives.
 
+## Supporting Services
+
+This skill expects the host or local network to provide the supporting services listed in `references/supporting-services.md` when workflows need them.
+
+Before installing anything, use PostgreSQL-backed memory recall and local inspection to discover whether each service already exists locally or elsewhere on the LAN. If memory or local network evidence finds a candidate service, report what was found and ask whether to use it when the target is ambiguous.
+
+If a required service is not found, do not silently install it. Request approval to install the missing service as a Dockge-managed container stack where possible. Prefer GPU-capable variants only when local hardware and driver/runtime checks show they are supported.
+
+Expected service set:
+- `cloudflared`
+- ComfyUI, preferring `comfyui-nvidia` when NVIDIA GPU support is available, otherwise CPU/default ComfyUI
+- `kokoro-fastapi-cpu`
+- `bluenviron/mediamtx:latest`
+- `ollama/ollama:latest`
+- SearXNG / `searxng`
+- `fedirz/faster-whisper-server:latest-cuda` when CUDA is available, otherwise `fedirz/faster-whisper-server:latest-cpu`
+
 ## Bundled Code
 
 Python tools:
@@ -48,6 +65,7 @@ Folded process/reference:
 - references/context-window-pruning-and-cost-control.md
 - references/one-skill-inventory.md
 - references/supporting-software.md
+- references/supporting-services.md
 - references/schema-summary.md
 - references/rules-and-recall.md
 - references/install-and-rollback.md

@@ -15,6 +15,7 @@ This repository is intentionally **not** a full OpenClaw fork. OpenClaw is the b
 - Context-window pruning through DB-backed execution slices instead of markdown summaries.
 - PostgreSQL schema, recall rules, install/rollback guidance, and public-safe canonical rule import material.
 - LAN Command Chat support files and Memory Brain 3D source maps/screenshots for operator-facing memory visibility.
+- Supporting-service discovery rules for `cloudflared`, ComfyUI, `kokoro-fastapi-cpu`, MediaMTX, Ollama, SearXNG, and faster-whisper, with Dockge install requests when services are missing.
 
 ## What This Repository Contains
 
@@ -73,6 +74,7 @@ The release includes inspected screenshots for:
 - Memory Brain 3D populated map, desktop light mode.
 - Memory Brain 3D populated map, mobile dark mode.
 - Memory Brain 3D populated map, mobile light mode.
+- Existing LAN Command Chat screenshots preserved from `docs/assets/`.
 - LAN Command Chat with the Memory 3D toggle panel visible.
 
 See [docs/screenshots.md](docs/screenshots.md).

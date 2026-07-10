@@ -1,11 +1,11 @@
 ---
 name: "zorg-db-memory"
-description: "Canonical Zorg MemoryDB skill with DB-first memory, repair, context slicing, and support services."
+description: "Restore canonical skill plus GitHub gate."
 ---
 
 # zorg-db-memory
 
-Use this as the one canonical skill for Zorg MemoryDB: DB recall, DB repair, DB install, DB code restoration, context-window memory slicing, and source lookup for MemoryDB-dependent apps.
+Use this as the one canonical skill for Zorg MemoryDB: DB recall, DB repair, DB install, DB code restoration, context-window memory slicing, GitHub release/posting gates, and source lookup for MemoryDB-dependent apps.
 
 This skill supersedes the former `db-memory` name. Existing references to `db-memory` should be migrated to `zorg-db-memory` as they are touched, but the old name remains a legacy pointer to this same MemoryDB safety behavior until all launch surfaces are updated.
 
@@ -23,9 +23,30 @@ Markdown files are bootstrap/recovery pointers only. Normal memory must not run 
 
 ## One-Skill Code Ownership
 
-Going forward, any code changed or created for Zorg MemoryDB access, recall, repair, install, semantic routing, DB-only memory enforcement, context-window DB slicing, or MemoryDB-dependent support paths belongs in this one skill.
+Going forward, any code changed or created for Zorg MemoryDB access, recall, repair, install, semantic routing, DB-only memory enforcement, context-window DB slicing, GitHub posting/release gates, or MemoryDB-dependent support paths belongs in this one skill.
 
 Small text code is bundled directly as support files. Larger app trees are tracked through source maps until the skill package supports source archives.
+
+## GitHub Posting / Release Rule
+
+When posting, updating, releasing, or correcting `https://github.com/StefRush2099/Zorg_MemoryDB`, partial GitHub updates are prohibited. A GitHub publish is complete only when every affected surface has been updated, packaged, pushed, released, and visually verified.
+
+Use `references/github-posting-release-rule.md` before any Zorg_MemoryDB GitHub publication, release, screenshot, documentation, or package update.
+
+Required hard gates:
+- Run backend PostgreSQL/Zorg MemoryDB recall before any visible reply or work.
+- Load `zorg-db-memory` and GitHub guidance before using `git`, `gh`, release tooling, screenshots, or browser verification.
+- Inspect the local worktree, branch, tag state, remote `origin/main`, release state, and dirty files before editing.
+- Preserve existing public assets additively unless exact removal was requested.
+- For screenshot work, visually inspect the image content before committing or sending it; filename checks and API tree checks are not enough.
+- Use the correct source system for screenshots. Local/personal OpenClaw screenshots must show `Zorg Rush` / `10.7.69.200`. Dark-mode screenshots must actually be dark mode and light-mode screenshots must actually be light mode.
+- Update all affected surfaces together: README, docs, screenshots, changelog, release notes, package metadata, package scripts, verification scripts, skill package files, public-safe support code, package tarball, Git tag, GitHub Release body, and GitHub Release asset.
+- Rebuild the package artifact after every repo/package content change.
+- Run public package verification, generated-artifact scan, secret scan, archive-content check, and DB health checks before publishing.
+- Verify the affected rendered GitHub pages in a real browser after push before claiming success.
+- Report the full result with commit, tag, release URL, asset name, exact changed surfaces, verification checks, and the required backend DB time summary.
+
+Failure condition: if any required surface is missing, stale, visually wrong, incorrectly ordered, or cannot be verified on rendered GitHub pages, do not claim the release is done.
 
 ## Supporting Services
 
@@ -63,6 +84,7 @@ Shell helpers:
 
 Folded process/reference:
 - references/context-window-pruning-and-cost-control.md
+- references/github-posting-release-rule.md
 - references/one-skill-inventory.md
 - references/supporting-software.md
 - references/supporting-services.md
@@ -80,4 +102,4 @@ After install, repair, or meaningful change:
 /home/openclaw/.openclaw/workspace/memory_speed_test.py
 ```
 
-For browser-visible supporting apps, also verify with browser/screenshot.
+For browser-visible supporting apps and GitHub screenshot/release work, also verify with browser/screenshot on the affected rendered surface.

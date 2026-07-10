@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.2.66 - 2026-07-10
+
+- Adds the hard GitHub posting/release rule to the packaged `zorg-db-memory` skill.
+- Requires full-surface updates across README, docs, changelog, release notes, package metadata, tarball, tag, GitHub Release, and release asset.
+- Requires visual review of screenshots before commit/report and browser verification of rendered GitHub pages before claiming success.
+
 ## v1.2.65 - 2026-07-10
 
 - Replaced LAN Command Chat Memory 3D toggle screenshots with reviewed captures from the local `Zorg Rush` system.

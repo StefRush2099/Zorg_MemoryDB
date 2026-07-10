@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.2.63 - 2026-07-10
+
+- Synchronized the packaged `zorg-db-memory` skill metadata with the corrected live canonical skill description.
+- Rebuilt the package archive with the screenshot preservation and supporting-services corrections intact.
+
 ## v1.2.62 - 2026-07-10
 
 - Preserved and documented the original LAN Command Chat screenshots as additive release assets.

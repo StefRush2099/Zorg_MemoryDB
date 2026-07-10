@@ -1,6 +1,6 @@
 ---
 name: "zorg-db-memory"
-description: "One skill replaces markdown memory."
+description: "Canonical Zorg MemoryDB skill with DB-first memory, repair, context slicing, and support services."
 ---
 
 # zorg-db-memory

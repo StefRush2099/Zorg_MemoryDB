@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.2.72 - 2026-07-11
+
+- Publishes the current LAN Command Chat PostgreSQL gauges and Memory 3D
+  toggle that were previously left on an unreleased branch.
+- Adds the connected Memory Brain 3D source bundle to the public install
+  package and installs it through the configurable `MEMORY_3D_DIR` path.
+- Advances the package release number so checkout and update checks detect the
+  gauge update.
+
 ## v1.2.71 - 2026-07-11
 
 - Makes MemoryDB worker, installer, backup, recovery, dispatcher, and recall-tool paths resolve from `OPENCLAW_WORKSPACE`, `WORKSPACE_DIR`, `SQL_MEMORY_MAP`, and related variables instead of an operator-specific `/home/openclaw` path.

@@ -44,6 +44,7 @@ fi
 OPENCLAW_WORKSPACE="${OPENCLAW_WORKSPACE:-$OPENCLAW_EFFECTIVE_HOME/.openclaw/workspace}"
 ZORG_WORKSPACE_DIR="${ZORG_WORKSPACE_DIR:-$OPENCLAW_WORKSPACE/zorg-memorydb}"
 LAN_CHAT_DIR="${LAN_CHAT_DIR:-$OPENCLAW_WORKSPACE/lan-chat}"
+MEMORY_3D_DIR="${MEMORY_3D_DIR:-$OPENCLAW_WORKSPACE/memory-3d}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd -P)"
 PACKAGE_ROOT="$SCRIPT_DIR"
 
@@ -135,6 +136,11 @@ copy_packaged_components() {
   fi
   log "Copying LAN command chat source into $LAN_CHAT_DIR"
   cp -R "$PACKAGE_ROOT/lan-command-chat/." "$LAN_CHAT_DIR/"
+  if [[ -d "$PACKAGE_ROOT/memory-3d" ]]; then
+    mkdir -p "$MEMORY_3D_DIR"
+    log "Copying Memory Brain 3D source into $MEMORY_3D_DIR"
+    cp -R "$PACKAGE_ROOT/memory-3d/." "$MEMORY_3D_DIR/"
+  fi
 }
 
 ensure_db_password() {

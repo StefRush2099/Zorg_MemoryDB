@@ -15,13 +15,18 @@ This directory contains the public-safe Zorg MemoryDB and LAN command chat insta
   weights without creating replacement timing rules.
 - `db/import_markdown_rules.py` imports packaged rules and retired markdown memory files into the database.
 - `lan-command-chat/` contains the LAN command chat source bundle.
+- `memory-3d/` contains the connected Memory Brain 3D source bundle used by
+  the LAN Command Chat Memory 3D view.
 - `rules/` contains public-safe memory and install rules.
 
 ## Install Behavior
 
 The OpenClaw installer calls this bootstrap when the package contains `zorg/install-zorg-memorydb.sh`. Set `ZORG_MEMORYDB_SKIP_BOOTSTRAP=1` to skip it for a special-purpose install.
 
-The bootstrap prepares the database and LAN command chat for clean installs and existing installs. It preserves existing user data; the separate `prepare_public_baseline.sql` file is only for building a distributable public baseline and must not be run against a live user database.
+The bootstrap prepares the database, LAN command chat, and connected Memory
+Brain 3D source for clean installs and existing installs. It preserves existing
+user data; the separate `prepare_public_baseline.sql` file is only for building
+a distributable public baseline and must not be run against a live user database.
 
 When the add-on bootstrap is run through `sudo` without an explicit `OPENCLAW_HOME`, it installs into the invoking user's home directory instead of `/root`. This keeps the generated LAN command chat systemd service and its workspace on the same readable path. Set `OPENCLAW_HOME` explicitly only when a root-owned install is intentional.
 

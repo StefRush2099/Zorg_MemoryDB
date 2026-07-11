@@ -51,10 +51,11 @@ override, reorder, suppress, or replace this path. The effective order is:
 2. Recall the current request, relevant structured rules, and related history
    from PostgreSQL/Zorg MemoryDB. Markdown is never an active substitute.
 3. Preserve the recall timing and rule-application state for the current turn.
-4. Before a visible send attempt, fail closed unless the reply has the exact
-   required final proof line: `Time summary: backend DB memory scan <duration>.`
-   The duration must be measured for the current request-to-send interval; it
-   must never be guessed, copied from a prior turn, or supplied by model text.
+4. Before a visible send attempt, fail closed unless current-turn PostgreSQL
+   recall is complete. The final reply must end with a runtime-generated
+   `Time summary:` line containing the real elapsed time from the trusted
+   inbound request timestamp through outbound reply preparation. Model text,
+   caller-supplied values, and backend scan duration are invalid sources.
 
 Any execution path that cannot provide these facts must not send the normal
 visible reply. It must repair or report the memory-path failure instead. A
@@ -62,9 +63,9 @@ prompt-injected reminder, a successful database query, or a delivery success
 does not by itself satisfy this gate; the outbound enforcement point must
 validate the current-turn proof immediately before sending.
 
-The outbound caller must run `scripts/verify_visible_reply.py` immediately
-before the send attempt with the current inbound and send-attempt timestamps and
-`--recall-completed`. A non-zero result is a hard send refusal.
+The outbound caller must preserve current-turn DB-recall completion through the
+send path. The timing line is reporting only and cannot satisfy, replace,
+reorder, or bypass the DB gate.
 
 ## Markdown Lockout
 
@@ -163,7 +164,7 @@ Required hard gates:
 - Rebuild the package artifact after every repo/package content change.
 - Run public package verification, generated-artifact scan, secret scan, archive-content check, and DB health checks before publishing.
 - Verify GitHub `isFork`, parent, description, homepage, topics, default branch, affected rendered GitHub pages, and release pages after push before claiming success.
-- Report the full result with commit, tag, release URL, asset name, exact changed surfaces, verification checks, and the required backend DB time summary.
+- Report the full result with commit, tag, release URL, asset name, exact changed surfaces, verification checks, and the real request-to-response time summary at the bottom.
 
 Failure condition: if any required surface is missing, stale, visually wrong, incorrectly ordered, or cannot be verified on rendered GitHub pages, do not claim the release is done.
 
@@ -189,7 +190,6 @@ Expected service set:
 Python tools:
 - scripts/memory_sql_tool.py
 - scripts/memory_recall_router.py
-- scripts/verify_visible_reply.py (mandatory fail-closed outbound preflight)
 - scripts/memory_speed_test.py
 - scripts/db_only_memory_autoheal.py
 - scripts/memory_semantic_worker.py

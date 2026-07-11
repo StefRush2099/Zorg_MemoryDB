@@ -1135,6 +1135,7 @@ export async function runReplyAgent(params: {
   resetTriggered?: boolean;
   replyThreadingOverride?: TemplateContext["ReplyThreading"];
   replyOperation?: ReplyOperation;
+  requestStartedAtMs?: number;
 }): Promise<ReplyPayload | ReplyPayload[] | undefined> {
   const {
     commandBody,
@@ -1646,6 +1647,7 @@ export async function runReplyAgent(params: {
         resolvedVerboseLevel,
         toolProgressDetail,
         replyMediaContext,
+        requestStartedAtMs: params.requestStartedAtMs,
       }),
     );
 

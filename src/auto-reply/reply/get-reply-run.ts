@@ -1399,5 +1399,6 @@ export async function runPreparedReply(
     resetTriggered: effectiveResetTriggered,
     replyThreadingOverride,
     replyOperation: providedReplyOperation,
+    requestStartedAtMs: userTurnTimestamp,
   });
 }

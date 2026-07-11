@@ -516,6 +516,8 @@ export function createOpenClawCodingTools(options?: {
   toolConstructionPlan?: OpenClawCodingToolConstructionPlan;
   /** Trusted sender identity bit for command/channel-action auth; does not filter model tools. */
   senderIsOwner?: boolean;
+  /** Trusted timestamp captured when the current inbound request was received. */
+  requestStartedAtMs?: number;
   /** Auth profiles already loaded for this run; used for prompt-time tool availability. */
   authProfileStore?: AuthProfileStore;
   /** Callback invoked when sessions_yield tool is called. */
@@ -1032,6 +1034,7 @@ export function createOpenClawCodingTools(options?: {
           requesterAgentIdOverride: agentId,
           requesterSenderId: options?.senderId,
           senderIsOwner: options?.senderIsOwner,
+          requestStartedAtMs: options?.requestStartedAtMs,
           authProfileStore: options?.authProfileStore,
           sessionId: options?.sessionId,
           inheritedToolAllowlist,

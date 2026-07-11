@@ -537,6 +537,19 @@ describe("message tool secret scoping", () => {
     expect(input?.sourceReplyDeliveryMode).toBe("message_tool_only");
   });
 
+  it("appends runtime-measured request timing as the final outbound line", async () => {
+    mockSendResult();
+
+    const input = await executeSend({
+      action: { message: "hi\n\nTime summary: backend DB memory scan 9999s." },
+      toolOptions: { requestStartedAtMs: Date.now() - 1_234 },
+    });
+
+    expect(input?.params?.message).toMatch(
+      /^hi\n\nTime summary: request-to-response elapsed 1\.\d{3}s\.$/u,
+    );
+  });
+
   it("adds a current-run idempotency key when the model omits one", async () => {
     mockSendResult();
 

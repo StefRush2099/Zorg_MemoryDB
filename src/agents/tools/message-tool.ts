@@ -51,6 +51,7 @@ import {
   type MessageActionRunResult,
 } from "../../infra/outbound/message-action-runner.js";
 import { resolveAllowedMessageActions } from "../../infra/outbound/outbound-policy.js";
+import { appendRealReplyElapsedTime } from "../../infra/outbound/reply-timing.js";
 import { hasReplyPayloadContent } from "../../interactive/payload.js";
 import { stringifyRouteThreadId } from "../../plugin-sdk/channel-route.js";
 import { POLL_CREATION_PARAM_DEFS, SHARED_POLL_CREATION_PARAM_NAMES } from "../../poll-params.js";
@@ -841,6 +842,7 @@ type MessageToolOptions = {
   inboundEventKind?: InboundEventKind;
   requesterSenderId?: string;
   senderIsOwner?: boolean;
+  requestStartedAtMs?: number;
 };
 
 type MessageToolDiscoveryParams = {
@@ -1281,6 +1283,9 @@ export function createMessageTool(options?: MessageToolOptions): AnyAgentTool {
       const action = readStringParam(params, "action", {
         required: true,
       }) as ChannelMessageActionName;
+      if (action === "send" && typeof params.message === "string") {
+        params.message = appendRealReplyElapsedTime(params.message, options?.requestStartedAtMs);
+      }
       if (
         suppressedVisiblePayloadReason &&
         action === "send" &&

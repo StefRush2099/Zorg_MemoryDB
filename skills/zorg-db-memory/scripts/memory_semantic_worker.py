@@ -20,8 +20,8 @@ from typing import Iterable
 import psycopg2
 import psycopg2.extras
 
-WORKSPACE = Path(os.environ.get("OPENCLAW_WORKSPACE", "/home/openclaw/.openclaw/workspace"))
-MAP_PATH = Path(os.environ.get("SQL_MEMORY_MAP", WORKSPACE / "sql_memory_map.json"))
+WORKSPACE = Path(os.environ.get("OPENCLAW_WORKSPACE") or os.environ.get("WORKSPACE_DIR") or (Path.home() / ".openclaw" / "workspace")).expanduser().resolve()
+MAP_PATH = Path(os.environ.get("SQL_MEMORY_MAP") or os.environ.get("ZORG_SQL_MEMORY_MAP") or (WORKSPACE / "sql_memory_map.json")).expanduser().resolve()
 WORKER_ID = f"semantic-worker@{socket.gethostname()}:{os.getpid()}"
 
 STOPWORDS = {

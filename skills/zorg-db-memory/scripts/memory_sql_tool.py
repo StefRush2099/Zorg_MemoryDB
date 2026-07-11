@@ -1,13 +1,16 @@
-#!/home/openclaw/.openclaw/workspace/.venv-sqlmem/bin/python
+#!/usr/bin/env python3
 import argparse
 import json
+import os
+from pathlib import Path
 from typing import List
 
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from memory_recall_router import ensure_model_query_embedding_cached, search_structured_db
 
-MAP_PATH = "/home/openclaw/.openclaw/workspace/sql_memory_map.json"
+BASE = Path(os.environ.get("OPENCLAW_WORKSPACE") or os.environ.get("WORKSPACE_DIR") or (Path.home() / ".openclaw" / "workspace")).expanduser().resolve()
+MAP_PATH = Path(os.environ.get("SQL_MEMORY_MAP") or os.environ.get("ZORG_SQL_MEMORY_MAP") or (BASE / "sql_memory_map.json")).expanduser().resolve()
 
 
 def load_cfg(path: str = MAP_PATH):

@@ -22,3 +22,18 @@ export function getIdentityPath() {
 export function getHostUploadDir() {
   return firstNonEmpty(process.env.HOST_UPLOAD_DIR) ?? path.join(getWorkspaceDir(), "lan-chat", "uploads");
 }
+
+export function getSqlMemoryMapPath() {
+  return firstNonEmpty(
+    process.env.SQL_MEMORY_MAP,
+    process.env.ZORG_SQL_MEMORY_MAP,
+  ) ?? path.join(getWorkspaceDir(), "sql_memory_map.json");
+}
+
+export function getOpenClawHome() {
+  return firstNonEmpty(process.env.OPENCLAW_HOME) ?? path.join(process.env.HOME || process.cwd(), ".openclaw");
+}
+
+export function getOpenClawSessionsDir() {
+  return firstNonEmpty(process.env.OPENCLAW_SESSIONS_DIR) ?? path.join(getOpenClawHome(), "agents", "main", "sessions");
+}

@@ -6,12 +6,13 @@ import { promisify } from "node:util";
 
 import { appConfig } from "@/lib/env";
 import { callGateway } from "@/lib/gatewayWs";
+import { getOpenClawSessionsDir } from "@/lib/paths";
 
 export const runtime = "nodejs";
 
 const execFileAsync = promisify(execFile);
-const OPENCLAW_BIN = process.env.OPENCLAW_BIN || "/home/openclaw/.npm-global/bin/openclaw";
-const STATUS_TIMEOUT_MS = Math.max(appConfig.statusTimeoutMs, 12_000);
+const OPENCLAW_BIN = process.env.OPENCLAW_BIN || "openclaw";
+const STATUS_TIMEOUT_MS = appConfig.statusTimeoutMs;
 
 type SessionSummary = {
   agentId?: string;
@@ -119,7 +120,7 @@ function sessionFileThinking(session: SessionSummary | undefined) {
   const sessionId = cleanText(session?.sessionId);
   if (!sessionId) return "";
 
-  const filePath = path.join(process.env.HOME || "/home/openclaw", ".openclaw", "agents", "main", "sessions", `${sessionId}.jsonl`);
+  const filePath = path.join(getOpenClawSessionsDir(), `${sessionId}.jsonl`);
   try {
     const lines = fs.readFileSync(filePath, "utf8").split(/\r?\n/);
     for (let i = lines.length - 1; i >= 0; i -= 1) {

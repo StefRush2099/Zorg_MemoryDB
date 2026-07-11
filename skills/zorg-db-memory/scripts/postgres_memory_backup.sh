@@ -2,10 +2,11 @@
 set -euo pipefail
 
 TS="$(date +%F_%H%M%S)"
-BASE_LOCAL="/home/openclaw/.openclaw/backups/postgres/tmp"
-LOG_DIR="/home/openclaw/.openclaw/backups/postgres/logs"
+BASE_LOCAL="${ZORG_POSTGRES_BACKUP_TMP:-${OPENCLAW_HOME:-${HOME:?}/.openclaw}/backups/postgres/tmp}"
+LOG_DIR="${ZORG_POSTGRES_BACKUP_LOG_DIR:-${OPENCLAW_HOME:-${HOME:?}/.openclaw}/backups/postgres/logs}"
 LOG_FILE="$LOG_DIR/backup-$TS.log"
-MAP_PATH="${ZORG_MEMORY_SQL_MAP:-/home/openclaw/.openclaw/workspace/sql_memory_map.json}"
+WORKSPACE="${OPENCLAW_WORKSPACE:-${WORKSPACE_DIR:-${HOME:?}/.openclaw/workspace}}"
+MAP_PATH="${SQL_MEMORY_MAP:-${ZORG_SQL_MEMORY_MAP:-$WORKSPACE/sql_memory_map.json}}"
 BACKUP_MODE="${ZORG_BACKUP_MODE:-direct}"
 DB_CONT="${ZORG_BACKUP_DOCKER_CONTAINER:-local-postgres}"
 LOCAL_TTL_HOURS="${ZORG_TEMP_BACKUP_TTL_HOURS:-24}"

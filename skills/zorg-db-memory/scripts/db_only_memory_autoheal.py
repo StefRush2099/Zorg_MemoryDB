@@ -1,4 +1,4 @@
-#!/home/openclaw/.openclaw/workspace/.venv-sqlmem/bin/python
+#!/usr/bin/env python3
 """Verify and auto-heal Zorg DB-only memory recall.
 
 Silent success/repair path:
@@ -21,8 +21,8 @@ from pathlib import Path
 import psycopg2
 from psycopg2.extras import Json
 
-BASE = Path(os.environ.get('OPENCLAW_WORKSPACE', '/home/openclaw/.openclaw/workspace')).expanduser().resolve()
-MAP = Path(os.environ.get('SQL_MEMORY_MAP', BASE / 'sql_memory_map.json')).expanduser().resolve()
+BASE = Path(os.environ.get('OPENCLAW_WORKSPACE') or os.environ.get('WORKSPACE_DIR') or (Path.home() / '.openclaw' / 'workspace')).expanduser().resolve()
+MAP = Path(os.environ.get('SQL_MEMORY_MAP') or os.environ.get('ZORG_SQL_MEMORY_MAP') or (BASE / 'sql_memory_map.json')).expanduser().resolve()
 MEMORY_DIR = BASE / 'memory'
 PYTHON = Path(os.environ.get('SQLMEM_PYTHON', str(BASE / '.venv-sqlmem/bin/python'))).expanduser()
 

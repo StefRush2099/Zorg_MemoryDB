@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-WORKDIR=${1:-/home/openclaw/.openclaw/workspace}
-DB_HOST=${2:-127.0.0.1}
-DB_PORT=${3:-5432}
-DB_NAME=${4:-zorgdb}
-DB_USER=${5:-zorg}
-DB_PASS=${6:-}
+WORKDIR="${1:-${OPENCLAW_WORKSPACE:-${WORKSPACE_DIR:-${HOME:?}/.openclaw/workspace}}}"
+DB_HOST="${2:-${ZORG_DB_HOST:-127.0.0.1}}"
+DB_PORT="${3:-${ZORG_DB_PORT:-5432}}"
+DB_NAME="${4:-${ZORG_DB_NAME:-zorgdb}}"
+DB_USER="${5:-${ZORG_DB_USER:-zorg}}"
+DB_PASS="${6:-${ZORG_DB_PASSWORD:-}}"
 
 mkdir -p "$WORKDIR"
 mkdir -p "$WORKDIR/scripts"
@@ -50,6 +50,6 @@ Next required manual steps:
 1. place memory_sql_tool.py and related tools into the workspace
 2. apply DB schema/functions/materialized views
 3. run verification commands:
-   python /home/openclaw/.openclaw/workspace/memory_sql_tool.py tables
-   python /home/openclaw/.openclaw/workspace/memory_speed_test.py
+   python "$WORKDIR/memory_sql_tool.py" tables
+   python "$WORKDIR/memory_speed_test.py"
 EOF

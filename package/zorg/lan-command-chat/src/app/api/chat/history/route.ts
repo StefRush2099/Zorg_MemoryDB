@@ -3,10 +3,10 @@ import fs from "node:fs";
 import path from "node:path";
 
 import { appConfig } from "@/lib/env";
+import { getOpenClawSessionsDir } from "@/lib/paths";
 import { getDbPool } from "@/lib/db";
 import { callGateway } from "@/lib/gatewayWs";
 import { normalizeMessages } from "@/lib/chat";
-import { logAppActivity } from "@/lib/chatIngest";
 
 export const runtime = "nodejs";
 
@@ -113,7 +113,7 @@ function includeTranscriptSession(sessionKey: string) {
 }
 
 function loadTranscriptHistory(): StreamMessage[] {
-  const sessionsDir = path.join(process.env.HOME || "/home/openclaw", ".openclaw/agents/main/sessions");
+  const sessionsDir = getOpenClawSessionsDir();
   try {
     return fs
       .readdirSync(sessionsDir)
@@ -212,7 +212,16 @@ function unifiedLatest(messages: StreamMessage[] | null) {
       return true;
     })
     .slice(-STREAM_HISTORY_LIMIT)
-    .map(({ sortTime: _sortTime, ...message }) => message);
+    .map((message) => {
+      const withoutSortTime: Omit<typeof message, "sortTime"> = {
+        id: message.id,
+        role: message.role,
+        text: message.text,
+        attachments: message.attachments,
+        timestamp: message.timestamp,
+      };
+      return withoutSortTime;
+    });
 }
 
 export async function GET() {
@@ -222,11 +231,6 @@ export async function GET() {
     const dbMessages = dbResult.status === "fulfilled" ? dbResult.value ?? [] : [];
     const transcriptMessages = loadTranscriptHistory();
     const messages = unifiedLatest([...dbMessages, ...gatewayMessages, ...transcriptMessages]);
-
-    await logAppActivity({
-      activityKey: `history:${Date.now()}:unified`,
-      activityType: "chat_history",
-    });
 
     return NextResponse.json({
       messages,

@@ -17,6 +17,17 @@ Rule Zero: if any database or memory tool stops working, stop the current task, 
 
 This skill supersedes other processes for MemoryDB safety gates: recall before work/reply, DB tool repair before unrelated work, source-memory preservation, secret handling, markdown-memory lockout, context-continuity recovery, fact-based pre-work summaries, GO approval gates, and additive recall-learning/performance tuning. It does not bypass Stefan's approval gates or authorize unrelated system changes.
 
+## Shared Runtime Integration Contract
+
+Every skill, runtime, installer, or update that changes Zorg MemoryDB must also
+audit and verify the connected LAN Command Chat and Zorg Memory Brain 3D
+surfaces. They use the same PostgreSQL configuration and must resolve it through
+`SQL_MEMORY_MAP` (or `ZORG_SQL_MEMORY_MAP`) and `OPENCLAW_WORKSPACE` (or
+`WORKSPACE_DIR`), never through an operator-specific absolute path. The LAN
+chat remains part of the OpenClaw/Zorg runtime, and Memory Brain 3D remains a
+PostgreSQL-backed view of the same database; neither is an unrelated optional
+application. Updates are incomplete until all three surfaces are checked.
+
 ## Full-Fix First-Pass Rule
 
 When Stefan asks to fix a failure or enforce a rule, treat the request as an

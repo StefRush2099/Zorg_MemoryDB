@@ -6,9 +6,9 @@ import subprocess
 import sys
 from pathlib import Path
 
-BASE = Path('/home/openclaw/.openclaw/workspace')
-SQL_CFG = BASE / 'sql_memory_map.json'
-VENV_PYTHON = BASE / '.venv-sqlmem' / 'bin' / 'python'
+BASE = Path(os.environ.get('OPENCLAW_WORKSPACE') or os.environ.get('WORKSPACE_DIR') or (Path.home() / '.openclaw' / 'workspace')).expanduser().resolve()
+SQL_CFG = Path(os.environ.get('SQL_MEMORY_MAP') or os.environ.get('ZORG_SQL_MEMORY_MAP') or (BASE / 'sql_memory_map.json')).expanduser().resolve()
+VENV_PYTHON = Path(os.environ.get('ZORG_VENV_PYTHON') or (BASE / '.venv-sqlmem' / 'bin' / 'python')).expanduser().resolve()
 ANN_QUERY_CACHE_TIMEOUT_MS = int(os.environ.get('ZORG_RECALL_ANN_QUERY_CACHE_TIMEOUT_MS', '12000'))
 ANN_QUERY_CACHE_SCRIPT = BASE / 'scripts' / 'cache_model_query_embedding.mjs'
 ANN_ENABLED = os.environ.get('ZORG_RECALL_ANN_ENABLED', '1').lower() not in {'0', 'false', 'no', 'off'}

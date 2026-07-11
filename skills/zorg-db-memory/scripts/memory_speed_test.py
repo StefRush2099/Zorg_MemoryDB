@@ -1,4 +1,4 @@
-#!/home/openclaw/.openclaw/workspace/.venv-sqlmem/bin/python
+#!/usr/bin/env python3
 import json
 import os
 import statistics
@@ -7,8 +7,8 @@ from pathlib import Path
 
 import psycopg2
 
-BASE = Path('/home/openclaw/.openclaw/workspace')
-MAP = BASE / 'sql_memory_map.json'
+BASE = Path(os.environ.get('OPENCLAW_WORKSPACE') or os.environ.get('WORKSPACE_DIR') or (Path.home() / '.openclaw' / 'workspace')).expanduser().resolve()
+MAP = Path(os.environ.get('SQL_MEMORY_MAP') or os.environ.get('ZORG_SQL_MEMORY_MAP') or (BASE / 'sql_memory_map.json')).expanduser().resolve()
 CORPUS = BASE / 'db_benchmark_queries.json'
 
 DEFAULT_QUERIES = [

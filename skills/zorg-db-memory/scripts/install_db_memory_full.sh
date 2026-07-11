@@ -1,20 +1,20 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-WORKDIR=${1:-/home/openclaw/.openclaw/workspace}
-DB_CONT=${2:-local-postgres}
-DB_USER=${3:-zorg}
-DB_NAME=${4:-zorgdb}
-DB_HOST=${5:-10.7.69.200}
-DB_PORT=${6:-5432}
-DB_PASS=${7:-zorg_local_2026}
+WORKDIR="${1:-${OPENCLAW_WORKSPACE:-${WORKSPACE_DIR:-${HOME:?}/.openclaw/workspace}}}"
+DB_CONT="${2:-${ZORG_DB_CONTAINER:-local-postgres}}"
+DB_USER="${3:-${ZORG_DB_USER:-zorg}}"
+DB_NAME="${4:-${ZORG_DB_NAME:-zorgdb}}"
+DB_HOST="${5:-${ZORG_DB_HOST:-127.0.0.1}}"
+DB_PORT="${6:-${ZORG_DB_PORT:-5432}}"
+DB_PASS="${7:-${ZORG_DB_PASSWORD:-}}"
 
 SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SKILL_DIR="$(cd "$SELF_DIR/.." && pwd)"
 TMPDIR=$(mktemp -d)
 trap 'rm -rf "$TMPDIR"' EXIT
 
-SRC_BASE="/home/openclaw/.openclaw/workspace/Zorg_Hive/apps/by-host/openclaw/Zorg_spawn"
+SRC_BASE="${ZORG_SOURCE_BASE:-$(cd "$SELF_DIR/../../../package/zorg" && pwd)}"
 
 mkdir -p "$WORKDIR"
 mkdir -p "$WORKDIR/scripts"

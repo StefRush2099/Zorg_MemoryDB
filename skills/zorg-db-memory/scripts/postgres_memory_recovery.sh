@@ -4,8 +4,8 @@ set -euo pipefail
 DB_CONT="${DB_CONT:-local-postgres}"
 DB_USER="${DB_USER:-zorg}"
 DB_NAME="${DB_NAME:-zorgdb}"
-BACKUP_DIR="${BACKUP_DIR:-/home/openclaw/.openclaw/backups/postgres/local}"
-WORKSPACE="${OPENCLAW_WORKSPACE:-/home/openclaw/.openclaw/workspace}"
+BACKUP_DIR="${BACKUP_DIR:-${OPENCLAW_HOME:-${HOME:?}/.openclaw}/backups/postgres/local}"
+WORKSPACE="${OPENCLAW_WORKSPACE:-${WORKSPACE_DIR:-${HOME:?}/.openclaw/workspace}}"
 MODE="${1:-drill}"
 BACKUP_FILE="${2:-}"
 

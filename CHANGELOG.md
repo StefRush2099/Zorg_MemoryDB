@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.2.71 - 2026-07-11
+
+- Makes MemoryDB worker, installer, backup, recovery, dispatcher, and recall-tool paths resolve from `OPENCLAW_WORKSPACE`, `WORKSPACE_DIR`, `SQL_MEMORY_MAP`, and related variables instead of an operator-specific `/home/openclaw` path.
+- Updates LAN Command Chat to resolve its workspace, sessions, OpenClaw binary, and PostgreSQL map from environment-driven paths.
+- Updates Memory Brain 3D to use the same `SQL_MEMORY_MAP`/PostgreSQL configuration contract and records the shared-surface verification requirement in the skill.
+- Verifies the Vorg path contract with `/home/vorg/.openclaw/workspace`.
+
 ## v1.2.70 - 2026-07-11
 
 - Removes generated PostgreSQL passwords from the default local installer path.

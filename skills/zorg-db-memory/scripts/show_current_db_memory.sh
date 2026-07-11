@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-WORKDIR="/home/openclaw/.openclaw/workspace"
-MAP="$WORKDIR/sql_memory_map.json"
+WORKDIR="${OPENCLAW_WORKSPACE:-${WORKSPACE_DIR:-${HOME:?}/.openclaw/workspace}}"
+MAP="${SQL_MEMORY_MAP:-${ZORG_SQL_MEMORY_MAP:-$WORKDIR/sql_memory_map.json}}"
 TOOL="$WORKDIR/memory_sql_tool.py"
 VENV="$WORKDIR/.venv-sqlmem"
 

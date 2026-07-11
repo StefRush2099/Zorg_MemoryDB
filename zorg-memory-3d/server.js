@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import fsSync from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -28,11 +29,28 @@ const { Pool } = pg;
 function loadDbConfig() {
   if (process.env.DATABASE_URL) return { connectionString: process.env.DATABASE_URL };
 
+  const workspace = process.env.OPENCLAW_WORKSPACE || process.env.WORKSPACE_DIR || path.join(process.env.HOME || process.cwd(), ".openclaw", "workspace");
+  const mapPath = process.env.SQL_MEMORY_MAP || process.env.ZORG_SQL_MEMORY_MAP || path.join(workspace, "sql_memory_map.json");
+  try {
+    const postgres = JSON.parse(fsSync.readFileSync(mapPath, "utf8")).postgres;
+    if (postgres?.host && postgres?.database && postgres?.user) {
+      return {
+        host: String(postgres.host),
+        port: Number(postgres.port || 5432),
+        database: String(postgres.database),
+        user: String(postgres.user),
+        ...(typeof postgres.password === "string" ? { password: postgres.password } : {}),
+      };
+    }
+  } catch {
+    // Fall through to explicit PostgreSQL environment variables.
+  }
+
   return {
     host: process.env.PGHOST || "/run/postgresql",
-    port: Number(process.env.PGPORT || 5433),
+    port: Number(process.env.PGPORT || 5432),
     database: process.env.PGDATABASE || "openclaw_behavior",
-    user: process.env.PGUSER || process.env.USER || "vorg",
+    user: process.env.PGUSER || process.env.USER || "zorg",
     password: process.env.PGPASSWORD || process.env.ZORG_DB_PASSWORD,
   };
 }

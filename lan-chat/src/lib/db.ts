@@ -1,12 +1,13 @@
 import fs from "node:fs";
 import { Pool, type PoolConfig } from "pg";
+import { getSqlMemoryMapPath } from "./paths";
 
 let pool: Pool | null = null;
 let dbDisabledReason: string | null = null;
 
 function loadMappedDbConfig(): PoolConfig | null {
   try {
-    const raw = fs.readFileSync(`${process.env.HOME}/.openclaw/workspace/sql_memory_map.json`, "utf8");
+    const raw = fs.readFileSync(getSqlMemoryMapPath(), "utf8");
     const postgres = JSON.parse(raw)?.postgres;
     if (!postgres?.host || !postgres?.database || !postgres?.user) return null;
     return {

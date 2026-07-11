@@ -1,12 +1,13 @@
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { NextRequest, NextResponse } from "next/server";
+import { getWorkspaceDir } from "@/lib/paths";
 
 const execFileAsync = promisify(execFile);
 
 const SESSION = process.env.LAN_CHAT_TUI_TMUX_SESSION || "lan-chat-openclaw-tui";
-const WORKSPACE = process.env.OPENCLAW_WORKSPACE || "/home/openclaw/.openclaw/workspace";
-const OPENCLAW_BIN = process.env.OPENCLAW_BIN || "/home/openclaw/.npm-global/bin/openclaw";
+const WORKSPACE = getWorkspaceDir();
+const OPENCLAW_BIN = process.env.OPENCLAW_BIN || "openclaw";
 const TUI_COMMAND = `cd ${shellQuote(WORKSPACE)} && ${shellQuote(OPENCLAW_BIN)} tui`;
 const CAPTURE_LINES = 70;
 const MAX_INPUT_LENGTH = 2000;
@@ -24,7 +25,7 @@ async function tmux(args: string[]) {
     env: {
       ...process.env,
       TERM: process.env.TERM || "xterm-256color",
-      PATH: process.env.PATH || "/home/openclaw/.npm-global/bin:/usr/local/bin:/usr/bin:/bin",
+      PATH: process.env.PATH || "/usr/local/bin:/usr/bin:/bin",
     },
   });
 }

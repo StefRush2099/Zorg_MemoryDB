@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 import { appConfig } from "@/lib/env";
+import { getOpenClawSessionsDir } from "@/lib/paths";
 import { getDbPool } from "@/lib/db";
 import { callGateway } from "@/lib/gatewayWs";
 import { normalizeMessages } from "@/lib/chat";
@@ -112,7 +113,7 @@ function includeTranscriptSession(sessionKey: string) {
 }
 
 function loadTranscriptHistory(): StreamMessage[] {
-  const sessionsDir = path.join(process.env.HOME || "/home/openclaw", ".openclaw/agents/main/sessions");
+  const sessionsDir = getOpenClawSessionsDir();
   try {
     return fs
       .readdirSync(sessionsDir)

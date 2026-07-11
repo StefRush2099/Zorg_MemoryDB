@@ -6,8 +6,14 @@ scheduled-job activity, and runtime timing observations as an interactive 3D
 graph with light and dark modes.
 
 The service builds every graph response from PostgreSQL at request time. On
-Vorg it connects directly to the local `openclaw_behavior` database over the
-PostgreSQL socket and does not read map/export data files.
+Vorg it connects to the PostgreSQL settings resolved from `SQL_MEMORY_MAP`
+(or `ZORG_SQL_MEMORY_MAP`) and `OPENCLAW_WORKSPACE` (or `WORKSPACE_DIR`). It
+does not read map/export data files other than the configured map. Set
+`DATABASE_URL` or explicit `PG*` variables when a map is not used.
+
+The visualizer is part of the same Zorg MemoryDB update surface as LAN Command
+Chat. Any skill, schema, installer, or runtime update must verify both apps
+against the same PostgreSQL configuration.
 
 Default URL on a Standard Ubuntu install:
 

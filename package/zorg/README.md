@@ -7,6 +7,8 @@ This directory contains the public-safe Zorg MemoryDB and LAN command chat insta
 - `install-zorg-memorydb.sh` installs prerequisites and copies packaged components into the OpenClaw workspace.
 - `requirements.txt` declares the Python DB driver used by the recall tools.
 - `db/schema.sql` creates the database structure.
+- `db/memory_recall_*_2026_07_10.sql` installs the stored-procedure recall API
+  used by the packaged DB-first recall tools.
 - `db/public_canonical_rules_update_2026_06_02.sql` is the single packaged
   rule file. It creates/updates `zorg_logic_rules`, inserts every public-safe
   addable rule, checks the expected count, and raises existing chat timing rule

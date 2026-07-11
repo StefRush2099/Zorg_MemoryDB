@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.2.69 - 2026-07-11
+
+- Syncs the canonical `zorg-db-memory` skill with DB-first fact-summary, GO-gate, and additive ANN/vector recall tuning rules.
+- Updates the bundled and installer-copied MemoryDB Python tools to use DB-owned stored-procedure recall APIs and due-job enqueue behavior.
+- Adds public-safe stored-procedure migration files for the recall API, bounded recall paths, semantic source lookup, search/table helpers, and generic due-job enqueue support.
+- Preserves the v1.2.68 GitHub repository metadata/fork verification safeguards.
+
 ## v1.2.68 - 2026-07-10
 
 - Corrects GitHub repository metadata so the project is no longer positioned as an OpenClaw fork.

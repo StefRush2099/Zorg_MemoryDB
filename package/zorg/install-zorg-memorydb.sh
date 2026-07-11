@@ -324,6 +324,16 @@ ensure_postgres_database() {
   if [[ -f "$ZORG_WORKSPACE_DIR/db/memory_file_archive_schema.sql" ]]; then
     PGPASSWORD="$ZORG_DB_PASSWORD" psql -h "$ZORG_DB_HOST" -p "$ZORG_DB_PORT" -U "$ZORG_DB_USER" -d "$ZORG_DB_NAME" -v ON_ERROR_STOP=1 -f "$ZORG_WORKSPACE_DIR/db/memory_file_archive_schema.sql" || true
   fi
+  for sql_file in \
+    memory_recall_procedure_api_2026_07_10.sql \
+    memory_recall_exact_alias_fast_2026_07_10.sql \
+    memory_recall_fast_mv_bounded_2026_07_10.sql \
+    memory_recall_v2_bounded_2026_07_10.sql \
+    memory_llm_due_enqueue_api_2026_07_10.sql; do
+    if [[ -f "$ZORG_WORKSPACE_DIR/db/$sql_file" ]]; then
+      PGPASSWORD="$ZORG_DB_PASSWORD" psql -h "$ZORG_DB_HOST" -p "$ZORG_DB_PORT" -U "$ZORG_DB_USER" -d "$ZORG_DB_NAME" -v ON_ERROR_STOP=1 -f "$ZORG_WORKSPACE_DIR/db/$sql_file" || true
+    fi
+  done
   if [[ -f "$ZORG_WORKSPACE_DIR/db/public_canonical_rules_update_2026_06_02.sql" ]]; then
     PGPASSWORD="$ZORG_DB_PASSWORD" psql -h "$ZORG_DB_HOST" -p "$ZORG_DB_PORT" -U "$ZORG_DB_USER" -d "$ZORG_DB_NAME" -v ON_ERROR_STOP=1 -f "$ZORG_WORKSPACE_DIR/db/public_canonical_rules_update_2026_06_02.sql" || true
   fi

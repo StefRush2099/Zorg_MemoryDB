@@ -26,8 +26,9 @@ def connect(cfg):
     )
 
 
-def mapped_tables(cfg) -> List[str]:
-    return sorted(set(cfg["table_map"].values()))
+def mapped_tables(cur) -> List[str]:
+    cur.execute("select table_name from public.memory_tables_v1()")
+    return [row["table_name"] for row in cur.fetchall()]
 
 
 def search(cur, table: str, q: str, limit: int = 10):
@@ -36,158 +37,27 @@ def search(cur, table: str, q: str, limit: int = 10):
 
     if table == "ann":
         ensure_model_query_embedding_cached(q)
-        cur.execute(
-            """
-            select source_type, source_id, path, line_start, line_end, priority,
-                   left(content, 280) as content
-            from public.memory_ann_recall(%s, %s)
-            """,
-            (q, limit),
-        )
-        return cur.fetchall()
-
-    if table == "project":
-        cur.execute(
-            """
-            select source_type, source_id, path, line_start, line_end, priority,
-                   left(content, 280) as content
-            from zorg_get_project_context(%s, %s)
-            """,
-            (q, limit),
-        )
-        return cur.fetchall()
-
-    if table == "host":
-        cur.execute(
-            """
-            select source_type, source_id, path, line_start, line_end, priority,
-                   left(content, 280) as content
-            from zorg_get_host_context(%s, %s)
-            """,
-            (q, limit),
-        )
-        return cur.fetchall()
-
-    if table == "runbook":
-        cur.execute(
-            """
-            select source_type, source_id, path, line_start, line_end, priority,
-                   left(content, 280) as content
-            from zorg_get_runbook_context(%s, %s)
-            """,
-            (q, limit),
-        )
-        return cur.fetchall()
-
-    if table == "zorg_memory":
-        like = f"%{q}%"
-        cur.execute(
-            """
-            with matches as (
-                select id, logged_at, memory_category, memory_priority,
-                       left(coalesce(memory_value, chat_session_log, ''), 240) as snippet
-                from zorg_memory
-                where coalesce(memory_value, '') ilike %s
-
-                union
-
-                select id, logged_at, memory_category, memory_priority,
-                       left(coalesce(memory_value, chat_session_log, ''), 240) as snippet
-                from zorg_memory
-                where coalesce(chat_session_log, '') ilike %s
-
-                union
-
-                select id, logged_at, memory_category, memory_priority,
-                       left(coalesce(memory_value, chat_session_log, ''), 240) as snippet
-                from zorg_memory
-                where coalesce(memory_key, '') ilike %s
-
-                union
-
-                select id, logged_at, memory_category, memory_priority,
-                       left(coalesce(memory_value, chat_session_log, ''), 240) as snippet
-                from zorg_memory
-                where coalesce(system_prompt, '') ilike %s
-
-                union
-
-                select id, logged_at, memory_category, memory_priority,
-                       left(coalesce(memory_value, chat_session_log, ''), 240) as snippet
-                from zorg_memory
-                where coalesce(ai_response, '') ilike %s
-            )
-            select id, logged_at, memory_category, memory_priority, snippet
-            from matches
-            order by logged_at desc
-            limit %s
-            """,
-            (like, like, like, like, like, limit),
-        )
-        return cur.fetchall()
-
     cur.execute(
-        f"""
-        select id, line_no, imported_at,
-               left(coalesce(line_text,''), 240) as snippet
-        from {table}
-        where coalesce(line_text,'') ilike %s
-        order by line_no asc
-        limit %s
-        """,
-        (f"%{q}%", limit),
+        "select row_data from public.memory_search_table_v1(%s, %s, %s)",
+        (table, q, limit),
     )
-    return cur.fetchall()
+    return [row["row_data"] for row in cur.fetchall()]
 
 
 def get_row(cur, table: str, key: str):
-    if table == "zorg_memory":
-        if "-" in key:
-            cur.execute("select * from zorg_memory where id=%s", (key,))
-        else:
-            cur.execute(
-                "select * from zorg_memory order by logged_at asc offset %s limit 1",
-                (max(int(key) - 1, 0),),
-            )
-    else:
-        if "-" in key:
-            cur.execute(f"select * from {table} where id=%s", (key,))
-        else:
-            cur.execute(f"select * from {table} where line_no=%s", (int(key),))
-    return cur.fetchone()
+    cur.execute("select public.memory_get_row_v1(%s, %s) as row_data", (table, key))
+    row = cur.fetchone()
+    return row["row_data"] if row else None
 
 
 def recent(cur, limit: int = 20):
-    cur.execute(
-        """
-        select id, logged_at, memory_category, memory_priority,
-               left(coalesce(memory_value, chat_session_log, ''), 240) as snippet
-        from zorg_memory
-        order by logged_at desc
-        limit %s
-        """,
-        (limit,),
-    )
-    return cur.fetchall()
+    cur.execute("select row_data from public.memory_recent_v1(%s)", (limit,))
+    return [row["row_data"] for row in cur.fetchall()]
 
 
 def master(cur, limit: int = 40):
-    cur.execute(
-        """
-        select source_type, source_id, priority, sort_ts, title,
-               left(content, 280) as content
-        from zorg_master_context_mv
-        order by
-          case when lower(priority)='critical' then 1
-               when lower(priority)='high' then 2
-               when lower(priority)='medium' then 3
-               else 4 end,
-          sort_ts desc
-        limit %s
-        """,
-        (limit,),
-    )
-    return cur.fetchall()
+    cur.execute("select row_data from public.memory_master_context_v1(%s)", (limit,))
+    return [row["row_data"] for row in cur.fetchall()]
 
 
 def main():
@@ -217,7 +87,7 @@ def main():
     with connect(cfg) as conn:
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
             if args.cmd == "tables":
-                print("\n".join(mapped_tables(cfg) + ["all", "ann", "project", "host", "runbook"]))
+                print("\n".join(mapped_tables(cur)))
                 return
 
             if args.cmd == "search":

@@ -132,23 +132,17 @@ def claim_jobs(cur, limit: int):
 
 
 def get_source_text(cur, source_type: str, source_key: str, payload: dict) -> str:
-    if source_type == "query":
-        return payload.get("query_text", "")
-    if source_type == "success_query":
-        return "\n".join(str(payload.get(k, "")) for k in ("query_text", "intent"))
     cur.execute(
         """
-        select content
-        from public.zorg_memory_search_mv
-        where source_table=%s and source_id=%s
-        order by event_ts desc nulls last
-        limit 1
+        select public.memory_semantic_source_text_v1(%s, %s, %s::jsonb)
         """,
-        (source_type, source_key),
+        (source_type, source_key, json.dumps(payload or {})),
     )
     row = cur.fetchone()
-    if row and row["content"]:
-        return row["content"]
+    if row:
+        if isinstance(row, dict):
+            return row.get("memory_semantic_source_text_v1") or ""
+        return row[0] or ""
     return "\n".join(str(v) for v in payload.values() if v is not None)
 
 
@@ -324,8 +318,13 @@ def main():
             )
             if processed and not args.skip_refresh:
                 try:
+                    cur.execute("savepoint semantic_refresh_attempt")
+                    cur.execute("set local lock_timeout = '1000ms'")
+                    cur.execute("set local statement_timeout = '5000ms'")
                     cur.execute("select public.zorg_refresh_memory_search()")
+                    cur.execute("release savepoint semantic_refresh_attempt")
                 except Exception:
+                    cur.execute("rollback to savepoint semantic_refresh_attempt")
                     pass
             cur.execute("select extract(epoch from public.memory_dynamic_defer_interval(50))")
             row = cur.fetchone()

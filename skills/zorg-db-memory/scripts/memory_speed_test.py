@@ -41,13 +41,8 @@ def load_queries():
 
 def db_search_count(cur, query: str) -> int:
     cur.execute(
-        """
-        select count(*)
-        from zorg_memory_search_fast_mv
-        where content_lc like %s
-           or content_fts_simple @@ plainto_tsquery('simple', %s)
-        """,
-        (f"%{query.lower()}%", query),
+        "select public.memory_search_count_v1(%s)",
+        (query,),
     )
     return cur.fetchone()[0]
 
@@ -76,7 +71,7 @@ def main():
             cur.execute('set statement_timeout = %s', (MAINTENANCE_STATEMENT_TIMEOUT_MS,))
             if REFRESH_BEFORE_TEST:
                 cur.execute('select public.refresh_zorg_memory_search_fast_mv()')
-            cur.execute('analyze public.zorg_memory_search_fast_mv')
+            cur.execute('select public.memory_search_analyze_v1()')
             cur.execute('set statement_timeout = %s', (QUERY_STATEMENT_TIMEOUT_MS,))
             for q in queries:
                 db_times = []

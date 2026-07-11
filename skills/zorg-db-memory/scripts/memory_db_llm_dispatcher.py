@@ -57,6 +57,14 @@ def finish(conn, queue_id, status, summary="", stdout="", stderr="", error=""):
         )
 
 
+def enqueue_due(conn) -> None:
+    with conn.cursor() as cur:
+        cur.execute(
+            "select public.memory_llm_enqueue_due_jobs_v1(%s)",
+            (25,),
+        )
+
+
 def build_agent_command(row: dict) -> list[str]:
     snapshot = row["payload_snapshot"]
     payload = snapshot.get("payload") or {}
@@ -143,6 +151,7 @@ def run_one(conn, row: dict) -> None:
 
 
 def drain(conn) -> int:
+    enqueue_due(conn)
     count = 0
     while True:
         row = claim(conn)

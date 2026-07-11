@@ -21,6 +21,10 @@ OpenClaw upgrade or package replacement bypasses the normal priority order.
 7. Keep Zorg MemoryDB as an add-on overlay to upstream OpenClaw.
 8. Publish public-safe structure/docs/scripts/templates to this repository when
    rules, recall, schema, installers, or recovery behavior changes.
+9. PostgreSQL-owned scheduled LLM jobs must store `$CURRENT_MODEL`, not a
+   pinned provider/model identifier. The DB dispatcher resolves that variable
+   at execution time from the active OpenClaw default model, and clean installs
+   must preserve this behavior.
 
 ## Install/Recovery Placement
 
@@ -38,4 +42,3 @@ See also:
 - self-recovery.md
 - database-recovery.md
 - base-install-permanent-engineering-rules.md
-

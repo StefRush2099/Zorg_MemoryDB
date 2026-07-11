@@ -131,6 +131,12 @@ If an email address fails or appears wrong, the agent should not simply stop. It
 
 Cron jobs are not just scheduled and forgotten. The system can audit whether jobs are functioning as designed, detect failures or stale states, and make safe repairs when the intended behavior is clear.
 
+PostgreSQL-owned LLM jobs also keep their model selection portable: each agent
+payload stores `$CURRENT_MODEL`, while the dispatcher resolves that variable at
+execution time from the active OpenClaw default model. A model change therefore
+updates scheduled work without rewriting every durable job or silently retaining
+a stale provider/model identifier.
+
 ### 6. Disk-space monitoring and remediation
 
 The system can monitor local free space, stay silent while healthy, alert below threshold, and — where authorized — grow the VM disk and in-guest filesystem when space drops below the defined safety mark.

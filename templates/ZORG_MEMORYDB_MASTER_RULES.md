@@ -24,6 +24,10 @@ overlay. It must say, at minimum:
 12. User-visible operational replies must use real request and response
     timestamps when timing is relevant, and durations must be computed only
     from those real values after the response is sent.
+13. PostgreSQL-owned scheduled LLM jobs must store `$CURRENT_MODEL`, not a
+    pinned provider/model identifier. The DB dispatcher resolves that variable
+    at execution time from the active OpenClaw default model, and clean installs
+    must preserve this behavior.
 
 For the current canonical text, see docs/master-recovery-rules.md in this
 repository and the workspace root ZORG_MEMORYDB_MASTER_RULES.md on a restored

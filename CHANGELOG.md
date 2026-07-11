@@ -6,6 +6,11 @@ All meaningful changes to this project are documented here and released with a G
 
 ### Changed
 
+- Added a public-safe migration and installer/upgrade path that converts
+  PostgreSQL-owned scheduled LLM jobs to the `$CURRENT_MODEL` payload
+  variable, so the dispatcher follows the active OpenClaw default model
+  instead of retaining stale provider/model identifiers.
+
 - Replaced the LAN command chat's main Conversation tile with a tmux-backed web
   command line that opens and controls the local `openclaw tui`, moved the
   thinking/tool activity readout above the TUI, removed the extra command-line

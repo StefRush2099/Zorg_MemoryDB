@@ -113,6 +113,7 @@ cfg=json.load(open('sql_memory_map.json'))['postgres']
 schema=pathlib.Path('db/schema.sql').read_text(encoding='utf-8')
 public_rules=pathlib.Path('db/public_canonical_rules_update_2026_06_02.sql')
 runtime_rules=pathlib.Path('db/runtime_db_only_memory_writer_rules_2026_06_04.sql')
+current_model_rules=pathlib.Path('db/current_model_scheduler_variable_2026_07_11.sql')
 conn=psycopg2.connect(host=cfg['host'],port=cfg['port'],dbname=cfg['database'],user=cfg['user'])
 with conn:
     with conn.cursor() as cur:
@@ -121,6 +122,8 @@ with conn:
             cur.execute(public_rules.read_text(encoding='utf-8'))
         if runtime_rules.exists():
             cur.execute(runtime_rules.read_text(encoding='utf-8'))
+        if current_model_rules.exists():
+            cur.execute(current_model_rules.read_text(encoding='utf-8'))
         cur.execute('select refresh_zorg_memory_search_mv();')
         cur.execute('select refresh_zorg_memory_search_fast_mv();')
         cur.execute('select refresh_zorg_master_context();')

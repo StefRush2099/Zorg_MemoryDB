@@ -16,6 +16,7 @@ This repository is intentionally **not** a GitHub fork or full source fork of Op
 - PostgreSQL schema, recall rules, install/rollback guidance, and public-safe canonical rule import material.
 - LAN Command Chat support files and Memory Brain 3D source maps/screenshots for operator-facing memory visibility.
 - Supporting-service discovery rules for `cloudflared`, ComfyUI, `kokoro-fastapi-cpu`, MediaMTX, Ollama, SearXNG, and faster-whisper, with Dockge install requests when services are missing.
+- Passwordless local PostgreSQL bootstrap on loopback, with remote unauthenticated access rejected.
 
 ## What This Repository Contains
 

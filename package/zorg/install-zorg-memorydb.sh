@@ -11,7 +11,7 @@ ZORG_DB_NAME="${ZORG_DB_NAME:-zorgdb}"
 ZORG_DB_USER="${ZORG_DB_USER:-zorg}"
 ZORG_DB_HOST="${ZORG_DB_HOST:-127.0.0.1}"
 ZORG_DB_PORT="${ZORG_DB_PORT:-5432}"
-ZORG_DB_PASSWORD="${ZORG_DB_PASSWORD:-}"
+ZORG_DB_PASSWORD=""
 LAN_CHAT_PORT="${LAN_CHAT_PORT:-3001}"
 LAN_CHAT_HOST="${LAN_CHAT_HOST:-0.0.0.0}"
 OPENCLAW_CONTROL_UI_DISABLE_DEVICE_AUTH="${OPENCLAW_CONTROL_UI_DISABLE_DEVICE_AUTH:-true}"
@@ -138,12 +138,13 @@ copy_packaged_components() {
 }
 
 ensure_db_password() {
-  if [[ -z "$ZORG_DB_PASSWORD" && -f "$OPENCLAW_WORKSPACE/sql_memory_map.json" ]]; then
-    ZORG_DB_PASSWORD="$(python3 -c 'import json,sys; p=json.load(open(sys.argv[1]))["postgres"]; print(p.get("password",""))' "$OPENCLAW_WORKSPACE/sql_memory_map.json" 2>/dev/null || true)"
-  fi
-  if [[ -z "$ZORG_DB_PASSWORD" ]]; then
-    ZORG_DB_PASSWORD="$(openssl rand -hex 24 2>/dev/null || date +%s%N)"
-  fi
+  case "$ZORG_DB_HOST" in
+    127.0.0.1|localhost|::1) ZORG_DB_PASSWORD="" ;;
+    *)
+      warn "Remote PostgreSQL requires authentication; refusing an unauthenticated database configuration for $ZORG_DB_HOST. Set up a protected remote credential separately."
+      return 1
+      ;;
+  esac
 }
 
 is_safe_pg_identifier() {
@@ -282,21 +283,18 @@ ensure_local_postgres_role_database() {
   is_safe_pg_identifier "$ZORG_DB_USER" || { warn "Skipping automatic PostgreSQL role creation because ZORG_DB_USER is not a simple identifier."; return 0; }
   is_safe_pg_identifier "$ZORG_DB_NAME" || { warn "Skipping automatic PostgreSQL database creation because ZORG_DB_NAME is not a simple identifier."; return 0; }
 
-  local quoted_password
-  quoted_password="$(sql_quote_literal "$ZORG_DB_PASSWORD")"
-
   if ! run_postgres_superuser_sql "SELECT 1" >/dev/null 2>&1; then
     warn "PostgreSQL superuser access is unavailable; create role/database manually or set ZORG_DB_* variables."
     return 0
   fi
 
   if [[ "$(run_postgres_superuser_sql "SELECT 1 FROM pg_roles WHERE rolname = '$ZORG_DB_USER'" 2>/dev/null || true)" != "1" ]]; then
-    run_postgres_superuser_sql "CREATE ROLE \"$ZORG_DB_USER\" WITH LOGIN PASSWORD '$quoted_password'" >/dev/null || {
+    run_postgres_superuser_sql "CREATE ROLE \"$ZORG_DB_USER\" WITH LOGIN" >/dev/null || {
       warn "Could not create PostgreSQL role $ZORG_DB_USER."
       return 0
     }
   else
-    run_postgres_superuser_sql "ALTER ROLE \"$ZORG_DB_USER\" WITH LOGIN PASSWORD '$quoted_password'" >/dev/null || true
+    run_postgres_superuser_sql "ALTER ROLE \"$ZORG_DB_USER\" WITH LOGIN PASSWORD NULL" >/dev/null || true
   fi
 
   if [[ "$(run_postgres_superuser_sql "SELECT 1 FROM pg_database WHERE datname = '$ZORG_DB_NAME'" 2>/dev/null || true)" != "1" ]]; then
@@ -307,22 +305,47 @@ ensure_local_postgres_role_database() {
   fi
 }
 
+configure_passwordless_local_auth() {
+  case "$ZORG_DB_HOST" in
+    127.0.0.1|localhost|::1) ;;
+    *) return 0 ;;
+  esac
+  local hba_file
+  hba_file="$(run_postgres_superuser_sql "SHOW hba_file" 2>/dev/null || true)"
+  [[ -n "$hba_file" && -f "$hba_file" ]] || {
+    warn "Could not locate pg_hba.conf; local passwordless access was not configured."
+    return 0
+  }
+  if ! grep -Eq "^[[:space:]]*host[[:space:]]+$ZORG_DB_NAME[[:space:]]+$ZORG_DB_USER[[:space:]]+127\\.0\\.0\\.1/32[[:space:]]+trust([[:space:]]|$)" "$hba_file"; then
+    if is_root; then
+      printf '\n# Zorg MemoryDB: passwordless local-only access; never expose this rule beyond loopback.\nhost %s %s 127.0.0.1/32 trust\n' "$ZORG_DB_NAME" "$ZORG_DB_USER" >> "$hba_file"
+    elif has_passwordless_sudo; then
+      printf '\n# Zorg MemoryDB: passwordless local-only access; never expose this rule beyond loopback.\nhost %s %s 127.0.0.1/32 trust\n' "$ZORG_DB_NAME" "$ZORG_DB_USER" | sudo -n tee -a "$hba_file" >/dev/null
+    else
+      warn "Cannot update pg_hba.conf without root; local passwordless access was not configured."
+      return 0
+    fi
+    run_postgres_superuser_sql "SELECT pg_reload_conf()" >/dev/null || true
+  fi
+}
+
 ensure_postgres_database() {
-  ensure_db_password
+  ensure_db_password || return 0
   if ! command -v psql >/dev/null 2>&1; then
     warn "psql is unavailable; database schema was copied but not applied."
     return 0
   fi
   start_local_postgres
   ensure_local_postgres_role_database
+  configure_passwordless_local_auth
   ensure_postgres_extension_packages
   ensure_pg_cron_configuration
-  PGPASSWORD="$ZORG_DB_PASSWORD" psql -h "$ZORG_DB_HOST" -p "$ZORG_DB_PORT" -U "$ZORG_DB_USER" -d "$ZORG_DB_NAME" -v ON_ERROR_STOP=1 -f "$ZORG_WORKSPACE_DIR/db/schema.sql" || {
+  psql -h "$ZORG_DB_HOST" -p "$ZORG_DB_PORT" -U "$ZORG_DB_USER" -d "$ZORG_DB_NAME" -v ON_ERROR_STOP=1 -f "$ZORG_WORKSPACE_DIR/db/schema.sql" || {
     warn "Schema apply failed. Create database/role or set ZORG_DB_* variables, then rerun this script."
     return 0
   }
   if [[ -f "$ZORG_WORKSPACE_DIR/db/memory_file_archive_schema.sql" ]]; then
-    PGPASSWORD="$ZORG_DB_PASSWORD" psql -h "$ZORG_DB_HOST" -p "$ZORG_DB_PORT" -U "$ZORG_DB_USER" -d "$ZORG_DB_NAME" -v ON_ERROR_STOP=1 -f "$ZORG_WORKSPACE_DIR/db/memory_file_archive_schema.sql" || true
+    psql -h "$ZORG_DB_HOST" -p "$ZORG_DB_PORT" -U "$ZORG_DB_USER" -d "$ZORG_DB_NAME" -v ON_ERROR_STOP=1 -f "$ZORG_WORKSPACE_DIR/db/memory_file_archive_schema.sql" || true
   fi
   for sql_file in \
     memory_recall_procedure_api_2026_07_10.sql \
@@ -331,11 +354,11 @@ ensure_postgres_database() {
     memory_recall_v2_bounded_2026_07_10.sql \
     memory_llm_due_enqueue_api_2026_07_10.sql; do
     if [[ -f "$ZORG_WORKSPACE_DIR/db/$sql_file" ]]; then
-      PGPASSWORD="$ZORG_DB_PASSWORD" psql -h "$ZORG_DB_HOST" -p "$ZORG_DB_PORT" -U "$ZORG_DB_USER" -d "$ZORG_DB_NAME" -v ON_ERROR_STOP=1 -f "$ZORG_WORKSPACE_DIR/db/$sql_file" || true
+      psql -h "$ZORG_DB_HOST" -p "$ZORG_DB_PORT" -U "$ZORG_DB_USER" -d "$ZORG_DB_NAME" -v ON_ERROR_STOP=1 -f "$ZORG_WORKSPACE_DIR/db/$sql_file" || true
     fi
   done
   if [[ -f "$ZORG_WORKSPACE_DIR/db/public_canonical_rules_update_2026_06_02.sql" ]]; then
-    PGPASSWORD="$ZORG_DB_PASSWORD" psql -h "$ZORG_DB_HOST" -p "$ZORG_DB_PORT" -U "$ZORG_DB_USER" -d "$ZORG_DB_NAME" -v ON_ERROR_STOP=1 -f "$ZORG_WORKSPACE_DIR/db/public_canonical_rules_update_2026_06_02.sql" || true
+    psql -h "$ZORG_DB_HOST" -p "$ZORG_DB_PORT" -U "$ZORG_DB_USER" -d "$ZORG_DB_NAME" -v ON_ERROR_STOP=1 -f "$ZORG_WORKSPACE_DIR/db/public_canonical_rules_update_2026_06_02.sql" || true
   fi
 }
 
@@ -347,7 +370,7 @@ write_memory_config() {
     "port": $ZORG_DB_PORT,
     "database": "$ZORG_DB_NAME",
     "user": "$ZORG_DB_USER",
-    "password": "$ZORG_DB_PASSWORD"
+    "password": ""
   },
   "table_map": {
     "memory": "zorg_memory",
@@ -503,10 +526,10 @@ import_markdown_rules() {
     else
       "$OPENCLAW_WORKSPACE/.venv-sqlmem/bin/python" -m pip install psycopg2-binary >/dev/null 2>&1 || true
     fi
-    PGPASSWORD="$ZORG_DB_PASSWORD" "$OPENCLAW_WORKSPACE/.venv-sqlmem/bin/python" "$ZORG_WORKSPACE_DIR/db/import_markdown_rules.py" \
+    "$OPENCLAW_WORKSPACE/.venv-sqlmem/bin/python" "$ZORG_WORKSPACE_DIR/db/import_markdown_rules.py" \
       --workspace "$OPENCLAW_WORKSPACE" \
       --rules-dir "$ZORG_WORKSPACE_DIR/rules" \
-      --database-url "postgresql://$ZORG_DB_USER:$ZORG_DB_PASSWORD@$ZORG_DB_HOST:$ZORG_DB_PORT/$ZORG_DB_NAME" || true
+      --database-url "postgresql://$ZORG_DB_USER@$ZORG_DB_HOST:$ZORG_DB_PORT/$ZORG_DB_NAME" || true
   fi
 }
 
@@ -514,7 +537,7 @@ prepare_lan_chat() {
   if [[ ! -f "$LAN_CHAT_DIR/.env.local" && -f "$LAN_CHAT_DIR/.env.local.example" ]]; then
     cp "$LAN_CHAT_DIR/.env.local.example" "$LAN_CHAT_DIR/.env.local"
     {
-      printf '\nDATABASE_URL=postgresql://%s:%s@%s:%s/%s\n' "$ZORG_DB_USER" "$ZORG_DB_PASSWORD" "$ZORG_DB_HOST" "$ZORG_DB_PORT" "$ZORG_DB_NAME"
+      printf '\nDATABASE_URL=postgresql://%s@%s:%s/%s\n' "$ZORG_DB_USER" "$ZORG_DB_HOST" "$ZORG_DB_PORT" "$ZORG_DB_NAME"
       printf 'LAN_CHAT_PORT=%s\n' "$LAN_CHAT_PORT"
       printf 'PORT=%s\n' "$LAN_CHAT_PORT"
     } >> "$LAN_CHAT_DIR/.env.local"

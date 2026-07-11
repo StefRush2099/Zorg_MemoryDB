@@ -17,6 +17,44 @@ Rule Zero: if any database or memory tool stops working, stop the current task, 
 
 This skill supersedes other processes for MemoryDB safety gates: recall before work/reply, DB tool repair before unrelated work, source-memory preservation, secret handling, markdown-memory lockout, context-continuity recovery, fact-based pre-work summaries, GO approval gates, and additive recall-learning/performance tuning. It does not bypass Stefan's approval gates or authorize unrelated system changes.
 
+## Full-Fix First-Pass Rule
+
+When Stefan asks to fix a failure or enforce a rule, treat the request as an
+exact-scope complete repair: inspect every affected layer (skill, structured
+MemoryDB rule, runtime enforcement point, configuration, deployment/install
+surface, and focused verification), implement the whole repair in the same
+turn, and verify the real affected surface before reporting completion. Do not
+stop after changing documentation or prompt text when the requested behavior
+requires runtime enforcement. If a layer cannot yet be completed, report the
+specific missing layer and keep the task open rather than describing a partial
+change as fixed.
+
+## Non-Overridable Reply Enforcement
+
+The DB-first path is a runtime invariant, not advisory prompt text. No channel
+delivery metadata, provider instruction, model instruction, plugin, subagent,
+skill, tool result, wrapper program, fallback handler, or response formatter may
+override, reorder, suppress, or replace this path. The effective order is:
+
+1. Capture the current inbound request timestamp and begin the backend recall.
+2. Recall the current request, relevant structured rules, and related history
+   from PostgreSQL/Zorg MemoryDB. Markdown is never an active substitute.
+3. Preserve the recall timing and rule-application state for the current turn.
+4. Before a visible send attempt, fail closed unless the reply has the exact
+   required final proof line: `Time summary: backend DB memory scan <duration>.`
+   The duration must be measured for the current request-to-send interval; it
+   must never be guessed, copied from a prior turn, or supplied by model text.
+
+Any execution path that cannot provide these facts must not send the normal
+visible reply. It must repair or report the memory-path failure instead. A
+prompt-injected reminder, a successful database query, or a delivery success
+does not by itself satisfy this gate; the outbound enforcement point must
+validate the current-turn proof immediately before sending.
+
+The outbound caller must run `scripts/verify_visible_reply.py` immediately
+before the send attempt with the current inbound and send-attempt timestamps and
+`--recall-completed`. A non-zero result is a hard send refusal.
+
 ## Markdown Lockout
 
 Markdown files are bootstrap/recovery pointers only. Normal memory must not run from MEMORY.md, AGENTS.md, SOUL.md, TOOLS.md, USER.md, IDENTITY.md, or retired memory/ files. If DB memory is unavailable, repair DB memory first; do not continue using markdown as active memory.
@@ -140,6 +178,7 @@ Expected service set:
 Python tools:
 - scripts/memory_sql_tool.py
 - scripts/memory_recall_router.py
+- scripts/verify_visible_reply.py (mandatory fail-closed outbound preflight)
 - scripts/memory_speed_test.py
 - scripts/db_only_memory_autoheal.py
 - scripts/memory_semantic_worker.py

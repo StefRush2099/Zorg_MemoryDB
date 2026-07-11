@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.2.70 - 2026-07-11
+
+- Removes generated PostgreSQL passwords from the default local installer path.
+- Adds passwordless loopback-only authentication for the local `zorg` role.
+- Rejects unauthenticated remote database configuration and documents the boundary.
+
 ## v1.2.69 - 2026-07-11
 
 - Syncs the canonical `zorg-db-memory` skill with DB-first fact-summary, GO-gate, and additive ANN/vector recall tuning rules.

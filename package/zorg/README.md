@@ -25,6 +25,10 @@ The bootstrap prepares the database and LAN command chat for clean installs and 
 
 When the add-on bootstrap is run through `sudo` without an explicit `OPENCLAW_HOME`, it installs into the invoking user's home directory instead of `/root`. This keeps the generated LAN command chat systemd service and its workspace on the same readable path. Set `OPENCLAW_HOME` explicitly only when a root-owned install is intentional.
 
+## Database Authentication
+
+The default clean-install path uses a blank PostgreSQL password and configures passwordless access only to local loopback. Remote PostgreSQL hosts are not configured as unauthenticated.
+
 ## Agent-Readable Markdown
 
 The bootstrap writes a Zorg MemoryDB usage block into the OpenClaw workspace markdown files the agent reads at startup: `AGENTS.md`, `SOUL.md`, `USER.md`, `TOOLS.md`, `IDENTITY.md`, and `HEARTBEAT.md`. It also copies `RESURRECTION.md` and `ZORG_MEMORYDB_MASTER_RULES.md` into the workspace root.

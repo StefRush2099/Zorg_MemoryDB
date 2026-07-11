@@ -1,14 +1,12 @@
 # Changelog
 
-## v2.0.0 - 2026-07-11
+## v2.0.1 - 2026-07-11
 
-- Publishes a complete point-in-time Zorg MemoryDB package snapshot rather
-  than an incremental overlay.
-- Includes the full DB-first skill, PostgreSQL schema and recall procedures,
-  installer and recovery tooling, LAN Command Chat gauges, connected Memory
-  Brain 3D source, documentation, release verification, and public assets.
-- Carries the complete released state through the `v1.2.72` gauge and Memory
-  3D publication, with a new major release identity for full checkouts.
+- Removes superseded release notes and archives from the active package tree.
+- Makes release archives contain only the current release note instead of the
+  entire historical `release/` directory.
+- Makes legacy `memory/**/*.md` migration opt-in so clean installs do not ingest
+  historical markdown by default.
 
 ## v1.2.72 - 2026-07-11
 

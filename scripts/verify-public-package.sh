@@ -54,4 +54,10 @@ if [[ -f "$release_archive" ]]; then
   fi
 fi
 
+archive_release_count="$(tar -tzf "$release_archive" | rg -c '^release/v[^/]+\.md$' || true)"
+if [[ "$archive_release_count" -ne 1 ]]; then
+  echo "release archive must contain exactly one current release note" >&2
+  exit 1
+fi
+
 echo "public package verification passed"

@@ -22,6 +22,7 @@ tar \
   --exclude='release/*.tar.gz' \
   -czf "$archive" \
   -C "$root" \
-  README.md CHANGELOG.md LICENSE package.json skills package docs scripts release
+  README.md CHANGELOG.md LICENSE package.json skills package docs scripts \
+  "release/v${version}.md"
 
 echo "$archive"

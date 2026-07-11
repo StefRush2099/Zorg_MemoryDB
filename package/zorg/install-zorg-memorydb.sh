@@ -17,6 +17,7 @@ LAN_CHAT_HOST="${LAN_CHAT_HOST:-0.0.0.0}"
 OPENCLAW_CONTROL_UI_DISABLE_DEVICE_AUTH="${OPENCLAW_CONTROL_UI_DISABLE_DEVICE_AUTH:-true}"
 ZORG_INSTALL_MODE="${ZORG_INSTALL_MODE:-first-run}"
 ZORG_PATCH_EXISTING_DOCKER_CONFIG="${ZORG_PATCH_EXISTING_DOCKER_CONFIG:-0}"
+ZORG_IMPORT_RETIRED_MEMORY="${ZORG_IMPORT_RETIRED_MEMORY:-0}"
 
 default_openclaw_home() {
   if [[ -n "${OPENCLAW_HOME:-}" ]]; then
@@ -532,10 +533,15 @@ import_markdown_rules() {
     else
       "$OPENCLAW_WORKSPACE/.venv-sqlmem/bin/python" -m pip install psycopg2-binary >/dev/null 2>&1 || true
     fi
+    import_args=()
+    if [[ "$ZORG_IMPORT_RETIRED_MEMORY" == "1" ]]; then
+      import_args+=(--include-retired-memory)
+    fi
     "$OPENCLAW_WORKSPACE/.venv-sqlmem/bin/python" "$ZORG_WORKSPACE_DIR/db/import_markdown_rules.py" \
       --workspace "$OPENCLAW_WORKSPACE" \
       --rules-dir "$ZORG_WORKSPACE_DIR/rules" \
-      --database-url "postgresql://$ZORG_DB_USER@$ZORG_DB_HOST:$ZORG_DB_PORT/$ZORG_DB_NAME" || true
+      --database-url "postgresql://$ZORG_DB_USER@$ZORG_DB_HOST:$ZORG_DB_PORT/$ZORG_DB_NAME" \
+      "${import_args[@]}" || true
   fi
 }
 

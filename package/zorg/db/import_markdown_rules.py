@@ -7,7 +7,7 @@ import psycopg2
 def sha(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
-def iter_markdown(workspace: Path, rules_dir: Path):
+def iter_markdown(workspace: Path, rules_dir: Path, include_retired_memory: bool = False):
     candidates = []
     if rules_dir.exists():
         candidates.extend(rules_dir.glob("*.md"))
@@ -25,9 +25,10 @@ def iter_markdown(workspace: Path, rules_dir: Path):
         path = workspace / name
         if path.exists():
             candidates.append(path)
-    retired_memory = workspace / "memory"
-    if retired_memory.exists():
-        candidates.extend(retired_memory.rglob("*.md"))
+    if include_retired_memory:
+        retired_memory = workspace / "memory"
+        if retired_memory.exists():
+            candidates.extend(retired_memory.rglob("*.md"))
     for p in sorted(set(candidates)):
         if p.is_file():
             yield p
@@ -37,12 +38,17 @@ def main():
     ap.add_argument("--workspace", required=True)
     ap.add_argument("--rules-dir", required=True)
     ap.add_argument("--database-url", required=True)
+    ap.add_argument(
+        "--include-retired-memory",
+        action="store_true",
+        help="Import legacy workspace memory/*.md files for an explicit migration.",
+    )
     args = ap.parse_args()
     workspace = Path(args.workspace)
     rules_dir = Path(args.rules_dir)
     with psycopg2.connect(args.database_url) as conn:
         with conn.cursor() as cur:
-            for path in iter_markdown(workspace, rules_dir):
+            for path in iter_markdown(workspace, rules_dir, args.include_retired_memory):
                 text = path.read_text(encoding="utf-8", errors="replace")
                 digest = sha(text)
                 cur.execute("""

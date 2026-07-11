@@ -28,6 +28,11 @@ Brain 3D source for clean installs and existing installs. It preserves existing
 user data; the separate `prepare_public_baseline.sql` file is only for building
 a distributable public baseline and must not be run against a live user database.
 
+Clean installs import only the packaged bootstrap and recovery rules. Legacy
+`memory/**/*.md` migration is opt-in with `ZORG_IMPORT_RETIRED_MEMORY=1`; those
+files are never required for normal operation and are not included in release
+archives.
+
 When the add-on bootstrap is run through `sudo` without an explicit `OPENCLAW_HOME`, it installs into the invoking user's home directory instead of `/root`. This keeps the generated LAN command chat systemd service and its workspace on the same readable path. Set `OPENCLAW_HOME` explicitly only when a root-owned install is intentional.
 
 ## Database Authentication

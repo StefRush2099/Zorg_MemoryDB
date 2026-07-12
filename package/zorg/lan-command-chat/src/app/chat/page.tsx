@@ -90,6 +90,9 @@ type TuiPayload = {
   error?: string;
 };
 
+const androidInstallUrl = process.env.NEXT_PUBLIC_ANDROID_INSTALL_URL ||
+  "https://github.com/StefRush2099/Zorg_MemoryDB/releases/latest/download/lan-command-chat-android.apk";
+
 function pollIntervalFromEnv(value: string | undefined, fallback: number, min: number) {
   const parsed = Number.parseInt(value || "", 10);
   return Number.isFinite(parsed) ? Math.max(parsed, min) : fallback;
@@ -437,7 +440,6 @@ export default function Home() {
   const [recording, setRecording] = useState(false);
   const [transcribing, setTranscribing] = useState(false);
   const [theme, setTheme] = useState<"light" | "dark">("light");
-  const [compact, setCompact] = useState(false);
   const [gaugeView, setGaugeView] = useState<"gauges" | "memory3d">("gauges");
 
   const textRef = useRef<HTMLTextAreaElement | null>(null);
@@ -765,7 +767,7 @@ export default function Home() {
 
   return (
     <main
-      className={cx("console-shell", `theme-${theme}`, dragActive && "drag-hot", compact && "compact")}
+      className={cx("console-shell", `theme-${theme}`, dragActive && "drag-hot")}
       onDragEnter={onDragEnter}
       onDragLeave={onDragLeave}
       onDragOver={onDragOver}
@@ -791,7 +793,7 @@ export default function Home() {
         </div>
         <div className="top-actions">
           <button className="ghost" onClick={() => setTheme((value) => (value === "light" ? "dark" : "light"))}>{theme === "light" ? "Dark" : "Light"} mode</button>
-          <button className="ghost" onClick={() => setCompact((value) => !value)}>{compact ? "Roomy" : "Compact"}</button>
+          <a className="ghost" href={androidInstallUrl} download="lan-command-chat-android.apk">Android app</a>
           <button className="ghost" onClick={() => { void loadHistory(); void loadStatus(); void loadActivity(); void loadTui(); void loadDb(); }}>Refresh</button>
           <button className="primary" onClick={() => tuiInputRef.current?.focus()}>Command</button>
         </div>

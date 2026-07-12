@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.0.4 - 2026-07-11
+
+- Replaces the LAN Command Chat Compact control with a stable Android app
+  download link backed by the latest verified GitHub release APK.
+- Bumps the Android client to version 2.0.4 for the installable release.
+
 ## v2.0.3 - 2026-07-11
 
 - Completes the Android client telemetry surface with native Queries/sec, Cache

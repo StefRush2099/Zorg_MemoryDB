@@ -1,5 +1,12 @@
 # Changelog
 
+## v2.0.11 - 2026-07-12
+
+- Corrects the browser Context window gauge to display live tokens in use
+  against the live token limit instead of a percentage-only readout.
+- Makes the visible gauge-tile release stamp derive from the browser package
+  version and align it with the published release.
+
 ## v2.0.10 - 2026-07-12
 
 - Publishes the browser LAN Command Chat `Context window` gauge with the

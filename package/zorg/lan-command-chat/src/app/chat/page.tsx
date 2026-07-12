@@ -456,10 +456,10 @@ export default function Home() {
 
   const metrics = dbStatus?.metrics ?? {};
   const contextWindowMetric: DialMetric = {
-    value: Number.isFinite(status.tokensPercent) ? Math.max(0, Math.min(100, status.tokensPercent ?? 0)) : 0,
+    value: Number.isFinite(status.tokensUsed) ? Math.max(0, status.tokensUsed ?? 0) : 0,
     min: 0,
-    max: 100,
-    unit: "% used",
+    max: status.tokensLimit && status.tokensLimit > 0 ? status.tokensLimit : 1,
+    unit: "tokens",
     status: status.tokensLimit && status.tokensLimit > 0 ? "live" : "unavailable",
   };
   const rawCpuGHz = Number(dbStatus?.details?.cpuGHz ?? 0);

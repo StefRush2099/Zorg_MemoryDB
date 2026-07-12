@@ -101,15 +101,16 @@ public class MainActivity extends Activity {
     }
 
     private void loadGauges() {
-        try { JSONObject response = request("/api/db/status", "GET", null); JSONObject metrics = response.optJSONObject("metrics"); JSONObject details = response.optJSONObject("details"); runOnUiThread(() -> renderGauges(metrics, details, response)); } catch (Exception e) { if ("AUTH_REQUIRED".equals(e.getMessage())) runOnUiThread(this::showLogin); else runOnUiThread(() -> renderGauges(null, null, new JSONObject())); }
+        try { JSONObject response = request("/api/db/status", "GET", null); JSONObject chatStatus = request("/api/chat/status", "GET", null); JSONObject metrics = response.optJSONObject("metrics"); JSONObject details = response.optJSONObject("details"); runOnUiThread(() -> renderGauges(metrics, details, response, chatStatus)); } catch (Exception e) { if ("AUTH_REQUIRED".equals(e.getMessage())) runOnUiThread(this::showLogin); else runOnUiThread(() -> renderGauges(null, null, new JSONObject(), new JSONObject())); }
     }
 
-    private void renderGauges(JSONObject metrics, JSONObject details, JSONObject response) {
+    private void renderGauges(JSONObject metrics, JSONObject details, JSONObject response, JSONObject chatStatus) {
         gauges.removeAllViews(); LinearLayout card = card(); LinearLayout heading = new LinearLayout(this); TextView title = label("Live system gauges", 17); title.setTypeface(Typeface.DEFAULT, Typeface.BOLD); heading.addView(title, new LinearLayout.LayoutParams(0, -2, 1)); Button brain = button("Memory 3D"); brain.setOnClickListener(v -> showBrain()); heading.addView(brain); card.addView(heading);
-        if (metrics == null) { TextView unavailable = label("Live database gauges unavailable. Retry when the service is reachable.", 14); unavailable.setTextColor(Color.rgb(210, 70, 70)); card.addView(unavailable); } else { addMetric(card, "Queries/sec", metric(metrics, "queriesPerSecond")); addMetric(card, "Cache hit", metric(metrics, "cacheHitRatio")); addMetric(card, "Writes/sec", metric(metrics, "writesPerSecond")); addMetric(card, "Database size", metric(metrics, "dbSize")); addMetric(card, "Health", response.optInt("healthScore", 0) + "% · " + (response.optBoolean("degraded") ? "degraded" : "live")); addMetric(card, "Memory", details == null ? "unavailable" : details.optDouble("memoryUsedPercent", 0) + "% used"); }
+        if (metrics == null) { TextView unavailable = label("Live database gauges unavailable. Retry when the service is reachable.", 14); unavailable.setTextColor(Color.rgb(210, 70, 70)); card.addView(unavailable); } else { addMetric(card, "Queries/sec", metric(metrics, "queriesPerSecond")); addMetric(card, "Cache hit", metric(metrics, "cacheHitRatio")); addMetric(card, "Context window", contextMetric(chatStatus)); addMetric(card, "Database size", metric(metrics, "dbSize")); addMetric(card, "Health", response.optInt("healthScore", 0) + "% · " + (response.optBoolean("degraded") ? "degraded" : "live")); addMetric(card, "Memory", details == null ? "unavailable" : details.optDouble("memoryUsedPercent", 0) + "% used"); }
         Button refresh = button("Refresh live gauges"); refresh.setOnClickListener(v -> loadGauges()); card.addView(refresh); gauges.addView(card);
     }
     private String metric(JSONObject metrics, String key) { JSONObject m = metrics.optJSONObject(key); return m == null ? "unavailable" : m.optString("value", "0") + " " + m.optString("unit", ""); }
+    private String contextMetric(JSONObject chatStatus) { if (chatStatus == null || chatStatus.optInt("tokensLimit", 0) <= 0) return "unavailable"; return chatStatus.optInt("tokensPercent", 0) + "% used"; }
     private void addMetric(LinearLayout card, String name, String value) { TextView row = label(name + "  ·  " + value, 14); row.setTextColor(text()); card.addView(row); }
 
     private void showBrain() {

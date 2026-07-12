@@ -235,7 +235,7 @@ function metricLabel(key: string) {
   const labels: Record<string, string> = {
     queriesPerSecond: "Queries / sec",
     cacheHitRatio: "Cache hit",
-    writesPerSecond: "Writes / sec",
+    contextWindow: "Context window",
     dbSize: "Storage used",
   };
   return labels[key] || key.replace(/[A-Z]/g, (m) => ` ${m}`).trim();
@@ -453,6 +453,13 @@ export default function Home() {
   const streamRef = useRef<MediaStream | null>(null);
 
   const metrics = dbStatus?.metrics ?? {};
+  const contextWindowMetric: DialMetric = {
+    value: Number.isFinite(status.tokensPercent) ? Math.max(0, Math.min(100, status.tokensPercent ?? 0)) : 0,
+    min: 0,
+    max: 100,
+    unit: "% used",
+    status: status.tokensLimit && status.tokensLimit > 0 ? "live" : "unavailable",
+  };
   const rawCpuGHz = Number(dbStatus?.details?.cpuGHz ?? 0);
   const cpuCapacityGHz = Number(dbStatus?.details?.cpuCapacityGHz ?? 0);
   const cpuGHz = formatGHz(rawCpuGHz);
@@ -856,7 +863,7 @@ export default function Home() {
                 <div className="gauges">
                   <Gauge label={metricLabel("queriesPerSecond")} metric={metrics.queriesPerSecond} />
                   <Gauge label={metricLabel("cacheHitRatio")} metric={metrics.cacheHitRatio} />
-                  <Gauge label={metricLabel("writesPerSecond")} metric={metrics.writesPerSecond} />
+                  <Gauge label={metricLabel("contextWindow")} metric={contextWindowMetric} />
                   <Gauge label={metricLabel("dbSize")} metric={metrics.dbSize} />
                 </div>
                 <div className="db-detail-grid">

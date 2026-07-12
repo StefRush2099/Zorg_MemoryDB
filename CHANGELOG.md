@@ -1,5 +1,12 @@
 # Changelog
 
+## v2.0.10 - 2026-07-12
+
+- Publishes the browser LAN Command Chat `Context window` gauge with the
+  release version stamp shown immediately before `DB size` in the gauge tile.
+- Aligns the public package and browser application metadata at version
+  `2.0.10` so agents with `2.0.9` can identify the update.
+
 ## v2.0.9 - 2026-07-12
 
 - Replaces the Android WebView/pass-through shell with a native Android chat,

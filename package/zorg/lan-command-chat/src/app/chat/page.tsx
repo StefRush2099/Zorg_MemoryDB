@@ -5,6 +5,8 @@ import { DragEvent, KeyboardEvent, RefObject, useCallback, useEffect, useMemo, u
 
 type Role = "assistant" | "user" | "system";
 
+const LAN_CHAT_RELEASE_VERSION = "2.0.10";
+
 type ChatMessage = {
   id: string;
   role: Role;
@@ -867,7 +869,7 @@ export default function Home() {
                   <Gauge label={metricLabel("dbSize")} metric={metrics.dbSize} />
                 </div>
                 <div className="db-detail-grid">
-                  <span className="health">v2.0.9</span>
+                  <span className="health">v{LAN_CHAT_RELEASE_VERSION}</span>
                   <span>DB size <b>{formatBytes(Number(dbStatus?.details?.dbSizeBytes ?? 0))}</b></span>
                   <span>Free space <b>{formatBytes(Number(dbStatus?.details?.storageFreeBytes ?? 0))}</b></span>
                 </div>

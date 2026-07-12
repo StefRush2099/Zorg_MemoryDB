@@ -1,9 +1,10 @@
 # LAN Command Chat Android
 
-Native Android client for LAN Command Chat. The chat surface is implemented
-with Android views and lifecycle-safe background networking rather than a
-WebView. The Memory Brain 3D surface remains a WebView because it is the
-existing interactive 3D web asset.
+Android client for LAN Command Chat. The client loads the same responsive
+`/chat` surface used by the LAN web application so mobile typography, panels,
+gauges, scrolling, light/dark behavior, chat, and the Memory 3D/Gauges toggle
+remain one implementation. The device follows its phone system theme through
+the `theme=system` route parameter.
 
 The app stores multiple configurable chat profiles on-device. Each profile has
 an internet URL plus an optional internal host and port. Requests try the

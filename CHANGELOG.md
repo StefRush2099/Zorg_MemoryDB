@@ -1,5 +1,18 @@
 # Changelog
 
+## v2.0.8 - 2026-07-12
+
+- Rebuilds the Android client around the real responsive LAN Command Chat
+  `/chat` surface instead of a separate native imitation.
+- Uses the variable-driven LAN route and phone system theme so light and dark
+  mode follow the connected Android device.
+- Keeps the mobile page scrollable so the live gauges and Memory 3D/Gauges
+  toggle remain reachable below the conversation surface.
+- Aligns the Android package metadata with the verified install and preserves
+  the connected Memory Brain 3D surface.
+- Retains the mandatory Zorg MemoryDB recall, timing-summary, screenshot-review,
+  and full-surface publication gates.
+
 ## v2.0.4 - 2026-07-11
 
 - Replaces the LAN Command Chat Compact control with a stable Android app

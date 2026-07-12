@@ -16,6 +16,18 @@ export default function LoginPage() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
+    const systemTheme = new URLSearchParams(window.location.search).get("theme") === "system";
+    if (systemTheme) {
+      const media = window.matchMedia("(prefers-color-scheme: dark)");
+      const applySystemTheme = () => setTheme(media.matches ? "dark" : "light");
+      applySystemTheme();
+      media.addEventListener("change", applySystemTheme);
+      fetch("/api/chat/identity", { cache: "no-store" })
+        .then((res) => (res.ok ? res.json() : Promise.reject(new Error("identity unavailable"))))
+        .then((data: IdentityPayload) => setIdentity(data.name || "Assistant"))
+        .catch(() => setIdentity("Assistant"));
+      return () => media.removeEventListener("change", applySystemTheme);
+    }
     const savedTheme = localStorage.getItem("lan-chat:theme");
     setTheme(savedTheme === "dark" ? "dark" : "light");
     fetch("/api/chat/identity", { cache: "no-store" })
@@ -23,10 +35,6 @@ export default function LoginPage() {
       .then((data: IdentityPayload) => setIdentity(data.name || "Assistant"))
       .catch(() => setIdentity("Assistant"));
   }, []);
-
-  useEffect(() => {
-    localStorage.setItem("lan-chat:theme", theme);
-  }, [theme]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -42,7 +50,8 @@ export default function LoginPage() {
         const body = await res.json().catch(() => ({}));
         throw new Error(body?.error || "Login failed");
       }
-      window.location.href = "/chat";
+      const systemTheme = new URLSearchParams(window.location.search).get("theme") === "system";
+      window.location.href = systemTheme ? "/chat?theme=system" : "/chat";
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
     } finally {
@@ -73,9 +82,7 @@ export default function LoginPage() {
           {error ? <p className="login-error">{error}</p> : null}
           <button className="primary" disabled={busy || !password.trim()} type="submit">{busy ? "Checking…" : "Login"}</button>
         </form>
-        <button className="ghost login-theme" onClick={() => setTheme((value) => (value === "light" ? "dark" : "light"))} type="button">
-          {theme === "light" ? "Dark" : "Light"} mode
-        </button>
+        <span className="ghost login-theme theme-indicator">{theme === "light" ? "Light" : "Dark"} mode</span>
       </section>
     </main>
   );

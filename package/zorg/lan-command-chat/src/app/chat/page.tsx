@@ -546,10 +546,21 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) setDraft(saved);
+    const systemTheme = new URLSearchParams(window.location.search).get("theme") === "system";
+    if (systemTheme) {
+      const media = window.matchMedia("(prefers-color-scheme: dark)");
+      const applySystemTheme = () => setTheme(media.matches ? "dark" : "light");
+      applySystemTheme();
+      media.addEventListener("change", applySystemTheme);
+      return () => media.removeEventListener("change", applySystemTheme);
+    }
     const savedTheme = localStorage.getItem("lan-chat:theme");
     setTheme(savedTheme === "dark" ? "dark" : "light");
+  }, []);
+
+  useEffect(() => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) setDraft(saved);
     const savedGaugeView = localStorage.getItem(GAUGE_VIEW_KEY);
     setGaugeView(savedGaugeView === "memory3d" ? "memory3d" : "gauges");
     loadHistory().catch((err) => setNotice(err.message));
@@ -595,10 +606,6 @@ export default function Home() {
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, draft);
   }, [draft]);
-
-  useEffect(() => {
-    localStorage.setItem("lan-chat:theme", theme);
-  }, [theme]);
 
   useEffect(() => {
     localStorage.setItem(GAUGE_VIEW_KEY, gaugeView);

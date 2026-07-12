@@ -13,6 +13,9 @@ rm -f "$archive"
 tar \
   --exclude='.git' \
   --exclude='node_modules' \
+  --exclude='.gradle' \
+  --exclude='*/build' \
+  --exclude='*/local.properties' \
   --exclude='.next' \
   --exclude='__pycache__' \
   --exclude='*.pyc' \

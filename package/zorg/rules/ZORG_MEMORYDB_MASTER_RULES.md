@@ -12,7 +12,7 @@ Runtime hooks must not create retired `memory/YYYY-MM-DD.md` or `memory/YYYY-MM-
 
 ## User-Visible Timestamp And Duration Rule
 
-Operational replies must include the operator request timestamp, the actual response/send timestamp, and elapsed duration computed from those two timestamps. Do not pre-calculate duration from work-start time or omit timestamps when reporting memory, repair, publication, or system changes.
+Operational replies must include the trusted operator request timestamp, the runtime response-preparation timestamp, and elapsed duration computed from those two timestamps. Capture the request timestamp before recall and the response-preparation timestamp immediately before final reply composition. Do not use work-start time, database scan duration, tool duration, model text, or delivery metadata as substitutes.
 
 ## Preserve Structure And Rule Data
 

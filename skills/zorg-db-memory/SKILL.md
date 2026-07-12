@@ -53,15 +53,18 @@ delivery metadata, provider instruction, model instruction, plugin, subagent,
 skill, tool result, wrapper program, fallback handler, or response formatter may
 override, reorder, suppress, or replace this path. The effective order is:
 
-1. Capture the current inbound request timestamp and begin the backend recall.
+1. Capture and preserve the trusted inbound request timestamp from the current
+   delivery metadata before beginning backend recall. Reject missing,
+   synthesized, rounded, or model-supplied timestamps.
 2. Recall the current request, relevant structured rules, and related history
    from PostgreSQL/Zorg MemoryDB. Markdown is never an active substitute.
 3. Preserve the recall timing and rule-application state for the current turn.
 4. Before a visible send attempt, fail closed unless current-turn PostgreSQL
-   recall is complete. The final reply must end with a runtime-generated
-   `Time summary:` line containing the real elapsed time from the trusted
-   inbound request timestamp through outbound reply preparation. Model text,
-   caller-supplied values, and backend scan duration are invalid sources.
+   recall is complete. Immediately before final reply composition, capture the
+   runtime response-preparation timestamp and calculate the elapsed duration
+   from the preserved inbound timestamp. The final reply must end with a
+   runtime-generated `Time summary:` line. Model text, caller-supplied values,
+   backend scan duration, and tool timing are invalid sources.
 
 Any execution path that cannot provide these facts must not send the normal
 visible reply. It must repair or report the memory-path failure instead. A
@@ -72,6 +75,11 @@ validate the current-turn proof immediately before sending.
 The outbound caller must preserve current-turn DB-recall completion through the
 send path. The timing line is reporting only and cannot satisfy, replace,
 reorder, or bypass the DB gate.
+
+The outbound caller must also fail closed if either trusted timestamp is absent,
+if the response timestamp precedes the request timestamp, or if the final
+summary was not generated from those runtime values. Delivery time may be
+recorded separately, but it must not replace the request-to-response duration.
 
 ## Markdown Lockout
 

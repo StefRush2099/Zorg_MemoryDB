@@ -15,7 +15,9 @@ This repository is intentionally **not** a GitHub fork or full source fork of Op
 - Context-window pruning through DB-backed execution slices instead of markdown summaries.
 - PostgreSQL schema, recall rules, install/rollback guidance, and public-safe canonical rule import material.
 - LAN Command Chat support files and Memory Brain 3D source maps/screenshots for operator-facing memory visibility.
-- Native Android LAN Command Chat source with local/remote route selection and the Memory Brain 3D entry point.
+- Android LAN Command Chat source that loads the canonical responsive `/chat`
+  surface with local/remote route selection, phone system theme handling, and
+  the Memory 3D/Gauges entry point.
 - Supporting-service discovery rules for `cloudflared`, ComfyUI, `kokoro-fastapi-cpu`, MediaMTX, Ollama, SearXNG, and faster-whisper, with Dockge install requests when services are missing.
 - Passwordless local PostgreSQL bootstrap on loopback, with remote unauthenticated access rejected.
 

@@ -75,80 +75,34 @@ public class MainActivity extends Activity {
         loadProfiles();
         active = getActiveProfile();
         buildUi();
-        loadHistory();
-        refreshStatus();
-        refreshDbGauges();
     }
 
     private void buildUi() {
-        LinearLayout root = new LinearLayout(this);
-        root.setOrientation(LinearLayout.VERTICAL);
-        root.setBackgroundColor(BG);
-
-        LinearLayout header = new LinearLayout(this);
-        header.setOrientation(LinearLayout.VERTICAL);
-        header.setPadding(18, 16, 18, 10);
-        header.setBackgroundColor(PANEL);
-        LinearLayout titleRow = row();
-        TextView title = label("LAN Command Chat", 20, TEXT);
-        title.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
-        titleRow.addView(title, weight(1));
-        Button settings = button("Profiles");
-        settings.setOnClickListener(v -> showProfileDialog(active));
-        titleRow.addView(settings);
-        header.addView(titleRow);
-        connectionStatus = label("Connecting…", 12, MUTED);
-        header.addView(connectionStatus);
-        contextStatus = label("Context: —", 12, MUTED);
-        header.addView(contextStatus);
-        LinearLayout gauges = row();
-        queryGauge = gauge("Queries/sec\n—");
-        cacheGauge = gauge("Cache hit\n—");
-        writesGauge = gauge("Writes/sec\n—");
-        sizeGauge = gauge("DB size\n—");
-        gauges.addView(queryGauge, weight(1));
-        gauges.addView(cacheGauge, weight(1));
-        gauges.addView(writesGauge, weight(1));
-        gauges.addView(sizeGauge, weight(1));
-        header.addView(gauges);
-        progress = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
-        progress.setMax(100);
-        progress.setVisibility(View.GONE);
-        header.addView(progress, new LinearLayout.LayoutParams(-1, 8));
-        root.addView(header);
-
-        messageScroll = new ScrollView(this);
-        messages = new LinearLayout(this);
-        messages.setOrientation(LinearLayout.VERTICAL);
-        messages.setPadding(14, 12, 14, 12);
-        messageScroll.addView(messages, new ViewGroup.LayoutParams(-1, -2));
-        root.addView(messageScroll, new LinearLayout.LayoutParams(-1, 0, 1));
-
-        LinearLayout tools = row();
-        tools.setPadding(12, 5, 12, 5);
-        Button brain = button("Memory 3D");
-        brain.setOnClickListener(v -> showMemoryBrain());
-        Button reload = button("Refresh");
-        reload.setOnClickListener(v -> { loadHistory(); refreshStatus(); refreshDbGauges(); });
-        tools.addView(brain);
-        tools.addView(reload);
-        root.addView(tools);
-
-        LinearLayout input = row();
-        input.setPadding(12, 8, 12, 12);
-        composer = new EditText(this);
-        composer.setHint("Message Zorg…");
-        composer.setTextColor(TEXT);
-        composer.setHintTextColor(MUTED);
-        composer.setGravity(Gravity.TOP | Gravity.START);
-        composer.setMinLines(1);
-        composer.setMaxLines(5);
-        input.addView(composer, weight(1));
-        Button send = button("Send");
-        send.setOnClickListener(v -> sendMessage());
-        input.addView(send);
-        root.addView(input);
-        setContentView(root);
+        WebView chat = new WebView(this);
+        chat.setBackgroundColor(Color.WHITE);
+        chat.setWebViewClient(new WebViewClient());
+        WebSettings settings = chat.getSettings();
+        settings.setJavaScriptEnabled(true);
+        settings.setDomStorageEnabled(true);
+        settings.setDatabaseEnabled(true);
+        settings.setLoadWithOverviewMode(false);
+        settings.setUseWideViewPort(false);
+        settings.setBuiltInZoomControls(false);
+        settings.setDisplayZoomControls(false);
+        settings.setTextZoom(100);
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+            settings.setForceDark(WebSettings.FORCE_DARK_AUTO);
+        }
+        String route = active.route();
+        String authToken = getIntent().getStringExtra("lan_chat_auth_token");
+        if (authToken != null && !authToken.trim().isEmpty()) {
+            android.webkit.CookieManager cookies = android.webkit.CookieManager.getInstance();
+            cookies.setAcceptCookie(true);
+            cookies.setCookie(route, "lan_chat_auth=" + authToken.trim() + "; Path=/");
+            cookies.flush();
+        }
+        chat.loadUrl(join(route, "/chat?theme=system"));
+        setContentView(chat);
     }
 
     private void sendMessage() {

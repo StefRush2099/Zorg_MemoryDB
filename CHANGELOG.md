@@ -1,5 +1,16 @@
 # Changelog
 
+## v2.0.2 - 2026-07-11
+
+- Adds a native Android LAN Command Chat client with a real chat window,
+  internet/local route selection, status/context telemetry, and Memory Brain
+  3D access.
+- Adds the Android client to the public package without private credentials,
+  scheduler settings, or machine-local SDK artifacts.
+- Makes ComfyUI image generation part of the canonical `zorg-db-memory` skill
+  with a single fixed seed file and configurable server/output paths.
+- Includes the operator-correction migration in clean installs.
+
 ## v2.0.1 - 2026-07-11
 
 - Removes superseded release notes and archives from the active package tree.

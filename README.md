@@ -15,6 +15,7 @@ This repository is intentionally **not** a GitHub fork or full source fork of Op
 - Context-window pruning through DB-backed execution slices instead of markdown summaries.
 - PostgreSQL schema, recall rules, install/rollback guidance, and public-safe canonical rule import material.
 - LAN Command Chat support files and Memory Brain 3D source maps/screenshots for operator-facing memory visibility.
+- Native Android LAN Command Chat source with local/remote route selection and the Memory Brain 3D entry point.
 - Supporting-service discovery rules for `cloudflared`, ComfyUI, `kokoro-fastapi-cpu`, MediaMTX, Ollama, SearXNG, and faster-whisper, with Dockge install requests when services are missing.
 - Passwordless local PostgreSQL bootstrap on loopback, with remote unauthenticated access rejected.
 
@@ -22,6 +23,7 @@ This repository is intentionally **not** a GitHub fork or full source fork of Op
 
 - `skills/zorg-db-memory/` - the complete portable skill package.
 - `package/zorg/` - public-safe install, schema, recall, recovery, LAN Command Chat, and verification code.
+- `package/zorg/lan-command-chat-android/` - reproducible native Android client source; private signing and SDK state are excluded.
 - `docs/` - public-safe install, operation, screenshot, and release documentation.
 - `scripts/` - packaging and verification helpers for this repo.
 - `release/` - release notes for published Zorg MemoryDB package releases.

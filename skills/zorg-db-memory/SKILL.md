@@ -7,6 +7,12 @@ description: "Canonical Zorg MemoryDB skill with DB-first memory, repair, contex
 
 Use this as the one canonical skill for Zorg MemoryDB: DB recall, DB repair, DB install, DB code restoration, context-window memory slicing, GitHub release/posting gates, fact-based pre-work summaries, approval gates, additive semantic/vector/ANN recall tuning, and source lookup for MemoryDB-dependent apps.
 
+Image generation for canonical Zorg portraits is also owned by this skill. The
+fixed-seed ComfyUI runner, workflow, identity requirements, visual inspection,
+and attachment-delivery gate live in `references/image-generation.md` and its
+support files; image generation must not become a separate untracked memory or
+release process.
+
 This skill supersedes the former `db-memory` name. Existing references to `db-memory` should be migrated to `zorg-db-memory` as they are touched, but the old name remains a legacy pointer to this same MemoryDB safety behavior until all launch surfaces are updated.
 
 The point of this skill is to take over for memory. Adding this skill to a system should stop active markdown-file memory use and force all normal memory behavior through PostgreSQL-backed Zorg MemoryDB.

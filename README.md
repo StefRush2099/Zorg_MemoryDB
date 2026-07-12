@@ -25,7 +25,7 @@ This repository is intentionally **not** a GitHub fork or full source fork of Op
 
 - `skills/zorg-db-memory/` - the complete portable skill package.
 - `package/zorg/` - public-safe install, schema, recall, recovery, LAN Command Chat, and verification code.
-- `package/zorg/lan-command-chat-android/` - reproducible native Android client source; private signing and SDK state are excluded.
+- `package/zorg/lan-command-chat-android/` - reproducible Android WebView client source for the canonical responsive LAN Chat surface; private signing and SDK state are excluded.
 - `docs/` - public-safe install, operation, screenshot, and release documentation.
 - `scripts/` - packaging and verification helpers for this repo.
 - `release/` - release notes for published Zorg MemoryDB package releases.

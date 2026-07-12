@@ -841,6 +841,7 @@ export default function Home() {
               ) : (
                 <span className="health memory3d-health">Zorg Memory DB 3D</span>
               )}
+              <span className="health">v2.0.9</span>
               <button className="ghost gauge-switch" onClick={() => setGaugeView((value) => (value === "gauges" ? "memory3d" : "gauges"))}>
                 {gaugeView === "gauges" ? "Memory 3D" : "Gauges"}
               </button>

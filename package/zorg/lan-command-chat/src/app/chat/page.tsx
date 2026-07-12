@@ -841,7 +841,6 @@ export default function Home() {
               ) : (
                 <span className="health memory3d-health">Zorg Memory DB 3D</span>
               )}
-              <span className="health">v2.0.9</span>
               <button className="ghost gauge-switch" onClick={() => setGaugeView((value) => (value === "gauges" ? "memory3d" : "gauges"))}>
                 {gaugeView === "gauges" ? "Memory 3D" : "Gauges"}
               </button>
@@ -868,6 +867,7 @@ export default function Home() {
                   <Gauge label={metricLabel("dbSize")} metric={metrics.dbSize} />
                 </div>
                 <div className="db-detail-grid">
+                  <span className="health">v2.0.9</span>
                   <span>DB size <b>{formatBytes(Number(dbStatus?.details?.dbSizeBytes ?? 0))}</b></span>
                   <span>Free space <b>{formatBytes(Number(dbStatus?.details?.storageFreeBytes ?? 0))}</b></span>
                 </div>

@@ -1,10 +1,16 @@
 # LAN Command Chat Android
 
-Android client for LAN Command Chat. The client loads the same responsive
-`/chat` surface used by the LAN web application so mobile typography, panels,
-gauges, scrolling, light/dark behavior, chat, and the Memory 3D/Gauges toggle
-remain one implementation. The device follows its phone system theme through
-the `theme=system` route parameter.
+Native Android client for LAN Command Chat. Chat, history, live gauges, theme
+controls, and the Memory Brain 3D surface use Android views and direct JSON
+contracts. The app has no WebView or OpenClaw TUI dependency.
+
+This is the native Android application, not the browser LAN Console. The APK
+does not include the browser page's Android download link or browser-only
+controls. Install and operate the browser app and the Memory 3D service
+separately; the Android app consumes their authenticated APIs.
+
+The native client presents the LAN Chat password login when the saved auth
+cookie is absent or expired; it never embeds a password in the APK.
 
 The app stores multiple configurable chat profiles on-device. Each profile has
 an internet URL plus an optional internal host and port. Requests try the
@@ -24,6 +30,6 @@ Build defaults are centralized in `gradle.properties`:
 The app supports HTTP for explicitly configured LAN deployments and HTTPS for
 internet deployments. Production internet endpoints should always use HTTPS.
 
-The agent can provide the profile values through the normal LAN Chat
-configuration/status flow; no credentials or private scheduler configuration
-is embedded in the APK.
+The app reports unavailable or degraded live data instead of inventing gauge
+values. No credentials or private scheduler configuration is embedded in the
+APK.

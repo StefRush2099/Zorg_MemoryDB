@@ -59,6 +59,9 @@ const pool = new Pool({
   ...loadDbConfig(),
   max: 16,
   idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: Number(process.env.ZORG_MEMORY_3D_DB_CONNECT_TIMEOUT_MS || 8000),
+  statement_timeout: Number(process.env.ZORG_MEMORY_3D_DB_STATEMENT_TIMEOUT_MS || 15000),
+  query_timeout: Number(process.env.ZORG_MEMORY_3D_DB_QUERY_TIMEOUT_MS || 20000),
 });
 
 app.use(express.json({ limit: "1mb" }));

@@ -561,6 +561,89 @@ prepare_lan_chat() {
   fi
 }
 
+prepare_memory_3d() {
+  if [[ ! -d "$MEMORY_3D_DIR" || ! -f "$MEMORY_3D_DIR/package.json" ]]; then
+    warn "Memory 3D source is missing at $MEMORY_3D_DIR; graph service was not prepared."
+    return 0
+  fi
+  if ! command -v npm >/dev/null 2>&1; then
+    warn "npm is unavailable; install Node.js/npm and rerun to prepare Memory 3D."
+    return 0
+  fi
+  (cd "$MEMORY_3D_DIR" && npm install --omit=dev)
+  (cd "$MEMORY_3D_DIR" && npm run check)
+}
+
+install_memory_3d_service() {
+  if [[ ! -d "$MEMORY_3D_DIR" || ! -f "$MEMORY_3D_DIR/package.json" ]]; then
+    return 0
+  fi
+  if ! command -v systemctl >/dev/null 2>&1; then
+    warn "systemd is unavailable; Memory 3D source is installed but no service was created. Start it with: cd $MEMORY_3D_DIR && PORT=8097 npm start"
+    return 0
+  fi
+  local npm_bin service_path service_user
+  npm_bin="$(command -v npm || true)"
+  if [[ -z "$npm_bin" ]]; then
+    warn "npm is unavailable; Memory 3D source is installed but no service was created."
+    return 0
+  fi
+  service_path="$(dirname "$npm_bin"):/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+  service_user="$(stat -c '%U' "$OPENCLAW_WORKSPACE" 2>/dev/null || true)"
+  if [[ -z "$service_user" || "$service_user" == "UNKNOWN" || "$service_user" == "root" ]]; then
+    service_user="${SUDO_USER:-$(id -un)}"
+  fi
+  if [[ "$(id -u)" == "0" ]]; then
+    cat > /etc/systemd/system/zorg-memory-3d.service <<SERVICE
+[Unit]
+Description=Zorg Memory Brain 3D API
+After=network-online.target postgresql.service
+
+[Service]
+Type=simple
+User=$service_user
+WorkingDirectory=$MEMORY_3D_DIR
+Environment=PATH=$service_path
+Environment=PORT=8097
+Environment=OPENCLAW_WORKSPACE=$OPENCLAW_WORKSPACE
+Environment=MEMORY_3D_DIR=$MEMORY_3D_DIR
+ExecStart=$npm_bin start
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+SERVICE
+    systemctl daemon-reload || true
+    systemctl enable zorg-memory-3d.service || true
+    systemctl restart zorg-memory-3d.service || warn "Memory 3D restart failed; run: systemctl status zorg-memory-3d.service"
+    return 0
+  fi
+  mkdir -p "$HOME/.config/systemd/user"
+  cat > "$HOME/.config/systemd/user/zorg-memory-3d.service" <<SERVICE
+[Unit]
+Description=Zorg Memory Brain 3D API
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=$MEMORY_3D_DIR
+Environment=PATH=$service_path
+Environment=PORT=8097
+Environment=OPENCLAW_WORKSPACE=$OPENCLAW_WORKSPACE
+Environment=MEMORY_3D_DIR=$MEMORY_3D_DIR
+ExecStart=$npm_bin start
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target
+SERVICE
+  systemctl --user daemon-reload || true
+  systemctl --user enable zorg-memory-3d.service || true
+  systemctl --user restart zorg-memory-3d.service || warn "Memory 3D restart failed; run: systemctl --user status zorg-memory-3d.service"
+}
+
 install_lan_chat_service() {
   if ! command -v systemctl >/dev/null 2>&1; then
     warn "systemd is unavailable; LAN chat source is installed but no service was created."
@@ -666,8 +749,10 @@ main() {
     ZORG_SKIP_RECALL_REFRESH=1 "$OPENCLAW_WORKSPACE/.venv-sqlmem/bin/python" "$OPENCLAW_WORKSPACE/archive_retired_memory_dir.py" || true
   fi
   prepare_lan_chat
+  prepare_memory_3d
   maybe_chown_sudo_workspace
   install_lan_chat_service
+  install_memory_3d_service
   log "Zorg MemoryDB and LAN command chat bootstrap complete."
 }
 main "$@"

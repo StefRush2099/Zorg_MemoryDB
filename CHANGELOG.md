@@ -1,5 +1,21 @@
 # Changelog
 
+## v2.0.9 - 2026-07-12
+
+- Replaces the Android WebView/pass-through shell with a native Android chat,
+  history, composer, theme selector, live gauge, and Memory 3D surface.
+- Adds a native authenticated login dialog with persisted signed-cookie state;
+  SSH credentials and LAN Chat credentials remain separate.
+- Removes the Android dependency on the OpenClaw TUI and web `/chat` route.
+- Reads chat, history, database metrics, and Memory 3D graph data through live
+  authenticated JSON contracts and reports degraded data instead of faking it.
+- Adds native System/Light/Dark selection and aligns the Android build metadata.
+- Repairs the Memory 3D installer path by installing service dependencies,
+  creating/enabling `zorg-memory-3d`, adding bounded PostgreSQL query timeouts,
+  and documenting `/api/health` and `/api/graph` verification.
+- Clarifies that browser LAN Chat and native Android are separate surfaces; the
+  browser owns the APK download link and browser theme controls.
+
 ## v2.0.8 - 2026-07-12
 
 - Rebuilds the Android client around the real responsive LAN Command Chat

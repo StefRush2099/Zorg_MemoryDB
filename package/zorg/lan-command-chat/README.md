@@ -1,6 +1,7 @@
-# Zorg LAN Console
+# Zorg LAN Console — Browser Web App
 
 Next.js LAN/local command chat console for OpenClaw/Zorg MemoryDB deployments.
+This is the browser application, not the native Android application.
 
 The console provides a local browser chat surface that talks to the OpenClaw Gateway, stores conversation traffic in PostgreSQL-backed memory, and keeps communication available if an external channel such as Telegram is unavailable. Zorg is responsible for maintaining this channel as base communication infrastructure, not as an optional side app.
 
@@ -22,6 +23,11 @@ The console provides a local browser chat surface that talks to the OpenClaw Gat
 - Optional file upload support
 - Nginx front-end for simple LAN access
 - Built-in fallback command chat for operator and authorized local agent coordination
+- Browser-only light/dark mode control and browser-only Android APK download link
+
+The native Android client lives separately under
+`lan-command-chat-android/`. It does not load this browser UI, does not expose
+the browser APK download link, and does not use the browser TUI surface.
 
 ## Configuration
 

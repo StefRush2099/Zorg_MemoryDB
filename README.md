@@ -15,9 +15,9 @@ This repository is intentionally **not** a GitHub fork or full source fork of Op
 - Context-window pruning through DB-backed execution slices instead of markdown summaries.
 - PostgreSQL schema, recall rules, install/rollback guidance, and public-safe canonical rule import material.
 - LAN Command Chat support files and Memory Brain 3D source maps/screenshots for operator-facing memory visibility.
-- Android LAN Command Chat source that loads the canonical responsive `/chat`
-  surface with local/remote route selection, phone system theme handling, and
-  the Memory 3D/Gauges entry point.
+- Native Android LAN Command Chat source with direct authenticated API access,
+  native chat/theme/gauge views, and a separate Memory 3D client. It is not a
+  WebView wrapper and is not the browser LAN Console.
 - Supporting-service discovery rules for `cloudflared`, ComfyUI, `kokoro-fastapi-cpu`, MediaMTX, Ollama, SearXNG, and faster-whisper, with Dockge install requests when services are missing.
 - Passwordless local PostgreSQL bootstrap on loopback, with remote unauthenticated access rejected.
 
@@ -25,7 +25,7 @@ This repository is intentionally **not** a GitHub fork or full source fork of Op
 
 - `skills/zorg-db-memory/` - the complete portable skill package.
 - `package/zorg/` - public-safe install, schema, recall, recovery, LAN Command Chat, and verification code.
-- `package/zorg/lan-command-chat-android/` - reproducible Android WebView client source for the canonical responsive LAN Chat surface; private signing and SDK state are excluded.
+- `package/zorg/lan-command-chat-android/` - reproducible native Android client source; private signing and SDK state are excluded.
 - `docs/` - public-safe install, operation, screenshot, and release documentation.
 - `scripts/` - packaging and verification helpers for this repo.
 - `release/` - release notes for published Zorg MemoryDB package releases.
@@ -63,6 +63,8 @@ package/zorg/
   memory/
   rules/
   lan-command-chat/
+  lan-command-chat-android/
+  memory-3d/
   requirements.txt
 
 docs/

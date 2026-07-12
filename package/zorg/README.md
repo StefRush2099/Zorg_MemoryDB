@@ -28,6 +28,14 @@ Brain 3D source for clean installs and existing installs. It preserves existing
 user data; the separate `prepare_public_baseline.sql` file is only for building
 a distributable public baseline and must not be run against a live user database.
 
+The installer also prepares the Memory Brain 3D Node service: it installs the
+bundle dependencies, runs the syntax check, and creates/enables
+`zorg-memory-3d` on port `8097`. Verify it with
+`curl -fsS http://127.0.0.1:8097/api/health` and
+`curl -fsS http://127.0.0.1:8097/api/graph`. LAN Chat remains a separate web
+service; the native Android client is a separate APK and is not part of either
+web service.
+
 Clean installs import only the packaged bootstrap and recovery rules. Legacy
 `memory/**/*.md` migration is opt-in with `ZORG_IMPORT_RETIRED_MEMORY=1`; those
 files are never required for normal operation and are not included in release

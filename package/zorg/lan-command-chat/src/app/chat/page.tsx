@@ -2,10 +2,11 @@
 
 import Image from "next/image";
 import { DragEvent, KeyboardEvent, RefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import packageMetadata from "../../../package.json";
 
 type Role = "assistant" | "user" | "system";
 
-const LAN_CHAT_RELEASE_VERSION = "2.0.10";
+const LAN_CHAT_RELEASE_VERSION = packageMetadata.version;
 
 type ChatMessage = {
   id: string;

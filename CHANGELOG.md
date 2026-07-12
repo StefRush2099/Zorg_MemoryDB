@@ -1,5 +1,12 @@
 # Changelog
 
+## v2.0.3 - 2026-07-11
+
+- Completes the Android client telemetry surface with native Queries/sec, Cache
+  hit, Writes/sec, DB size, and Context window readouts.
+- Corrects the Android release to include all four LAN Command Chat gauges
+  before publication.
+
 ## v2.0.2 - 2026-07-11
 
 - Adds a native Android LAN Command Chat client with a real chat window,

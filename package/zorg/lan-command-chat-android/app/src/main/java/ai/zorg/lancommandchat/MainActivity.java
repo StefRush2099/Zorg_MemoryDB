@@ -60,6 +60,10 @@ public class MainActivity extends Activity {
     private EditText composer;
     private TextView connectionStatus;
     private TextView contextStatus;
+    private TextView queryGauge;
+    private TextView cacheGauge;
+    private TextView writesGauge;
+    private TextView sizeGauge;
     private ProgressBar progress;
     private Profile active;
     private boolean sending;
@@ -73,6 +77,7 @@ public class MainActivity extends Activity {
         buildUi();
         loadHistory();
         refreshStatus();
+        refreshDbGauges();
     }
 
     private void buildUi() {
@@ -96,6 +101,16 @@ public class MainActivity extends Activity {
         header.addView(connectionStatus);
         contextStatus = label("Context: —", 12, MUTED);
         header.addView(contextStatus);
+        LinearLayout gauges = row();
+        queryGauge = gauge("Queries/sec\n—");
+        cacheGauge = gauge("Cache hit\n—");
+        writesGauge = gauge("Writes/sec\n—");
+        sizeGauge = gauge("DB size\n—");
+        gauges.addView(queryGauge, weight(1));
+        gauges.addView(cacheGauge, weight(1));
+        gauges.addView(writesGauge, weight(1));
+        gauges.addView(sizeGauge, weight(1));
+        header.addView(gauges);
         progress = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
         progress.setMax(100);
         progress.setVisibility(View.GONE);
@@ -114,7 +129,7 @@ public class MainActivity extends Activity {
         Button brain = button("Memory 3D");
         brain.setOnClickListener(v -> showMemoryBrain());
         Button reload = button("Refresh");
-        reload.setOnClickListener(v -> { loadHistory(); refreshStatus(); });
+        reload.setOnClickListener(v -> { loadHistory(); refreshStatus(); refreshDbGauges(); });
         tools.addView(brain);
         tools.addView(reload);
         root.addView(tools);
@@ -219,6 +234,27 @@ public class MainActivity extends Activity {
         });
     }
 
+    private void refreshDbGauges() {
+        network.execute(() -> {
+            try {
+                JSONObject status = request(active.route(), "/api/db/status", "GET", null);
+                JSONObject metrics = status.optJSONObject("metrics");
+                if (metrics == null) throw new IllegalStateException("Gauge data unavailable");
+                String qps = metric(metrics, "queriesPerSecond", "qps");
+                String cache = metric(metrics, "cacheHitRatio", "%");
+                String writes = metric(metrics, "writesPerSecond", "writes/s");
+                String size = metric(metrics, "dbSize", "% full");
+                runOnUiThread(() -> { queryGauge.setText("Queries/sec\n" + qps); cacheGauge.setText("Cache hit\n" + cache); writesGauge.setText("Writes/sec\n" + writes); sizeGauge.setText("DB size\n" + size); });
+            } catch (Exception ignored) { }
+        });
+    }
+
+    private String metric(JSONObject metrics, String key, String unit) {
+        JSONObject value = metrics.optJSONObject(key);
+        if (value == null) return "—";
+        return value.optString("value", "—") + " " + value.optString("unit", unit);
+    }
+
     private JSONObject request(String ignoredBase, String path, String method, String body) throws Exception {
         Exception last = null;
         for (String base : active.routes()) {
@@ -289,6 +325,7 @@ public class MainActivity extends Activity {
     private LinearLayout row() { LinearLayout row = new LinearLayout(this); row.setOrientation(LinearLayout.HORIZONTAL); row.setGravity(Gravity.CENTER_VERTICAL); return row; }
     private LinearLayout.LayoutParams weight(float value) { return new LinearLayout.LayoutParams(0, -2, value); }
     private TextView label(String text, int size, int color) { TextView view = new TextView(this); view.setText(text); view.setTextSize(size); view.setTextColor(color); return view; }
+    private TextView gauge(String text) { TextView view = label(text, 11, TEXT); view.setGravity(Gravity.CENTER); view.setPadding(4, 8, 4, 8); return view; }
     private Button button(String text) { Button button = new Button(this); button.setText(text); return button; }
 
     private void loadProfiles() {

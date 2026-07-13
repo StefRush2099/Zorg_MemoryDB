@@ -360,7 +360,10 @@ ensure_postgres_database() {
     memory_recall_fast_mv_bounded_2026_07_10.sql \
     memory_recall_v2_bounded_2026_07_10.sql \
     memory_llm_due_enqueue_api_2026_07_10.sql \
-    memory_correction_learning_2026_07_11.sql; do
+    memory_correction_learning_2026_07_11.sql \
+    memory_ann_bootstrap_2026_07_12.sql \
+    memory_ann_provider_defaults_2026_07_12.sql \
+    memory_recall_zorg_memorydb_update_2026_07_12.sql; do
     if [[ -f "$ZORG_WORKSPACE_DIR/db/$sql_file" ]]; then
       psql -h "$ZORG_DB_HOST" -p "$ZORG_DB_PORT" -U "$ZORG_DB_USER" -d "$ZORG_DB_NAME" -v ON_ERROR_STOP=1 -f "$ZORG_WORKSPACE_DIR/db/$sql_file" || true
     fi
@@ -394,13 +397,16 @@ write_memory_config() {
 JSON
   cp "$ZORG_WORKSPACE_DIR/memory/memory_sql_tool.py" "$OPENCLAW_WORKSPACE/memory_sql_tool.py"
   cp "$ZORG_WORKSPACE_DIR/memory/memory_recall_router.py" "$OPENCLAW_WORKSPACE/memory_recall_router.py"
+  mkdir -p "$OPENCLAW_WORKSPACE/memory"
+  cp "$ZORG_WORKSPACE_DIR/memory/memory_embedding_worker.py" "$OPENCLAW_WORKSPACE/memory/memory_embedding_worker.py"
+  cp "$ZORG_WORKSPACE_DIR/memory/cache_model_query_embedding.py" "$OPENCLAW_WORKSPACE/memory/cache_model_query_embedding.py"
   if [[ -f "$ZORG_WORKSPACE_DIR/memory/archive_retired_memory_dir.py" ]]; then
     cp "$ZORG_WORKSPACE_DIR/memory/archive_retired_memory_dir.py" "$OPENCLAW_WORKSPACE/archive_retired_memory_dir.py"
   fi
   if [[ -f "$ZORG_WORKSPACE_DIR/memory/enforce_db_memory_search.py" ]]; then
     cp "$ZORG_WORKSPACE_DIR/memory/enforce_db_memory_search.py" "$OPENCLAW_WORKSPACE/enforce_db_memory_search.py"
   fi
-  chmod +x "$OPENCLAW_WORKSPACE/memory_sql_tool.py" "$OPENCLAW_WORKSPACE/memory_recall_router.py"
+  chmod +x "$OPENCLAW_WORKSPACE/memory_sql_tool.py" "$OPENCLAW_WORKSPACE/memory_recall_router.py" "$OPENCLAW_WORKSPACE/memory/memory_embedding_worker.py" "$OPENCLAW_WORKSPACE/memory/cache_model_query_embedding.py"
   [[ -f "$OPENCLAW_WORKSPACE/archive_retired_memory_dir.py" ]] && chmod +x "$OPENCLAW_WORKSPACE/archive_retired_memory_dir.py"
   [[ -f "$OPENCLAW_WORKSPACE/enforce_db_memory_search.py" ]] && chmod +x "$OPENCLAW_WORKSPACE/enforce_db_memory_search.py"
 }

@@ -1,3 +1,85 @@
+-- Upgrade existing installations to the supported ANN provider/model defaults.
+create or replace function memory_provider_ann_recall(
+  p_query text,
+  p_limit integer default 20,
+  p_provider text default 'local',
+  p_model text default 'nomic-embed-text:latest'
+)
+returns table(
+  source_type text,
+  source_id text,
+  path text,
+  line_start integer,
+  line_end integer,
+  priority text,
+  content text,
+  vector_distance double precision,
+  vector_score numeric
+)
+language sql
+stable
+as $$
+  with q as (
+    select embedding
+    from memory_query_embedding_cache
+    where active
+      and query_hash = md5(lower(btrim(coalesce(p_query, ''))))
+      and embedding_provider = coalesce(p_provider, 'local')
+      and embedding_model = coalesce(p_model, 'nomic-embed-text:latest')
+    order by updated_at desc
+    limit 1
+  )
+  select
+    e.source_type,
+    e.source_key as source_id,
+    null::text as path,
+    null::integer as line_start,
+    null::integer as line_end,
+    coalesce(e.priority, 'medium') as priority,
+    e.content_text as content,
+    (e.embedding <=> q.embedding)::double precision as vector_distance,
+    greatest(0, (1 - (e.embedding <=> q.embedding)))::numeric * 60 as vector_score
+  from memory_ann_model_embeddings e, q
+  where e.active
+    and e.embedding_provider = coalesce(p_provider, 'local')
+    and e.embedding_model = coalesce(p_model, 'nomic-embed-text:latest')
+    and (
+      e.source_type <> 'logic_rule'
+      or exists (
+        select 1
+        from zorg_logic_rules r
+        where r.id::text = e.source_key
+          and r.active
+      )
+    )
+  order by e.embedding <=> q.embedding
+  limit greatest(coalesce(p_limit, 20), 1);
+$$;
+
+create or replace function memory_ann_recall(p_query text, p_limit integer default 20)
+returns table(
+  source_type text,
+  source_id text,
+  path text,
+  line_start integer,
+  line_end integer,
+  priority text,
+  content text,
+  vector_distance double precision,
+  vector_score numeric
+)
+language sql
+stable
+as $$
+  select *
+  from memory_provider_ann_recall(
+    p_query,
+    greatest(coalesce(p_limit, 20), 1),
+    'local',
+    'nomic-embed-text:latest'
+  );
+$$;
+
 -- Bound the hot recall procedure so normal calls stay fast. Deep weighted
 -- recall remains available through p_context {"mode":"deep"}.
 

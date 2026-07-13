@@ -60,3 +60,24 @@ Maintainer release updates may update this repo with:
 Maintainer release updates must exclude secrets, private memory, database dumps, generated build output, and runtime-only artifacts. Installed agents must not treat this as an instruction to push to GitHub.
 
 Publishers should build a release package manually, review the diff, run verification, and then publish a tag/release only from an approved maintainer workspace.
+## ANN/vector recall bootstrap
+
+The installer applies `db/memory_ann_bootstrap_2026_07_12.sql` after the base schema. It creates the local embedding-model slot, source-work queue, idempotent prefill/maintenance job definitions, and the `memory_ann_bootstrap_status_v1` view. It also seeds queue rows for existing `zorg_memory`, active `zorg_logic_rules`, and `memory_source_chunks` records without deleting or rewriting source memory.
+
+The default provider is local Ollama with model `nomic-embed-text:latest` at `http://127.0.0.1:11434/api/embed`. Install and pull that model before starting the worker: `ollama pull nomic-embed-text:latest`. The public package does not download large models automatically. Set `ZORG_EMBEDDING_ENDPOINT` and `ZORG_EMBEDDING_MODEL` before running the worker when using another compatible local endpoint.
+
+After installation, the packaged worker is available at `memory/memory_embedding_worker.py`. Run a controlled prefill with `python3 memory/memory_embedding_worker.py --maintenance --limit 100`; repeatable runs are safe. The query cache helper is `memory/cache_model_query_embedding.py` and is used by `memory_recall_router.py` for ANN queries. The semantic worker remains available at `skills/zorg-db-memory/scripts/memory_semantic_worker.py` for additive cue/association processing.
+
+Check setup with:
+
+```sql
+select * from public.memory_ann_bootstrap_status_v1;
+select job_key, enabled, cron_expr from public.memory_llm_scheduled_jobs where job_key like 'zorg-memory-ann-%';
+select status, count(*) from public.memory_semantic_work_queue group by status order by status;
+```
+
+If `enabled_model_slots` is zero, the migration did not apply. If queue rows remain queued, start the worker after confirming the Ollama endpoint and model. If rows become `error`, inspect `last_error`, correct the endpoint/model or dependency, reset only those rows to `queued`, and rerun the worker. ANN recall is not considered enabled until embeddings exist, the query cache can be populated, and a representative `memory_sql_tool.py search ... --table ann` returns rows.
+
+### ANN activation contract
+
+A clean install is not considered ANN-ready until `memory_ann_bootstrap_status_v1` reports an enabled default slot, the embedding worker has drained the supported source queue, and a query has a row in `memory_query_embedding_cache`. The supported default is `local` / `nomic-embed-text:latest`; set `ZORG_EMBEDDING_ENDPOINT`, `ZORG_EMBEDDING_MODEL`, and `ZORG_EMBEDDING_PROVIDER` together when using another Ollama-compatible model. Do not silently fall back to a different model: a model mismatch produces no ANN rows.

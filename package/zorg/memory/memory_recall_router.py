@@ -10,8 +10,10 @@ BASE = Path(os.environ.get('OPENCLAW_WORKSPACE', Path.home() / '.openclaw' / 'wo
 SQL_CFG = Path(os.environ.get('ZORG_SQL_MEMORY_MAP', BASE / 'sql_memory_map.json'))
 VENV_PYTHON = BASE / '.venv-sqlmem' / 'bin' / 'python'
 ANN_QUERY_CACHE_TIMEOUT_MS = int(os.environ.get('ZORG_RECALL_ANN_QUERY_CACHE_TIMEOUT_MS', '12000'))
-ANN_QUERY_CACHE_SCRIPT = Path(os.environ.get('ZORG_RECALL_ANN_QUERY_CACHE_SCRIPT', BASE / 'scripts' / 'cache_model_query_embedding.mjs'))
+ANN_QUERY_CACHE_SCRIPT = Path(os.environ.get('ZORG_RECALL_ANN_QUERY_CACHE_SCRIPT', BASE / 'memory' / 'cache_model_query_embedding.py'))
 ANN_ENABLED = os.environ.get('ZORG_RECALL_ANN_ENABLED', '1').lower() not in {'0', 'false', 'no', 'off'}
+ANN_PROVIDER = os.environ.get('ZORG_EMBEDDING_PROVIDER', 'local')
+ANN_MODEL = os.environ.get('ZORG_EMBEDDING_MODEL', 'nomic-embed-text:latest')
 
 try:
     import psycopg2
@@ -49,10 +51,10 @@ def query_embedding_cached(query: str) -> bool:
             cur.execute(
                 """
                 select public.memory_query_embedding_cache_exists_v1(
-                  %s, 'local', 'embeddinggemma-300m-qat-q8_0'
+                  %s, %s, %s
                 )
                 """,
-                (query,),
+                (query, ANN_PROVIDER, ANN_MODEL),
             )
             return bool(cur.fetchone()[0])
 
@@ -65,7 +67,7 @@ def ensure_model_query_embedding_cached(query: str) -> bool:
         return True
     try:
         result = subprocess.run(
-            ['node', str(ANN_QUERY_CACHE_SCRIPT)],
+            [str(VENV_PYTHON if VENV_PYTHON.exists() else sys.executable), str(ANN_QUERY_CACHE_SCRIPT)],
             input=query or '',
             text=True,
             stdout=subprocess.DEVNULL,
@@ -97,8 +99,8 @@ def search_structured_db(query: str, limit: int):
     context = {
         'caller': 'memory_recall_router.py',
         'ann_enabled': ANN_ENABLED,
-        'embedding_provider': 'local',
-        'embedding_model': 'embeddinggemma-300m-qat-q8_0',
+        'embedding_provider': ANN_PROVIDER,
+        'embedding_model': ANN_MODEL,
     }
 
     with db_connect() as conn:

@@ -1,5 +1,10 @@
 # Changelog
 
+## v2.0.12 - 2026-07-12
+
+- Publishes the idempotent ANN/vector recall bootstrap, supported `nomic-embed-text:latest` defaults, embedding worker, query-cache helper, scheduled jobs, and upgrade migration so clean installs and existing installs share the same recall path.
+
+
 ## v2.0.11 - 2026-07-12
 
 - Corrects the browser Context window gauge to display live tokens in use

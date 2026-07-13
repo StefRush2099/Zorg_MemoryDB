@@ -18,6 +18,6 @@ def main():
     if not vectors: raise RuntimeError('embedding endpoint returned no vector')
     with psycopg2.connect(host=cfg['host'],port=cfg['port'],dbname=cfg['database'],user=cfg['user'],password=cfg.get('password','')) as conn:
       with conn.cursor() as cur:
-        cur.execute("""insert into memory_query_embedding_cache(query_hash,query_text,embedding_provider,embedding_model,embedding_dim,embedding,metadata) values (%s,%s,%s,%s,%s::vector,%s) on conflict(query_hash,embedding_provider,embedding_model) do update set embedding=excluded.embedding,embedding_dim=excluded.embedding_dim,updated_at=now()""",(hashlib.md5(query.lower().strip().encode()).hexdigest(),query,PROVIDER,MODEL,len(vectors[0]),'['+','.join(map(str,vectors[0]))+']',json.dumps({'source':'cache_model_query_embedding.py'})))
+        cur.execute("""insert into memory_query_embedding_cache(query_hash,query_text,embedding_provider,embedding_model,embedding_dim,embedding,metadata) values (%s,%s,%s,%s,%s,%s::vector,%s) on conflict(query_hash,embedding_provider,embedding_model) do update set embedding=excluded.embedding,embedding_dim=excluded.embedding_dim,updated_at=now()""",(hashlib.md5(query.lower().strip().encode()).hexdigest(),query,PROVIDER,MODEL,len(vectors[0]),'['+','.join(map(str,vectors[0]))+']',json.dumps({'source':'cache_model_query_embedding.py'})))
     return 0
 if __name__=='__main__': raise SystemExit(main())

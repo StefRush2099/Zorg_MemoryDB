@@ -62,9 +62,9 @@ on conflict (slot_key) do update set
   updated_at = now();
 
 insert into public.memory_semantic_work_queue (job_kind, source_type, source_key, payload, payload_hash)
-select 'semantic_embedding', 'memory', m.id::text, jsonb_build_object('table', 'zorg_memory'), md5(jsonb_build_object('table', 'zorg_memory')::text)
+select 'semantic_embedding', 'zorg_memory', m.id::text, jsonb_build_object('table', 'zorg_memory'), md5(jsonb_build_object('table', 'zorg_memory')::text)
 from public.zorg_memory m
-where not exists (select 1 from public.memory_semantic_work_queue q where q.source_type='memory' and q.source_key=m.id::text);
+where not exists (select 1 from public.memory_semantic_work_queue q where q.source_type='zorg_memory' and q.source_key=m.id::text);
 
 insert into public.memory_semantic_work_queue (job_kind, source_type, source_key, payload, payload_hash)
 select 'semantic_embedding', 'logic_rule', r.id::text, jsonb_build_object('table', 'zorg_logic_rules'), md5(jsonb_build_object('table', 'zorg_logic_rules')::text)
@@ -135,8 +135,8 @@ returns integer language plpgsql as $$
   declare v_count integer := 0; v_added integer;
 begin
   insert into public.memory_semantic_work_queue(job_kind, source_type, source_key, payload, payload_hash)
-  select 'semantic_embedding', 'memory', m.id::text, jsonb_build_object('table','zorg_memory'), md5(jsonb_build_object('table','zorg_memory')::text) from public.zorg_memory m
-  where not exists (select 1 from public.memory_semantic_work_queue q where q.source_type='memory' and q.source_key=m.id::text);
+  select 'semantic_embedding', 'zorg_memory', m.id::text, jsonb_build_object('table','zorg_memory'), md5(jsonb_build_object('table','zorg_memory')::text) from public.zorg_memory m
+  where not exists (select 1 from public.memory_semantic_work_queue q where q.source_type='zorg_memory' and q.source_key=m.id::text);
   get diagnostics v_added = row_count;
   v_count := v_count + v_added;
   insert into public.memory_semantic_work_queue(job_kind, source_type, source_key, payload, payload_hash)

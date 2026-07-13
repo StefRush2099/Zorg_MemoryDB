@@ -1,5 +1,10 @@
 # Changelog
 
+## v2.0.13 - 2026-07-12
+
+- Completes the ANN/vector bootstrap with canonical `zorg_memory` queueing, savepoint-safe worker retries, legacy queue isolation, configurable provider/model settings, and a working query-embedding cache.
+
+
 ## v2.0.12 - 2026-07-12
 
 - Publishes the idempotent ANN/vector recall bootstrap, supported `nomic-embed-text:latest` defaults, embedding worker, query-cache helper, scheduled jobs, and upgrade migration so clean installs and existing installs share the same recall path.

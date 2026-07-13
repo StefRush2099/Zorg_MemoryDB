@@ -11,7 +11,7 @@ PROVIDER = os.environ.get('ZORG_EMBEDDING_PROVIDER', 'local')
 MODEL = os.environ.get('ZORG_EMBEDDING_MODEL', 'nomic-embed-text:latest')
 OLLAMA_URL = os.environ.get('ZORG_EMBEDDING_ENDPOINT', 'http://127.0.0.1:11434/api/embed')
 WORKER = f'embedding-worker@{socket.gethostname()}'
-SUPPORTED_SOURCE_TYPES = ('memory', 'zorg_memory', 'logic_rule', 'source_chunk')
+SUPPORTED_SOURCE_TYPES = ('zorg_memory', 'logic_rule', 'source_chunk')
 
 def connect():
     cfg = json.loads(MAP.read_text())['postgres']
@@ -66,7 +66,7 @@ def run(limit):
 def enqueue_sources():
     with connect() as conn:
         with conn.cursor() as cur:
-            cur.execute("insert into memory_semantic_work_queue(job_kind,source_type,source_key,payload,payload_hash) select 'semantic_embedding','memory',id::text,jsonb_build_object('table','zorg_memory'),md5(jsonb_build_object('table','zorg_memory')::text) from zorg_memory where not exists (select 1 from memory_semantic_work_queue q where q.source_type='memory' and q.source_key=zorg_memory.id::text)")
+            cur.execute("insert into memory_semantic_work_queue(job_kind,source_type,source_key,payload,payload_hash) select 'semantic_embedding','zorg_memory',id::text,jsonb_build_object('table','zorg_memory'),md5(jsonb_build_object('table','zorg_memory')::text) from zorg_memory where not exists (select 1 from memory_semantic_work_queue q where q.source_type='zorg_memory' and q.source_key=zorg_memory.id::text)")
             cur.execute("insert into memory_semantic_work_queue(job_kind,source_type,source_key,payload,payload_hash) select 'semantic_embedding','logic_rule',id::text,jsonb_build_object('table','zorg_logic_rules'),md5(jsonb_build_object('table','zorg_logic_rules')::text) from zorg_logic_rules where active and not exists (select 1 from memory_semantic_work_queue q where q.source_type='logic_rule' and q.source_key=zorg_logic_rules.id::text)")
             cur.execute("insert into memory_semantic_work_queue(job_kind,source_type,source_key,payload,payload_hash) select 'semantic_embedding','source_chunk',id::text,jsonb_build_object('table','memory_source_chunks'),md5(jsonb_build_object('table','memory_source_chunks')::text) from memory_source_chunks where not exists (select 1 from memory_semantic_work_queue q where q.source_type='source_chunk' and q.source_key=memory_source_chunks.id::text)")
         conn.commit()

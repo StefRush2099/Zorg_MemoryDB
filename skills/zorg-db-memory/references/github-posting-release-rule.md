@@ -15,6 +15,7 @@ A GitHub update is not complete when only a file exists, an API tree lists it, o
 - Use the correct source system for screenshots; local personal screenshots must show `Zorg Rush` / `10.7.69.200`.
 - Correct dark/light mode content, not only filenames.
 - Update every affected surface: GitHub repository metadata, README, docs, screenshots, changelog, release notes, package metadata, package scripts, verification scripts, skill package files, support code, tarball, tag, GitHub Release body, and Release asset.
+- Include the complete PostgreSQL scheduler source for every core MemoryDB maintenance job: schedule-table seed/upsert definitions, PostgreSQL function definitions, job-to-function catalog, and verification/count checks. Compare it with live `public.memory_db_scheduled_jobs`; a core job that exists only in the live database or only in a runtime deployment output is a release failure.
 - Rebuild package archive after content changes.
 - Run public-package verification, secret scan, generated-artifact scan, archive-content check, and DB health checks.
 - Push exact commit and tag.

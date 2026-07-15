@@ -34,6 +34,50 @@ chat remains part of the OpenClaw/Zorg runtime, and Memory Brain 3D remains a
 PostgreSQL-backed view of the same database; neither is an unrelated optional
 application. Updates are incomplete until all three surfaces are checked.
 
+## PostgreSQL Scheduler Contract For New Systems
+
+New installations must understand and preserve three distinct PostgreSQL-owned
+scheduler classes. The definitions below are part of this skill and are the
+implementation contract; do not invent an external scheduler source of truth.
+
+1. **Core system maintenance jobs** live in
+   `public.memory_db_scheduled_jobs`. These are database-maintenance jobs such
+   as the nightly MemoryDB health check and the semantic worker. Each row must
+   identify its `job_key`, `job_kind`, schedule, timezone, enabled state,
+   `db_function`, owner, and run history. The executable maintenance behavior
+   belongs in PostgreSQL functions. A thin runner may call
+   `public.memory_db_run_due_jobs_sql(integer)` only when the database does not
+   provide an in-database executor.
+2. **Private/LLM scheduled jobs** live in
+   `public.memory_llm_scheduled_jobs`. These rows contain natural-language
+   instructions, schedule metadata, delivery/failure policy, and enablement;
+   they are dispatched through `memory_llm_job_queue` and the single
+   `memory_db_llm_dispatcher` listener. They must not be converted into hidden
+   policy scripts or per-job host timers.
+3. **Active `pg_cron` jobs** are the database extension's firing layer in
+   `cron.job`. They may only enqueue or invoke the corresponding PostgreSQL
+   schedule rows/functions. `cron.job` is not a second policy store. Every
+   active row must map to a named schedule in the skill's catalog and must be
+   verified against the live database after installation.
+
+For a new system, load this skill, apply its database schema/functions and
+seed/catalog definitions, then verify all three surfaces with counts and
+name-to-function mappings. The minimum acceptance check is: every core
+maintenance job required by the skill exists in `memory_db_scheduled_jobs`, is
+enabled, has a valid PostgreSQL function, has a run-history path, and is
+represented in the public GitHub package. A generated deployment copy may
+contain connection-specific values, but no core job definition may exist only
+in a runtime file, systemd unit, host crontab, or untracked database state.
+
+The GitHub source package must include the complete core-maintenance catalog,
+schema/function definitions, seed/upsert procedure, verification procedure,
+and the expected job-to-function mapping. Before publishing any MemoryDB
+update, compare the live `memory_db_scheduled_jobs` rows with that catalog;
+missing, extra, disabled, or unmapped core jobs fail the release gate. Never
+publish only the skill prose while leaving a newly created core maintenance
+job undocumented or absent from the repository. See
+`references/postgresql-scheduler-catalog.md`.
+
 ## Full-Fix First-Pass Rule
 
 When Stefan asks to fix a failure or enforce a rule, treat the request as an
@@ -175,6 +219,7 @@ Required hard gates:
 - For screenshot work, visually inspect the image content before committing or sending it; filename checks and API tree checks are not enough.
 - Use the correct source system for screenshots. Local/personal OpenClaw screenshots must show `Zorg Rush` / `10.7.69.200`. Dark-mode screenshots must actually be dark mode and light-mode screenshots must actually be light mode.
 - Update all affected surfaces together: GitHub repository metadata, README, docs, screenshots, changelog, release notes, package metadata, package scripts, verification scripts, skill package files, public-safe support code, package tarball, Git tag, GitHub Release body, and GitHub Release asset.
+- Treat the root `package.json` version as the canonical GitHub release version. Every release/update must set `package/zorg/lan-command-chat/package.json` to that exact same version and verify that the LAN Command Chat gauge page displays the same version stamp before publication. The browser gauge must derive its stamp from package metadata, never from a manually typed or stale version. The public-package verifier must fail closed on any mismatch.
 - Rebuild the package artifact after every repo/package content change.
 - Run public package verification, generated-artifact scan, secret scan, archive-content check, and DB health checks before publishing.
 - Verify GitHub `isFork`, parent, description, homepage, topics, default branch, affected rendered GitHub pages, and release pages after push before claiming success.

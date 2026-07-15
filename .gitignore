@@ -13,3 +13,13 @@ sql_memory_map.json
 *.tar.gz
 artifacts/
 browser-profile/
+/lan-chat/
+/zorg/
+/scripts/__pycache__/
+**/__pycache__/
+*.pyc
+*.tsbuildinfo
+*.pid
+/postgresql-*/
+/local-postgres/
+/backups/

@@ -1,5 +1,12 @@
 # Changelog
 
+## v2.0.14 - 2026-07-15
+
+- Documents the verified native PostgreSQL 18.4 deployment path and clean-cluster logical-restore cutover.
+- Records the acceptance checks for structured, weighted, semantic, and ANN/vector recall plus LAN Command Chat and Memory Brain 3D.
+- Explicitly excludes the retired PostgreSQL container, rollback volume, database data, dumps, logs, credentials, and generated build artifacts from the public package.
+- Carries the latest public-safe LAN Command Chat CSS correction and keeps generated workspace output ignored.
+
 ## v2.0.13 - 2026-07-12
 
 - Completes the ANN/vector bootstrap with canonical `zorg_memory` queueing, savepoint-safe worker retries, legacy queue isolation, configurable provider/model settings, and a working query-embedding cache.

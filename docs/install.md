@@ -81,3 +81,12 @@ If `enabled_model_slots` is zero, the migration did not apply. If queue rows rem
 ### ANN activation contract
 
 A clean install is not considered ANN-ready until `memory_ann_bootstrap_status_v1` reports an enabled default slot, the embedding worker has drained the supported source queue, and a query has a row in `memory_query_embedding_cache`. The supported default is `local` / `nomic-embed-text:latest`; set `ZORG_EMBEDDING_ENDPOINT`, `ZORG_EMBEDDING_MODEL`, and `ZORG_EMBEDDING_PROVIDER` together when using another Ollama-compatible model. Do not silently fall back to a different model: a model mismatch produces no ANN rows.
+
+## Native PostgreSQL option
+
+For installations that must keep PostgreSQL outside Docker, use a clean
+workspace-local PostgreSQL 18 cluster and restore the databases logically.
+Never point PostgreSQL 18 at a PostgreSQL 16 data directory. Follow the
+backup, restore, acceptance, and rollback boundaries in
+[Native PostgreSQL operation](native-postgresql.md) before switching any
+dependent service.

@@ -20,6 +20,7 @@ This repository is intentionally **not** a GitHub fork or full source fork of Op
   WebView wrapper and is not the browser LAN Console.
 - Supporting-service discovery rules for `cloudflared`, ComfyUI, `kokoro-fastapi-cpu`, MediaMTX, Ollama, SearXNG, and faster-whisper, with Dockge install requests when services are missing.
 - Passwordless local PostgreSQL bootstrap on loopback, with remote unauthenticated access rejected.
+- Native PostgreSQL 18 operation is supported through a clean-cluster logical restore; the retired container and rollback data remain local and are never packaged.
 
 ## What This Repository Contains
 
@@ -134,6 +135,9 @@ After installing or updating the skill/package, verify DB access:
 ```
 
 For browser-visible supporting apps such as LAN Command Chat or Memory Brain 3D, verify with screenshots before claiming the UI works.
+
+For the native PostgreSQL deployment and its cutover/rollback boundaries, see
+[docs/native-postgresql.md](docs/native-postgresql.md).
 
 ## Public Safety
 

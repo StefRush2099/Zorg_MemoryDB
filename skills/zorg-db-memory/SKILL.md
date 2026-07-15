@@ -183,6 +183,12 @@ ANN repair must queue semantic work with the canonical source row identifier
 rule key. Cache representative exact and variant queries before verification;
 otherwise a healthy ANN index can be mistaken for a failed recall path.
 
+The core mutation gate is the first recall pipeline layer: every
+`memory_recall_v2` call must emit `core_rule_preflight` at rank 1 before normal
+logic-rule, weighted, lexical, or ANN results. Its dynamic weight and semantic
+`precedes -> all_core_rules` edge are additive, bounded by the live column
+precision, and must be verified with rank-order regression queries.
+
 ## Memory-Related Durable Rule Ownership
 
 Durable requests about memory behavior, recall behavior, fact summaries, approval gates, tool/model routing for memory work, GitHub posting rules for Zorg_MemoryDB, coding-agent fallback behavior for MemoryDB work, neural/vector/ANN recall behavior, weighted recall behavior, query observations, recall performance tuning, and similar operating procedures belong in this `zorg-db-memory` skill.

@@ -356,6 +356,7 @@ ensure_postgres_database() {
   fi
   for sql_file in \
     memory_recall_procedure_api_2026_07_10.sql \
+    memory_core_rule_preflight_2026_07_15.sql \
     memory_recall_exact_alias_fast_2026_07_10.sql \
     memory_recall_fast_mv_bounded_2026_07_10.sql \
     memory_recall_v2_bounded_2026_07_10.sql \

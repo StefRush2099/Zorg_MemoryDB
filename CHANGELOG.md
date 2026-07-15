@@ -1,5 +1,10 @@
 # Changelog
 
+## v2.0.16 - 2026-07-15
+
+- Adds the core-rule preflight pipeline so the summary/uppercase-GO mutation gate is rank 1 before normal rule, weighted, lexical, or ANN recall.
+- Adds bounded dynamic weighting, a semantic `precedes -> all_core_rules` edge, a dedicated PostgreSQL preflight function, and rank-order regression verification.
+
 ## v2.0.14 - 2026-07-15
 
 - Documents the verified native PostgreSQL 18.4 deployment path and clean-cluster logical-restore cutover.

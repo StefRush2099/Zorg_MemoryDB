@@ -278,6 +278,20 @@ begin
       850::numeric as layer_boost,
       'logic_preflight'::text as layer
     from public.zorg_get_logic_context(v_query, greatest(6, least(v_limit, 16))) r
+  ), core_gate_rows as (
+    select
+      'core_rule_preflight'::text as source_type, r.id::text as source_id,
+      null::text as path, null::integer as line_start, null::integer as line_end,
+      'critical'::text as priority,
+      left(concat_ws(E'\n', 'Core rule preflight: ' || r.title, 'Key: ' || r.rule_key, 'Rule: ' || r.rule_text), 4000) as content,
+      100000::numeric as score,
+      'mandatory core mutation gate before rule execution'::text as score_reason,
+      jsonb_build_object('procedure','zorg_core_rule_preflight_v1','gate','summary_then_GO_before_mutation') as metadata,
+      100000::numeric as layer_boost,
+      'core_rule_preflight'::text as layer
+    from public.zorg_logic_rules r
+    where r.rule_key = 'prework-summary-requires-go-before-mutation-2026-07-14'
+      and coalesce(r.active,true)
   ), weighted_rows as (
     select
       w.source_type, w.source_id, w.path, w.line_start, w.line_end,
@@ -315,6 +329,8 @@ begin
     ) a
     where v_has_ann
   ), combined as (
+    select * from core_gate_rows
+    union all
     select * from exact_rows
     union all select * from rule_rows
     union all select * from weighted_rows

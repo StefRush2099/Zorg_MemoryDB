@@ -96,18 +96,19 @@ insert into public.memory_llm_scheduled_jobs
 values
   ('zorg-memory-ann-prefill', 'Zorg Memory ANN embedding prefill', 'main',
    jsonb_build_object('kind','interval','minutes',15), '*/15 * * * *', 'America/Los_Angeles', true, 'isolated', 'now',
-   jsonb_build_object('kind','command','argv',jsonb_build_array('python3','memory/memory_embedding_worker.py','--once','--limit','100'),'timeoutSeconds',900),
-   jsonb_build_object('purpose','enqueue and embed new or changed source memory')),
+   jsonb_build_object('kind','command','argv',jsonb_build_array('/home/openclaw/.openclaw/workspace/.venv-sqlmem/bin/python','/home/openclaw/.openclaw/workspace/skills/zorg-db-memory/scripts/memory_semantic_worker.py','--once','--limit','100'),'timeoutSeconds',900),
+   jsonb_build_object('purpose','enqueue and embed new or changed source memory','job_class','core_llm','owner','core_llm')),
   ('zorg-memory-ann-maintenance', 'Zorg Memory ANN maintenance', 'main',
    jsonb_build_object('kind','daily','hour','03:20'), '20 3 * * *', 'America/Los_Angeles', true, 'isolated', 'now',
-   jsonb_build_object('kind','command','argv',jsonb_build_array('python3','memory/memory_embedding_worker.py','--maintenance'),'timeoutSeconds',1800),
-   jsonb_build_object('purpose','retry failed work and report embedding slot health'))
+   jsonb_build_object('kind','command','argv',jsonb_build_array('/home/openclaw/.openclaw/workspace/.venv-sqlmem/bin/python','/home/openclaw/.openclaw/workspace/skills/zorg-db-memory/scripts/ann_vector_autoheal.py'),'timeoutSeconds',1800),
+   jsonb_build_object('purpose','retry failed work and report embedding slot health','job_class','core_llm','owner','core_llm'))
 on conflict (job_key) do update set
   name = excluded.name,
   schedule = excluded.schedule,
   cron_expr = excluded.cron_expr,
   payload = excluded.payload,
   enabled = true,
+  source_scheduler = 'core-llm',
   metadata = excluded.metadata,
   updated_at = now();
 

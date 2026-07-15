@@ -6,6 +6,13 @@
 - Records the acceptance checks for structured, weighted, semantic, and ANN/vector recall plus LAN Command Chat and Memory Brain 3D.
 - Explicitly excludes the retired PostgreSQL container, rollback volume, database data, dumps, logs, credentials, and generated build artifacts from the public package.
 - Carries the latest public-safe LAN Command Chat CSS correction and keeps generated workspace output ignored.
+- Adds a release gate requiring the LAN Command Chat gauge version to match the GitHub package version, with automated mismatch verification.
+
+## v2.0.15 - 2026-07-15
+
+- Promotes the fact-based summary and uppercase GO-before-mutation gate to a core system rule for every system change.
+- Repairs ANN recall for the gate using canonical logic-rule UUID queueing, six high-weight aliases, cached regression queries, and durable query observations.
+- Classifies the 11 requested MemoryDB schedules as `core_llm`, removes personal routing/attribution, and keeps ANN executors inside the canonical skill.
 
 ## v2.0.13 - 2026-07-12
 

@@ -12,6 +12,25 @@ live PostgreSQL scheduler tables.
 | Private/LLM scheduled jobs | `public.memory_llm_scheduled_jobs` and `public.memory_llm_job_queue` | Natural-language tasks dispatched by the single LLM listener |
 | Active pg_cron | `cron.job` | Database firing layer that enqueues or invokes named jobs |
 
+### Core/LLM schedule class
+
+The following MemoryDB-owned LLM schedules are classified as `core_llm` and
+are platform maintenance/operating jobs, not personal/operator jobs:
+
+`nightly-rule-weight-review`, `daily-db-memory-performance-repair`,
+`daily-work-and-rules-summary`, `memory-db-performance-tuning-review`,
+`openclaw-cron-health-audit-and-repair`, `local-disk-free-space-threshold-check`,
+`db-only-memory-recall-autoheal`, `memory-semantic-neural-association-worker`,
+`zorg-progress-score-refresh`, `zorg-memory-ann-maintenance`, and
+`zorg-memory-ann-prefill`.
+
+For these rows, set `source_scheduler = 'core-llm'`,
+`metadata.job_class = 'core_llm'`, and `metadata.owner = 'core_llm'`.
+Do not retain operator names, personal chat IDs, personal delivery targets, or
+operator-specific failure alerts in their payload, delivery, or metadata.
+ANN jobs must invoke canonical scripts shipped in this skill and must not refer
+to retired workspace `memory/` paths.
+
 ## Core maintenance catalog
 
 Every row below must exist, be enabled, and have the listed function in the

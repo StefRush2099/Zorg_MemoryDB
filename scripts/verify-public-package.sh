@@ -3,6 +3,11 @@ set -euo pipefail
 
 missing=0
 package_version="$(sed -n 's/^[[:space:]]*"version"[[:space:]]*:[[:space:]]*"\([0-9][0-9.]*\)".*/\1/p' package.json | head -1)"
+lan_chat_version="$(sed -n 's/^[[:space:]]*"version"[[:space:]]*:[[:space:]]*"\([0-9][0-9.]*\)".*/\1/p' package/zorg/lan-command-chat/package.json | head -1)"
+if [[ "$lan_chat_version" != "$package_version" ]]; then
+  echo "LAN Command Chat version $lan_chat_version does not match GitHub package version $package_version" >&2
+  exit 1
+fi
 release_archive="release/zorg-db-memory-v${package_version}.tar.gz"
 for path in \
   "skills/zorg-db-memory/SKILL.md" \

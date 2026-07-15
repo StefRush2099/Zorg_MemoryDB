@@ -137,7 +137,13 @@ Summaries before work must be fact-based. Do not present known or knowable Memor
 
 If exhaustive DB recall does not contain enough fact-level detail to summarize the requested change, state that exact memory gap plainly as the problem to fix. Do not guess, invent, mock, or proceed from uncertainty. Repair recall/source indexing or ask for the exact missing decision only after making the memory gap explicit.
 
-When Stefan asks for a pre-work summary and approval gate, the visible reply must:
+For any requested system change, installation, repair, configuration update,
+publication, or other mutation, the visible pre-work response must provide a
+fact-based summary of the intended changes and affected surfaces, then ask for
+uppercase `GO` and wait. A direct imperative is not a substitute for this
+change gate unless the request explicitly says to proceed immediately or is a
+narrow repair of this exact approval failure. The visible pre-work response
+must:
 
 - State only facts established by backend DB recall and current approved context.
 - Separate confirmed facts from any explicit memory gap.
@@ -171,6 +177,11 @@ Performance tuning must be LLM-governed and evidence-based. Form a natural-langu
 Every MemoryDB recall-learning or performance-tuning change must preserve source history and record enough evidence to be audited later: what query or correction exposed the gap, what derived recall surface was added or refreshed, what before/after verification was run, whether ANN/vector recall returned results or missed, and the rollback path for derived layers.
 
 If ANN/vector recall returns no rows for a relevant query, do not report that neural/vector recall worked for that query. Report the ANN miss, continue through structured/weighted recall, and add the appropriate query observations, semantic hints, or queued semantic work so future recall can improve.
+
+ANN repair must queue semantic work with the canonical source row identifier
+(for `logic_rule`, the `zorg_logic_rules.id` UUID), never only a human-readable
+rule key. Cache representative exact and variant queries before verification;
+otherwise a healthy ANN index can be mistaken for a failed recall path.
 
 ## Memory-Related Durable Rule Ownership
 

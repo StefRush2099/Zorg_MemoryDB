@@ -1,5 +1,17 @@
 # Changelog
 
+## v2.0.17 - 2026-07-15
+
+- Canonicalizes current-install backup/recovery variables using
+  `OPENCLAW_WORKSPACE`/`WORKSPACE_DIR` and `OPENCLAW_HOME`.
+- Adds the skill-owned public/private rule-scope and safe dedup migration;
+  repeated markdown fragments remain as inactive provenance rather than active
+  duplicate behaviors.
+- Adds canonical DB recall/timing, credential-source, and rule-failure-lockout
+  structures with bounded weights, recall hints, and semantic refresh queueing.
+- Preserves the release gate that the LAN Command Chat gauge version exactly
+  matches the root package version.
+
 ## v2.0.16 - 2026-07-15
 
 - Adds the core-rule preflight pipeline so the summary/uppercase-GO mutation gate is rank 1 before normal rule, weighted, lexical, or ANN recall.

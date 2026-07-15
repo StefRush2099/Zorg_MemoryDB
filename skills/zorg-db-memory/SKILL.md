@@ -195,6 +195,22 @@ Durable requests about memory behavior, recall behavior, fact summaries, approva
 
 Do not create separate one-off skills for memory-related process rules unless Stefan explicitly asks for a separate skill. Prefer updating `zorg-db-memory` so MemoryDB behavior, recall, repair, publication, execution-routing rules, and derived recall-learning behavior remain in one canonical place.
 
+## Rule Scope, Current-Install Variables, And Deduplication
+
+Rule placement is authoritative in `public.zorg_logic_rules`. Public/core rules
+must contain reusable, public-safe behavior; install-specific operator overlays
+belong in `privacy_scope='private'`. Repeated markdown fragments and exact
+duplicate texts are one behavior, not separate rules: collapse them to one
+canonical active structured rule while retaining inactive source provenance.
+The skill-owned migration is `scripts/normalize_rule_scopes_and_dedup.py`.
+
+Install-specific filesystem references must use `OPENCLAW_WORKSPACE` (or
+`WORKSPACE_DIR`) and `OPENCLAW_HOME`; never bake a machine's absolute install
+path into the active rule or public package. Verify public seed data contains
+only sanitized canonical rules and private overlays remain outside the public
+package. Scope changes, duplicate retirement, canonical weights, recall hints,
+and ANN refresh queueing belong in this skill and are applied together.
+
 ## OpenAI-First / Codex-Fallback Routing
 
 For internal execution routing and coding/repository work connected to MemoryDB or Zorg_MemoryDB:

@@ -21,7 +21,7 @@ This repository is intentionally **not** a GitHub fork or full source fork of Op
 - Supporting-service discovery rules for `cloudflared`, ComfyUI, `kokoro-fastapi-cpu`, MediaMTX, Ollama, SearXNG, and faster-whisper, with Dockge install requests when services are missing.
 - Passwordless local PostgreSQL bootstrap on loopback, with remote unauthenticated access rejected.
 - Native PostgreSQL 18 operation is supported through a clean-cluster logical restore; the retired container and rollback data remain local and are never packaged.
-- Release `v2.0.17` adds the skill-owned public/private rule-scope and safe
+- Release `v2.0.18` adds the skill-owned public/private rule-scope and safe
   dedup migration. Current-install backup/recovery references use
   `OPENCLAW_WORKSPACE`/`WORKSPACE_DIR` and `OPENCLAW_HOME`, and repeated
   markdown fragments remain inactive provenance rather than active duplicate

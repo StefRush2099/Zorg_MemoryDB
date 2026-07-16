@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.0.18 - 2026-07-15
+
+- Deactivates stale ANN embeddings when an active rule's content changes, so
+  semantic recall cannot return superseded rule text.
+- Keeps the LAN Command Chat gauge version aligned with the root package.
+
 ## v2.0.17 - 2026-07-15
 
 - Canonicalizes current-install backup/recovery variables using

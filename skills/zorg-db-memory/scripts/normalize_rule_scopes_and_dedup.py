@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Apply the public-safe v2.0.17 rule-scope migration.
+"""Apply the public-safe v2.0.18 rule-scope migration.
 
 The live install may additionally run the full private-overlay migration from
 the local skill. This public copy intentionally exports no private rule text.

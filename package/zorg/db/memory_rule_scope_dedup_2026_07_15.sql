@@ -1,4 +1,4 @@
--- Public-safe clean-install migration for v2.0.17.
+-- Public-safe clean-install migration for v2.0.18.
 -- Private operator overlays are intentionally not exported here.
 
 update public.zorg_logic_rules
@@ -16,6 +16,17 @@ where m.source_type = 'logic_rule'
     select 1 from public.zorg_logic_rules r
     where r.id::text = m.source_key and not r.active
   );
+
+update public.memory_ann_model_embeddings m
+set active = false, updated_at = now()
+from public.zorg_logic_rules r
+where m.source_type = 'logic_rule'
+  and m.source_key = r.id::text
+  and r.active
+  and m.active
+  and m.content_hash <> md5(concat_ws(E'\n', r.rule_key, r.title,
+      r.rule_text, coalesce(array_to_string(r.applies_to, ' '), ''),
+      coalesce(array_to_string(r.standard_checks, ' '), '')));
 
 insert into public.zorg_logic_rules
   (rule_key,title,rule_text,rule_type,priority,privacy_scope,source_basis,applies_to,standard_checks,active)

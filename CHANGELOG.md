@@ -1,5 +1,12 @@
 # Changelog
 
+## v3.0.2 - 2026-07-17
+
+- Corrects the LAN Command Chat gauge release readout and live product package
+  metadata to v3.0.2 before publication, superseding v3.0.1.
+- Keeps the packaged LAN Command Chat source and lockfile aligned with the
+  product currently used by the runtime.
+
 ## v3.0.1 - 2026-07-17
 
 - Publishes the live rule-feedback repair as a patch release, preserving the

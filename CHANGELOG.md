@@ -1,5 +1,15 @@
 # Changelog
 
+## v3.0.1 - 2026-07-17
+
+- Publishes the live rule-feedback repair as a patch release, preserving the
+  existing `zorg_record_logic_rule_feedback` procedure and its canonical UUID
+  queue payload.
+- Adds public-safe trigger wiring that queues additive semantic/ANN work from
+  captured operational rows without pruning or replacing source records.
+- Adds a database view for verifying which captured tables have semantic queue
+  triggers, and keeps the LAN Command Chat package version aligned.
+
 ## v3.0.0 - 2026-07-17
 
 - Publishes the complete work-capture structure: turn manifests, immutable

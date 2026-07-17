@@ -27,7 +27,7 @@ export function getSqlMemoryMapPath() {
   return firstNonEmpty(
     process.env.SQL_MEMORY_MAP,
     process.env.ZORG_SQL_MEMORY_MAP,
-  ) ?? path.join(getWorkspaceDir(), "sql_memory_map.json");
+  ) ?? path.join(getWorkspaceDir(), "skills", "zorg-db-memory", "config", "sql_memory_map.json");
 }
 
 export function getOpenClawHome() {

@@ -19,9 +19,10 @@ from pathlib import Path
 import psycopg2
 import psycopg2.extras
 
-WORKSPACE = Path(os.environ.get("OPENCLAW_WORKSPACE") or os.environ.get("WORKSPACE_DIR") or (Path.home() / ".openclaw" / "workspace")).expanduser().resolve()
-MAP_PATH = Path(os.environ.get("SQL_MEMORY_MAP") or os.environ.get("ZORG_SQL_MEMORY_MAP") or (WORKSPACE / "sql_memory_map.json")).expanduser().resolve()
-OPENCLAW_BIN = os.environ.get("OPENCLAW_BIN", "openclaw")
+WORKSPACE = Path(os.environ.get("OPENCLAW_WORKSPACE", "/home/openclaw/.openclaw/workspace"))
+SKILL_ROOT = Path(__file__).resolve().parents[1]
+MAP_PATH = (SKILL_ROOT / "config" / "sql_memory_map.json").resolve()
+OPENCLAW_BIN = os.environ.get("OPENCLAW_BIN", "/home/openclaw/.npm-global/bin/openclaw")
 WORKER_ID = f"llm-db-dispatcher@{socket.gethostname()}:{os.getpid()}"
 
 
@@ -57,15 +58,7 @@ def finish(conn, queue_id, status, summary="", stdout="", stderr="", error=""):
         )
 
 
-def enqueue_due(conn) -> None:
-    with conn.cursor() as cur:
-        cur.execute(
-            "select public.memory_llm_enqueue_due_jobs_v1(%s)",
-            (25,),
-        )
-
-
-def build_agent_command(row: dict) -> list[str]:
+def build_command(row: dict) -> list[str]:
     snapshot = row["payload_snapshot"]
     payload = snapshot.get("payload") or {}
     delivery = row["delivery_snapshot"] or {}
@@ -110,48 +103,26 @@ def build_agent_command(row: dict) -> list[str]:
     return cmd
 
 
-def build_process_command(row: dict) -> tuple[list[str], str]:
-    snapshot = row["payload_snapshot"]
-    payload = snapshot.get("payload") or {}
-    argv = payload.get("argv")
-    if not isinstance(argv, list) or not all(isinstance(item, str) for item in argv) or not argv:
-        raise ValueError(f"job {row['job_key']} has invalid command argv")
-
-    cwd = str(payload.get("cwd") or WORKSPACE)
-    return argv, cwd
-
-
 def run_one(conn, row: dict) -> None:
     queue_id = row["queue_id"]
     try:
-        snapshot = row["payload_snapshot"]
-        payload = snapshot.get("payload") or {}
-        payload_kind = payload.get("kind")
-        if payload_kind == "command":
-            cmd, cwd = build_process_command(row)
-        else:
-            cmd = build_agent_command(row)
-            cwd = str(WORKSPACE)
-
-        timeout = int(payload.get("timeoutSeconds") or payload.get("timeoutS") or 7200)
+        cmd = build_command(row)
         proc = subprocess.run(
             cmd,
-            cwd=cwd,
+            cwd=str(WORKSPACE),
             text=True,
             capture_output=True,
-            timeout=timeout,
+            timeout=7200,
             env={**os.environ, "OPENCLAW_WORKSPACE": str(WORKSPACE)},
         )
         status = "done" if proc.returncode == 0 else "failed"
-        runner = "command" if payload_kind == "command" else "openclaw agent"
-        summary = f"{runner} run completed" if proc.returncode == 0 else f"{runner} exited {proc.returncode}"
+        summary = "openclaw agent run completed" if proc.returncode == 0 else f"openclaw agent exited {proc.returncode}"
         finish(conn, queue_id, status, summary, proc.stdout, proc.stderr, "" if proc.returncode == 0 else summary)
     except Exception as exc:
         finish(conn, queue_id, "failed", "dispatcher exception", "", "", repr(exc))
 
 
 def drain(conn) -> int:
-    enqueue_due(conn)
     count = 0
     while True:
         row = claim(conn)

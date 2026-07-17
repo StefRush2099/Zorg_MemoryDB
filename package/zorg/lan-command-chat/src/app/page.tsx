@@ -29,6 +29,8 @@ export default function LoginPage() {
       return () => media.removeEventListener("change", applySystemTheme);
     }
     const savedTheme = localStorage.getItem("lan-chat:theme");
+    // Browser storage is unavailable during SSR; hydrate the persisted theme here.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setTheme(savedTheme === "dark" ? "dark" : "light");
     fetch("/api/chat/identity", { cache: "no-store" })
       .then((res) => (res.ok ? res.json() : Promise.reject(new Error("identity unavailable"))))

@@ -21,7 +21,8 @@ import psycopg2
 import psycopg2.extras
 
 WORKSPACE = Path(os.environ.get("OPENCLAW_WORKSPACE") or os.environ.get("WORKSPACE_DIR") or (Path.home() / ".openclaw" / "workspace")).expanduser().resolve()
-MAP_PATH = Path(os.environ.get("SQL_MEMORY_MAP") or os.environ.get("ZORG_SQL_MEMORY_MAP") or (WORKSPACE / "sql_memory_map.json")).expanduser().resolve()
+SKILL_ROOT = Path(__file__).resolve().parents[1]
+MAP_PATH = (SKILL_ROOT / "config" / "sql_memory_map.json").resolve()
 WORKER_ID = f"semantic-worker@{socket.gethostname()}:{os.getpid()}"
 
 STOPWORDS = {

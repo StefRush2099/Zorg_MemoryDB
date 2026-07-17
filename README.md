@@ -6,6 +6,11 @@ This repository is intentionally **not** a GitHub fork or full source fork of Op
 
 ## Release Focus
 
+Release `v3.0.0` is the complete connected package: the source-record capture
+tables and procedures, derived semantic/ANN recall paths, LAN Command Chat
+integration, and the canonical `zorg-db-memory` skill are versioned and
+verified together.
+
 `zorg-db-memory` consolidates the MemoryDB work into one portable skill package:
 
 - DB-first recall before work or replies.

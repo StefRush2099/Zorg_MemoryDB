@@ -22,7 +22,8 @@ import psycopg2
 from psycopg2.extras import Json
 
 BASE = Path(os.environ.get('OPENCLAW_WORKSPACE') or os.environ.get('WORKSPACE_DIR') or (Path.home() / '.openclaw' / 'workspace')).expanduser().resolve()
-MAP = Path(os.environ.get('SQL_MEMORY_MAP') or os.environ.get('ZORG_SQL_MEMORY_MAP') or (BASE / 'sql_memory_map.json')).expanduser().resolve()
+SKILL_ROOT = Path(__file__).resolve().parents[1]
+MAP = (SKILL_ROOT / 'config' / 'sql_memory_map.json').resolve()
 MEMORY_DIR = BASE / 'memory'
 PYTHON = Path(os.environ.get('SQLMEM_PYTHON', str(BASE / '.venv-sqlmem/bin/python'))).expanduser()
 

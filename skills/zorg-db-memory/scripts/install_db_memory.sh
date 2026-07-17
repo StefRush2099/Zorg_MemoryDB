@@ -10,6 +10,9 @@ DB_PASS="${6:-${ZORG_DB_PASSWORD:-}}"
 
 mkdir -p "$WORKDIR"
 mkdir -p "$WORKDIR/scripts"
+SKILL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+MAP_OUTPUT="${ZORG_SQL_MEMORY_MAP_PATH:-$SKILL_DIR/config/sql_memory_map.json}"
+mkdir -p "$(dirname "$MAP_OUTPUT")"
 
 if [ -z "$DB_PASS" ]; then
   echo "DB password argument required as arg 6" >&2
@@ -23,7 +26,7 @@ fi
 "$WORKDIR/.venv-sqlmem/bin/pip" install --upgrade pip >/dev/null
 "$WORKDIR/.venv-sqlmem/bin/pip" install psycopg2-binary >/dev/null
 
-cat > "$WORKDIR/sql_memory_map.json" <<JSON
+cat > "$MAP_OUTPUT" <<JSON
 {
   "postgres": {
     "host": "$DB_HOST",
@@ -50,6 +53,6 @@ Next required manual steps:
 1. place memory_sql_tool.py and related tools into the workspace
 2. apply DB schema/functions/materialized views
 3. run verification commands:
-   python "$WORKDIR/memory_sql_tool.py" tables
-   python "$WORKDIR/memory_speed_test.py"
+   "$WORKDIR/memory_sql_tool.py" tables
+   "$WORKDIR/memory_speed_test.py"
 EOF

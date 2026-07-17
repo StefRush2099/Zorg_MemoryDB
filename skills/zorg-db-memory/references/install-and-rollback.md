@@ -7,7 +7,7 @@ Use this when reproducing the current DB-memory behavior on another install.
 Current install uses:
 
 - `/home/openclaw/.openclaw/workspace/.venv-sqlmem`
-- `/home/openclaw/.openclaw/workspace/sql_memory_map.json`
+- `skills/zorg-db-memory/config/sql_memory_map.json` (local-only)
 - `/home/openclaw/.openclaw/workspace/memory_sql_tool.py`
 - `/home/openclaw/.openclaw/workspace/memory_recall_router.py`
 - `/home/openclaw/.openclaw/workspace/memory_speed_test.py`
@@ -27,24 +27,27 @@ Observed install behavior:
    - `memory_recall_router.py`
    - `memory_speed_test.py`
    - `scripts/postgres_memory_backup.sh`
-5. place `sql_memory_map.json` in workspace
+5. place the local `config/sql_memory_map.json` inside the skill
 6. verify with live commands
 
 ## Verification commands
 
 ```bash
-python /home/openclaw/.openclaw/workspace/memory_sql_tool.py tables
-python /home/openclaw/.openclaw/workspace/memory_speed_test.py
+/home/openclaw/.openclaw/workspace/memory_sql_tool.py tables
+/home/openclaw/.openclaw/workspace/memory_speed_test.py
 ```
 
 ## Rollback pattern
 
-Known-good rollback pattern from Zorg_spawn:
+Use the canonical native recovery helper only:
 
 ```bash
-gzip -dc Zorg_spawn/rollback/preapply-<timestamp>.sql.gz | \
-  docker exec -i local-postgres psql -U zorg -d zorgdb
+/home/openclaw/.openclaw/workspace/scripts/postgres_memory_recovery.sh drill <backup.sql.gz>
+CONFIRM_RESTORE_ACTIVE=YES /home/openclaw/.openclaw/workspace/scripts/postgres_memory_recovery.sh restore-active <backup.sql.gz>
 ```
+
+No alternate backend, container command, or compatibility fallback is part of
+the supported configuration.
 
 ## Reproduction guidance
 
@@ -58,7 +61,7 @@ If connected to a system that lacks DB memory:
    - materialized views
    - recall functions used by `memory_sql_tool.py`
 4. install the SQL memory scripts in the workspace
-5. create `sql_memory_map.json`
+5. create the skill-local `config/sql_memory_map.json`
 6. create or reuse a Python venv with `psycopg2-binary`
 7. run verification commands
 8. only report success after live verification
@@ -69,15 +72,18 @@ This skill now includes:
 
 - `scripts/install_db_memory_full.sh`
 
-That helper reproduces the fuller known-good pattern by using these source artifacts:
+That helper uses the current package source artifacts:
 
-- `/home/openclaw/.openclaw/workspace/Zorg_Hive/apps/by-host/openclaw/Zorg_spawn/db/schema.sql`
-- `/home/openclaw/.openclaw/workspace/Zorg_Hive/apps/by-host/openclaw/Zorg_spawn/db/zorg_objects.sql`
-- `/home/openclaw/.openclaw/workspace/Zorg_Hive/apps/by-host/openclaw/Zorg_spawn/db/zorg_operational_facts_seed.sql`
-- `/home/openclaw/.openclaw/workspace/Zorg_Hive/apps/by-host/openclaw/Zorg_spawn/db/zorg_success_query_index_seed.sql`
-- `/home/openclaw/.openclaw/workspace/Zorg_Hive/apps/by-host/openclaw/Zorg_spawn/scripts/memory_sql_tool.py`
-- `/home/openclaw/.openclaw/workspace/Zorg_Hive/apps/by-host/openclaw/Zorg_spawn/scripts/memory_recall_router.py`
-- `/home/openclaw/.openclaw/workspace/Zorg_Hive/apps/by-host/openclaw/Zorg_spawn/scripts/memory_speed_test.py`
+- `package/zorg/db/schema.sql`
+- `package/zorg/db/zorg_objects.sql`
+- `package/zorg/db/zorg_operational_facts_seed.sql`
+- `package/zorg/db/zorg_success_query_index_seed.sql`
+- `package/zorg/scripts/memory_sql_tool.py`
+- `package/zorg/scripts/memory_recall_router.py`
+- `package/zorg/scripts/memory_speed_test.py`
+
+The installer requires the current native PostgreSQL client tools. It has no
+container, legacy, or compatibility backend path.
 
 ## Minimal package requirements
 
@@ -98,10 +104,8 @@ Fresh-host test note from this system:
 
 ## Source references
 
-Derived from:
-
-- `/home/openclaw/.openclaw/workspace/Zorg_Hive/apps/by-host/openclaw/Zorg_spawn/Zorg_spawn_IMPLEMENTATION.md`
-- `/home/openclaw/.openclaw/workspace/Zorg_Hive/apps/by-host/openclaw/Zorg_spawn/db/schema.sql`
+Derived from the current canonical skill and native PostgreSQL 18 workspace
+deployment. Retired implementation copies are not supported sources.
 
 <!-- SCORCHED_MEMORY_RECALL_RULE -->
 ## Absolute Priority 0: Exhaustive Memory Before Response

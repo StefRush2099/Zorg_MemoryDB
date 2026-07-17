@@ -116,19 +116,8 @@ function cx(...parts: Array<string | false | null | undefined>) {
 
 function buildMemory3dFrameSrc(theme: "light" | "dark") {
   if (typeof window === "undefined") return "";
-  const params = new URLSearchParams({ theme, embed: "lan-chat-gauges" });
-  const { hostname, port } = window.location;
-  if (port === "3001") {
-    const direct = new URL(window.location.href);
-    direct.protocol = "http:";
-    direct.hostname = hostname || "127.0.0.1";
-    direct.port = "8097";
-    direct.pathname = "/";
-    direct.search = params.toString();
-    direct.hash = "";
-    return direct.toString();
-  }
-  return `/memory-3d-proxy/?${params.toString()}`;
+  const params = new URLSearchParams({ theme, embed: "graph" });
+  return `/api/neural-recall?${params.toString()}`;
 }
 
 function formatBytes(value?: number) {

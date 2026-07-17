@@ -13,7 +13,9 @@ and attachment-delivery gate live in `references/image-generation.md` and its
 support files; image generation must not become a separate untracked memory or
 release process.
 
-This skill supersedes the former `db-memory` name. Existing references to `db-memory` should be migrated to `zorg-db-memory` as they are touched, but the old name remains a legacy pointer to this same MemoryDB safety behavior until all launch surfaces are updated.
+This skill is the sole supported MemoryDB source. The retired `db-memory` name
+and all prior compatibility launch surfaces are unsupported and must not be
+used for production routing.
 
 The point of this skill is to take over for memory. Adding this skill to a system should stop active markdown-file memory use and force all normal memory behavior through PostgreSQL-backed Zorg MemoryDB.
 
@@ -75,8 +77,7 @@ and the expected job-to-function mapping. Before publishing any MemoryDB
 update, compare the live `memory_db_scheduled_jobs` rows with that catalog;
 missing, extra, disabled, or unmapped core jobs fail the release gate. Never
 publish only the skill prose while leaving a newly created core maintenance
-job undocumented or absent from the repository. See
-`references/postgresql-scheduler-catalog.md`.
+job undocumented or absent from the repository.
 
 ## Full-Fix First-Pass Rule
 
@@ -199,17 +200,20 @@ Do not create separate one-off skills for memory-related process rules unless St
 
 Rule placement is authoritative in `public.zorg_logic_rules`. Public/core rules
 must contain reusable, public-safe behavior; install-specific operator overlays
-belong in `privacy_scope='private'`. Repeated markdown fragments and exact
-duplicate texts are one behavior, not separate rules: collapse them to one
-canonical active structured rule while retaining inactive source provenance.
-The skill-owned migration is `scripts/normalize_rule_scopes_and_dedup.py`.
+belong in `privacy_scope='private'`. A rule that came from a workspace markdown
+fragment is not a separate behavior merely because it has a different line
+number. Repeated fragments and exact duplicate texts must be collapsed to one
+canonical active structured rule, with the original rows retained as inactive
+provenance. The skill-owned migration is
+`scripts/normalize_rule_scopes_and_dedup.py`.
 
 Install-specific filesystem references must use `OPENCLAW_WORKSPACE` (or
 `WORKSPACE_DIR`) and `OPENCLAW_HOME`; never bake a machine's absolute install
-path into the active rule or public package. Verify public seed data contains
-only sanitized canonical rules and private overlays remain outside the public
-package. Scope changes, duplicate retirement, canonical weights, recall hints,
-and ANN refresh queueing belong in this skill and are applied together.
+path into the active rule or public package. Before publishing, verify public
+seed data contains only the sanitized canonical rule and private overlays remain
+outside the public package. Scope changes, duplicate retirement, canonical
+weights, recall hints, and ANN refresh queueing belong in this skill and must be
+applied together.
 
 ## OpenAI-First / Codex-Fallback Routing
 
@@ -235,6 +239,12 @@ If a memory-related rule was saved into a standalone skill instead of `zorg-db-m
 ## One-Skill Code Ownership
 
 Going forward, any code changed or created for Zorg MemoryDB access, recall, repair, install, semantic routing, DB-only memory enforcement, context-window DB slicing, GitHub posting/release gates, MemoryDB-dependent support paths, weighted semantic recall, ANN/vector recall, recall hints, query observations, or MemoryDB performance tuning belongs in this one skill.
+
+The skill is the canonical source for all such updates. Runtime copies outside
+the skill—systemd units, generated package/runtime files, or installed service
+configuration—are deployment outputs only and must be represented by a source
+file, script, or explicit procedure inside this skill. Do not create a separate
+memory skill, standalone ANN rule, or untracked runtime-only repair path.
 
 Small text code is bundled directly as support files. Larger app trees are tracked through source maps until the skill package supports source archives.
 
@@ -286,6 +296,20 @@ Python tools:
 - scripts/db_only_memory_autoheal.py
 - scripts/memory_semantic_worker.py
 - scripts/memory_db_llm_dispatcher.py
+- scripts/ann_vector_autoheal.py
+- scripts/enforce_db_memory_search.py
+- scripts/memory_db_llm_dispatcher.py
+- scripts/cache_model_query_embedding.mjs
+- scripts/backfill_model_ann_embeddings.mjs
+- scripts/nightly_memory_health_check.py
+- scripts/sync_core_rules_to_logic_rules.py
+- config/sql_memory_map.json (local secret-bearing deployment config; never publish)
+- scripts/request_category_router.py
+- scripts/import_code_memory_phase1.py
+- scripts/sync_google_contacts_to_memory_db.py
+- scripts/update_google_contact_biography_note.py
+- scripts/zorg_preflight_gate.sh
+- scripts/zorg_progress_score_refresh.py
 
 Shell helpers:
 - scripts/postgres_memory_backup.sh
@@ -319,9 +343,36 @@ After meaningful recall-learning, neural/vector/ANN, semantic-worker, query-obse
 ```bash
 /home/openclaw/.openclaw/workspace/memory_sql_tool.py search "memory recall neural vector weights performance tuning" --table all --limit 5
 /home/openclaw/.openclaw/workspace/memory_sql_tool.py search "memory recall neural vector weights performance tuning" --table ann --limit 5
-/home/openclaw/.openclaw/workspace/.venv-sqlmem/bin/python /home/openclaw/.openclaw/workspace/skills/db-memory/scripts/memory_semantic_worker.py --once --limit 50
+/home/openclaw/.openclaw/workspace/.venv-sqlmem/bin/python /home/openclaw/.openclaw/workspace/skills/zorg-db-memory/scripts/memory_semantic_worker.py --once --limit 50
+/home/openclaw/.openclaw/workspace/.venv-sqlmem/bin/python /home/openclaw/.openclaw/workspace/skills/zorg-db-memory/scripts/ann_vector_autoheal.py
 ```
 
 If ANN/vector recall misses, report that miss directly and improve additive recall surfaces rather than claiming the vector path succeeded.
+
+## ANN/Vector Critical Self-Repair Rule
+
+ANN/vector recall is a critical backend memory surface. Every active install
+must run the bundled `scripts/ann_vector_autoheal.py` on a short recurring
+timer and before declaring MemoryDB healthy. The checker must verify the
+PostgreSQL/pgvector connection, the active local embedding model slot, active
+embedding rows, the filtered HNSW index, the direct `memory_ann_recall()`
+wrapper, query-embedding cache creation, and a real ANN result. If any check
+fails, it must repair only additive/derived ANN surfaces immediately: restore
+the wrapper and index, run the bounded semantic worker, refresh/analyze derived
+surfaces when needed, and re-run the real ANN probe. It must preserve source
+memory and never disable ANN, silently fall back, or claim 100% health after a
+miss. A failed repair remains an explicit backend-memory failure.
+
+The rule is enforced by the workspace-local systemd service/timer installed by
+the skill. The durable PostgreSQL rule, aliases, query observations, semantic
+edges, and worker evidence are part of the same repair and must be updated when
+ANN behavior or phrasing exposes a retrieval gap.
+
+The canonical deployment templates are
+`references/systemd/zorg-ann-vector-autoheal.service` and
+`references/systemd/zorg-ann-vector-autoheal.timer`. Installation must copy
+those templates to the user systemd directory, run `systemctl --user
+daemon-reload`, and enable/start the timer. The installed copies are not
+independent sources of truth.
 
 For browser-visible supporting apps and GitHub screenshot/release work, also verify with browser/screenshot on the affected rendered surface.

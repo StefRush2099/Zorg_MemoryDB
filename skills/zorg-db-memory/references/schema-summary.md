@@ -6,11 +6,11 @@ This reference captures the important DB-memory objects needed to reproduce the 
 
 Current config comes from:
 
-- `/home/openclaw/.openclaw/workspace/sql_memory_map.json`
+- `skills/zorg-db-memory/config/sql_memory_map.json` (local-only)
 
 Current values on this host:
 
-- host: `10.7.69.200`
+- host: `127.0.0.1`
 - port: `5432`
 - database: `zorgdb`
 - user: `zorg`

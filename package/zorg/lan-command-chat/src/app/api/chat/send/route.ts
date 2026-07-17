@@ -11,6 +11,9 @@ interface ChatSendResponse {
   status?: string;
 }
 
+interface IncomingAttachment { name?: unknown; type?: unknown; size?: unknown; url?: unknown; path?: unknown; containerPath?: unknown; }
+interface NormalizedAttachment { name: string; type: string; size: number; url: string; path: string; containerPath: string; }
+
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
@@ -24,7 +27,7 @@ export async function POST(request: Request) {
     }
 
     const normalizedAttachments = attachments
-      .map((file: any) => ({
+      .map((file: IncomingAttachment): NormalizedAttachment => ({
         name: typeof file?.name === "string" ? file.name : "file",
         type: typeof file?.type === "string" ? file.type : "application/octet-stream",
         size: typeof file?.size === "number" ? file.size : 0,
@@ -32,10 +35,10 @@ export async function POST(request: Request) {
         path: typeof file?.path === "string" ? file.path : "",
         containerPath: typeof file?.containerPath === "string" ? file.containerPath : "",
       }))
-      .filter((file: any) => file.url || file.path || file.containerPath);
+      .filter((file: NormalizedAttachment) => file.url || file.path || file.containerPath);
 
     const attachmentLines = normalizedAttachments
-      .map((file: any) => {
+      .map((file: NormalizedAttachment) => {
         const { name, type, url } = file;
         const size = file.size ? `${Math.round(file.size / 1024)}KB` : "";
         const localPath = file.path;

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 type ResultState = {
@@ -86,9 +87,9 @@ export default function ApmtPage() {
             >
               {bookingState.loading ? "Loading…" : "Booking Enquiry"}
             </button>
-            <a className="text-xs text-slate-400 underline" href="/">
+            <Link className="text-xs text-slate-400 underline" href="/">
               Back to chat
-            </a>
+            </Link>
           </div>
         </div>
 

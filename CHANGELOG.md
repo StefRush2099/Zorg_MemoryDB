@@ -1,5 +1,22 @@
 # Changelog
 
+## v3.0.0 - 2026-07-17
+
+- Publishes the complete work-capture structure: turn manifests, immutable
+  event occurrences, complete content blobs, explicit capture gaps, code
+  artifact and before/after/patch records, tool/model payload evidence, and
+  provenance links.
+- Connects captured occurrences to the queued semantic worker, embeddings,
+  ANN provenance, exact-repeat derived groups, weighted semantic relationships,
+  recall hints, and ANN autoheal without replacing source records.
+- Packages the LAN Command Chat PostgreSQL integration and its shared
+  `SQL_MEMORY_MAP`/`ZORG_SQL_MEMORY_MAP` runtime contract with the same release.
+- Aligns the LAN Command Chat package version, skill documentation, migration
+  catalog, install procedures, and verification gates at 3.0.0.
+- Adds public-package sanitization and structural release verification so
+  secrets, private values, and generated artifacts are excluded without
+  pruning public-safe schema or procedure definitions.
+
 ## v2.0.18 - 2026-07-15
 
 - Deactivates stale ANN embeddings when an active rule's content changes, so

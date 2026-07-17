@@ -8,7 +8,8 @@ from pathlib import Path
 import psycopg2
 
 BASE = Path(os.environ.get('OPENCLAW_WORKSPACE') or os.environ.get('WORKSPACE_DIR') or (Path.home() / '.openclaw' / 'workspace')).expanduser().resolve()
-MAP = Path(os.environ.get('SQL_MEMORY_MAP') or os.environ.get('ZORG_SQL_MEMORY_MAP') or (BASE / 'sql_memory_map.json')).expanduser().resolve()
+SKILL_ROOT = Path(__file__).resolve().parents[1]
+MAP = (SKILL_ROOT / 'config' / 'sql_memory_map.json').resolve()
 CORPUS = BASE / 'db_benchmark_queries.json'
 
 DEFAULT_QUERIES = [

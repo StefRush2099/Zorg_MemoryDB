@@ -6,9 +6,8 @@ BASE_LOCAL="${ZORG_POSTGRES_BACKUP_TMP:-${OPENCLAW_HOME:-${HOME:?}/.openclaw}/ba
 LOG_DIR="${ZORG_POSTGRES_BACKUP_LOG_DIR:-${OPENCLAW_HOME:-${HOME:?}/.openclaw}/backups/postgres/logs}"
 LOG_FILE="$LOG_DIR/backup-$TS.log"
 WORKSPACE="${OPENCLAW_WORKSPACE:-${WORKSPACE_DIR:-${HOME:?}/.openclaw/workspace}}"
-MAP_PATH="${SQL_MEMORY_MAP:-${ZORG_SQL_MEMORY_MAP:-$WORKSPACE/sql_memory_map.json}}"
-BACKUP_MODE="${ZORG_BACKUP_MODE:-direct}"
-DB_CONT="${ZORG_BACKUP_DOCKER_CONTAINER:-local-postgres}"
+SKILL_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+MAP_PATH="$SKILL_ROOT/config/sql_memory_map.json"
 LOCAL_TTL_HOURS="${ZORG_TEMP_BACKUP_TTL_HOURS:-24}"
 GZIP_LEVEL="${ZORG_TEMP_BACKUP_GZIP_LEVEL:-1}"
 
@@ -20,23 +19,10 @@ OUT_SCHEMA="$BASE_LOCAL/zorgdb-schema-$TS.sql.gz"
 {
   echo "[$(date -Is)] starting postgres backup"
 
-  if [[ "$BACKUP_MODE" == "direct" ]] && ! command -v pg_dump >/dev/null 2>&1; then
-    if command -v docker >/dev/null 2>&1 && docker ps --format '{{.Names}}' | grep -Fxq "$DB_CONT"; then
-      echo "[$(date -Is)] host pg_dump not found; falling back to docker container $DB_CONT"
-      BACKUP_MODE="docker"
-    fi
+  if ! command -v pg_dump >/dev/null 2>&1; then
+    echo "pg_dump is required for the canonical native PostgreSQL configuration" >&2
+    exit 1
   fi
-
-  if [[ "$BACKUP_MODE" == "docker" ]]; then
-    DB_USER="${ZORG_BACKUP_DB_USER:-zorg}"
-    DB_NAME="${ZORG_BACKUP_DB_NAME:-zorgdb}"
-    docker exec "$DB_CONT" pg_dump -U "$DB_USER" -d "$DB_NAME" --no-owner --no-privileges | gzip "-$GZIP_LEVEL" > "$OUT_SQL"
-    docker exec "$DB_CONT" pg_dump -U "$DB_USER" -d "$DB_NAME" --schema-only --no-owner --no-privileges | gzip "-$GZIP_LEVEL" > "$OUT_SCHEMA"
-  else
-    if ! command -v pg_dump >/dev/null 2>&1; then
-      echo "pg_dump not found; install PostgreSQL client tools or set ZORG_BACKUP_MODE=docker" >&2
-      exit 1
-    fi
 
     DB_ENV="$(
       python3 - "$MAP_PATH" <<'PY'
@@ -59,8 +45,7 @@ PY
     )"
     eval "$DB_ENV"
     pg_dump --no-owner --no-privileges | gzip "-$GZIP_LEVEL" > "$OUT_SQL"
-    pg_dump --schema-only --no-owner --no-privileges | gzip "-$GZIP_LEVEL" > "$OUT_SCHEMA"
-  fi
+  pg_dump --schema-only --no-owner --no-privileges | gzip "-$GZIP_LEVEL" > "$OUT_SCHEMA"
 
   # Temporary local retention only. Do not mirror DB backups to GitHub.
   # Backups are transaction artifacts for immediate rollback and are purged.

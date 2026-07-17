@@ -18,6 +18,19 @@ Shell helpers:
 - scripts/show_current_db_memory.sh
 - scripts/install_db_memory.sh
 - scripts/install_db_memory_full.sh
+- scripts/enforce_db_memory_search.py
+- scripts/memory_db_llm_dispatcher.py
+- scripts/cache_model_query_embedding.mjs
+- scripts/backfill_model_ann_embeddings.mjs
+- scripts/nightly_memory_health_check.py
+- scripts/sync_core_rules_to_logic_rules.py
+- config/sql_memory_map.json (local-only secret-bearing config; excluded from releases)
+- scripts/request_category_router.py
+- scripts/import_code_memory_phase1.py
+- scripts/sync_google_contacts_to_memory_db.py
+- scripts/update_google_contact_biography_note.py
+- scripts/zorg_preflight_gate.sh
+- scripts/zorg_progress_score_refresh.py
 
 ## Folded process skills
 

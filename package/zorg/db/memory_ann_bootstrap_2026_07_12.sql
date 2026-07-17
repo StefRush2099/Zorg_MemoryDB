@@ -82,8 +82,8 @@ create or replace function public.memory_ann_enqueue_source_v1(
 declare v_id uuid;
 begin
   update public.memory_semantic_work_queue set payload=coalesce(p_payload,'{}'::jsonb), status=case when status='done' then 'queued' else status end, due_at=now(), updated_at=now()
-  where source_type=p_source_type and source_key=p_source_key;
-  if found then select id into v_id from public.memory_semantic_work_queue where source_type=p_source_type and source_key=p_source_key limit 1; return v_id; end if;
+  where job_kind='semantic_embedding' and source_type=p_source_type and source_key=p_source_key;
+  if found then select id into v_id from public.memory_semantic_work_queue where job_kind='semantic_embedding' and source_type=p_source_type and source_key=p_source_key order by created_at desc limit 1; return v_id; end if;
   insert into public.memory_semantic_work_queue(job_kind, source_type, source_key, payload, payload_hash, status, due_at, updated_at)
   values ('semantic_embedding', p_source_type, p_source_key, coalesce(p_payload, '{}'::jsonb), md5(coalesce(p_payload, '{}'::jsonb)::text), 'queued', now(), now())
   returning id into v_id;

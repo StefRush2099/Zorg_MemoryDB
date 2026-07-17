@@ -15,6 +15,8 @@ Runtime:
 - port 3001
 - /chat route
 - /memory-3d-proxy/ when Memory Brain 3D is connected
+- Internal gateway/database/health targets use `127.0.0.1` or install variables;
+  do not embed a host LAN IP. Nginx remains the LAN-facing front door.
 
 ## Memory Brain 3D
 
@@ -27,6 +29,9 @@ Runtime:
 - service zorg-memory-3d.service
 - command /usr/bin/node server.js
 - port 8097
+- Bind host: `BIND_HOST`, default `127.0.0.1`; PostgreSQL target: `PGHOST`,
+  default/current value `127.0.0.1`. Reach it from LAN users through the LAN
+  Command Chat front door, not a hard-coded host IP.
 - /admin/
 - proxy through /memory-3d-proxy/
 

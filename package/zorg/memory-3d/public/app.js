@@ -1831,7 +1831,7 @@ function applyMemoryIdentity(identity = null) {
   if (!identity) return;
   const name = identity.name || "Memory";
   const databaseLabel = identity.databaseLabel || `${name} Memory DB`;
-  const statusLabel = identity.statusLabel || "Memory Brain Status";
+  const statusLabel = identity.statusLabel || "Neural Recall Activity";
   const browserTitle = identity.browserTitle || `${name} Memory Brain 3D`;
   if (memoryDbNameEl) memoryDbNameEl.textContent = databaseLabel;
   if (memoryStatusTitleEl) memoryStatusTitleEl.textContent = statusLabel;

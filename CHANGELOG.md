@@ -1,5 +1,13 @@
 # Changelog
 
+## v3.0.4 - 2026-07-18
+
+- Aligns the packaged Memory Brain 3D runtime label with the documented
+  Neural Recall Activity surface across server defaults, HTML, and client
+  fallback configuration.
+- Removes the stale user-facing Memory Brain Status label from the shipped
+  runtime while preserving the PostgreSQL-backed recall and ANN wiring.
+
 ## v3.0.2 - 2026-07-17
 
 - Corrects the LAN Command Chat gauge release readout and live product package

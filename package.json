@@ -1,6 +1,6 @@
 {
   "name": "zorg-db-memory",
-  "version": "3.0.3",
+  "version": "3.0.4",
   "private": false,
   "description": "PostgreSQL-backed Zorg MemoryDB skill and support package for OpenClaw installs.",
   "license": "MIT",

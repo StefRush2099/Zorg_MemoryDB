@@ -84,7 +84,7 @@ function identityLabels(name, sourceTable = null, extra = {}) {
   return {
     name: identityName,
     sourceTable,
-    statusLabel: `${identityName} Memory Brain Status`,
+    statusLabel: `${identityName} Neural Recall Activity`,
     databaseLabel: `${identityName} Memory DB`,
     browserTitle: `${identityName} Memory Brain 3D`,
     adminTitle: `${identityName} Memory Brain Admin`,

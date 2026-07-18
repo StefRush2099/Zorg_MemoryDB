@@ -100,34 +100,34 @@ Original preserved LAN Command Chat screenshots:
 | --- | --- |
 | ![LAN Command Chat desktop light](docs/assets/lan-command-chat-desktop-light.png) | ![LAN Command Chat desktop dark](docs/assets/lan-command-chat-desktop-dark.png) |
 
-Memory 3D toggle inside LAN Command Chat:
+Neural Recall Activity inside LAN Command Chat:
 
 | Desktop light | Desktop dark |
 | --- | --- |
-| ![LAN Command Chat Memory 3D toggle desktop light](docs/screenshots/lan-command-chat-memory3d-toggle-desktop-light.png) | ![LAN Command Chat Memory 3D toggle desktop dark](docs/screenshots/lan-command-chat-memory3d-toggle-desktop-dark.png) |
+| ![LAN Command Chat Neural Recall Activity desktop light](docs/screenshots/lan-command-chat-memory3d-toggle-desktop-light.png) | ![LAN Command Chat Neural Recall Activity desktop dark](docs/screenshots/lan-command-chat-memory3d-toggle-desktop-dark.png) |
 
 | Mobile light | Mobile dark |
 | --- | --- |
-| ![LAN Command Chat Memory 3D toggle mobile light](docs/screenshots/lan-command-chat-memory3d-toggle-mobile-light.png) | ![LAN Command Chat Memory 3D toggle mobile dark](docs/screenshots/lan-command-chat-memory3d-toggle-mobile-dark.png) |
+| ![LAN Command Chat Neural Recall Activity mobile light](docs/screenshots/lan-command-chat-memory3d-toggle-mobile-light.png) | ![LAN Command Chat Neural Recall Activity mobile dark](docs/screenshots/lan-command-chat-memory3d-toggle-mobile-dark.png) |
 
-### Memory Brain 3D
+### Neural Recall Activity
 
 | Desktop dark | Desktop light |
 | --- | --- |
-| ![Memory Brain 3D desktop dark](docs/screenshots/memory-brain-3d-desktop-dark.png) | ![Memory Brain 3D desktop light](docs/screenshots/memory-brain-3d-desktop-light.png) |
+| ![Neural Recall Activity desktop dark](docs/screenshots/memory-brain-3d-desktop-dark.png) | ![Neural Recall Activity desktop light](docs/screenshots/memory-brain-3d-desktop-light.png) |
 
 | Mobile dark | Mobile light |
 | --- | --- |
-| ![Memory Brain 3D mobile dark](docs/screenshots/memory-brain-3d-mobile-dark.png) | ![Memory Brain 3D mobile light](docs/screenshots/memory-brain-3d-mobile-light.png) |
+| ![Neural Recall Activity mobile dark](docs/screenshots/memory-brain-3d-mobile-dark.png) | ![Neural Recall Activity mobile light](docs/screenshots/memory-brain-3d-mobile-light.png) |
 
 The full screenshot set includes:
 
 - Existing LAN Command Chat screenshots preserved from `docs/assets/`.
-- LAN Command Chat with the Memory 3D toggle panel visible on the local `Zorg Rush` system.
-- Memory Brain 3D populated map, desktop dark mode.
-- Memory Brain 3D populated map, desktop light mode.
-- Memory Brain 3D populated map, mobile dark mode.
-- Memory Brain 3D populated map, mobile light mode.
+- LAN Command Chat with the Neural Recall Activity panel visible on the local `Zorg Rush` system.
+- Neural Recall Activity populated map, desktop dark mode.
+- Neural Recall Activity populated map, desktop light mode.
+- Neural Recall Activity populated map, mobile dark mode.
+- Neural Recall Activity populated map, mobile light mode.
 
 See [docs/screenshots.md](docs/screenshots.md).
 

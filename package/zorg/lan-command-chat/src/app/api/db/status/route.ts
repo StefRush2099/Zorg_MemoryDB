@@ -213,8 +213,20 @@ export async function GET() {
         degraded: true,
       });
     }
+    // The extension can be installed without being loaded by PostgreSQL's
+    // shared_preload_libraries. Checking only pg_extension makes the later
+    // pg_stat_statements query fail on every status poll.
     const hasPgStatStatements = await pool
-      .query<{ exists: boolean }>("select exists (select 1 from pg_extension where extname = 'pg_stat_statements') as exists")
+      .query<{ exists: boolean }>(`
+        select exists (
+          select 1
+          from pg_extension
+          where extname = 'pg_stat_statements'
+            and 'pg_stat_statements' = any(
+              regexp_split_to_array(current_setting('shared_preload_libraries', true), '\\s*,\\s*')
+            )
+        ) as exists
+      `)
       .then((result) => Boolean(result.rows[0]?.exists))
       .catch(() => false);
 

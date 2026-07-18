@@ -77,9 +77,7 @@ def check_db_recall() -> list[str]:
     issues: list[str] = []
     # Verify local SQL tool can query DB and that built-in memory_search is DB-backed when available via direct tool output is not script-accessible.
     try:
-        tool = BASE / 'memory_sql_tool.py'
-        if not tool.exists():
-            tool = BASE / 'scripts' / 'memory_sql_tool.py'
+        tool = SKILL_ROOT / 'scripts' / 'memory_sql_tool.py'
         out = None
         for _ in range(30):
             out = subprocess.run(

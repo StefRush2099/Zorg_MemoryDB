@@ -9,7 +9,7 @@ DB_USER="${5:-${ZORG_DB_USER:-zorg}}"
 DB_PASS="${6:-${ZORG_DB_PASSWORD:-}}"
 
 mkdir -p "$WORKDIR"
-mkdir -p "$WORKDIR/scripts"
+mkdir -p "$WORKDIR/skills/zorg-db-memory/scripts"
 SKILL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MAP_OUTPUT="${ZORG_SQL_MEMORY_MAP_PATH:-$SKILL_DIR/config/sql_memory_map.json}"
 mkdir -p "$(dirname "$MAP_OUTPUT")"
@@ -50,9 +50,9 @@ JSON
 cat <<'EOF'
 DB memory bootstrap created.
 Next required manual steps:
-1. place memory_sql_tool.py and related tools into the workspace
+1. install the complete zorg-db-memory skill package into skills/zorg-db-memory
 2. apply DB schema/functions/materialized views
-3. run verification commands:
-   "$WORKDIR/memory_sql_tool.py" tables
-   "$WORKDIR/memory_speed_test.py"
+3. run verification commands through the skill-owned tools:
+   "$WORKDIR/.venv-sqlmem/bin/python" "$WORKDIR/skills/zorg-db-memory/scripts/memory_sql_tool.py" tables
+   "$WORKDIR/.venv-sqlmem/bin/python" "$WORKDIR/skills/zorg-db-memory/scripts/memory_speed_test.py"
 EOF

@@ -5,7 +5,7 @@ from pathlib import Path
 import psycopg2
 
 BASE = Path(os.environ.get('OPENCLAW_WORKSPACE','/home/openclaw/.openclaw/workspace'))
-SQL_TOOL = BASE / 'memory_sql_tool.py'
+SQL_TOOL = Path(__file__).resolve().parent / 'memory_sql_tool.py'
 
 def run_sql(sql):
     mapping = json.loads((BASE/'skills/zorg-db-memory/config/sql_memory_map.json').read_text())['postgres']

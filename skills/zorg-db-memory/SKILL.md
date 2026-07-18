@@ -334,15 +334,15 @@ Folded process/reference:
 After install, repair, or meaningful change:
 
 ```bash
-/home/openclaw/.openclaw/workspace/memory_sql_tool.py tables
-/home/openclaw/.openclaw/workspace/memory_speed_test.py
+skills/zorg-db-memory/scripts/memory_sql_tool.py tables
+/home/openclaw/.openclaw/workspace/.venv-sqlmem/bin/python /home/openclaw/.openclaw/workspace/skills/zorg-db-memory/scripts/memory_speed_test.py
 ```
 
 After meaningful recall-learning, neural/vector/ANN, semantic-worker, query-observation, or performance-tuning changes, also verify the actual derived recall paths:
 
 ```bash
-/home/openclaw/.openclaw/workspace/memory_sql_tool.py search "memory recall neural vector weights performance tuning" --table all --limit 5
-/home/openclaw/.openclaw/workspace/memory_sql_tool.py search "memory recall neural vector weights performance tuning" --table ann --limit 5
+skills/zorg-db-memory/scripts/memory_sql_tool.py search "memory recall neural vector weights performance tuning" --table all --limit 5
+skills/zorg-db-memory/scripts/memory_sql_tool.py search "memory recall neural vector weights performance tuning" --table ann --limit 5
 /home/openclaw/.openclaw/workspace/.venv-sqlmem/bin/python /home/openclaw/.openclaw/workspace/skills/zorg-db-memory/scripts/memory_semantic_worker.py --once --limit 50
 /home/openclaw/.openclaw/workspace/.venv-sqlmem/bin/python /home/openclaw/.openclaw/workspace/skills/zorg-db-memory/scripts/ann_vector_autoheal.py
 ```

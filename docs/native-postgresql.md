@@ -33,9 +33,9 @@ operator's home directory or publish credentials in a repository.
 Typical acceptance checks are:
 
 ```bash
-memory_sql_tool.py tables
-memory_speed_test.py
-memory_sql_tool.py search "native PostgreSQL 18 ANN vector recall" --table ann
+skills/zorg-db-memory/scripts/memory_sql_tool.py tables
+skills/zorg-db-memory/scripts/memory_speed_test.py
+skills/zorg-db-memory/scripts/memory_sql_tool.py search "native PostgreSQL 18 ANN vector recall" --table ann
 ```
 
 The old container profile should be marked retired so a normal Compose start

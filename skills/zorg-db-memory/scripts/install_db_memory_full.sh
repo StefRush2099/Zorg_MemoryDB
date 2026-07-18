@@ -16,8 +16,7 @@ trap 'rm -rf "$TMPDIR"' EXIT
 SRC_BASE="${ZORG_SOURCE_BASE:-$(cd "$SELF_DIR/../../../package/zorg" && pwd)}"
 
 mkdir -p "$WORKDIR"
-mkdir -p "$WORKDIR/scripts"
-mkdir -p "$WORKDIR/skills"
+mkdir -p "$WORKDIR/skills/zorg-db-memory/scripts"
 MAP_OUTPUT="${ZORG_SQL_MEMORY_MAP_PATH:-$SKILL_DIR/config/sql_memory_map.json}"
 mkdir -p "$(dirname "$MAP_OUTPUT")"
 
@@ -44,12 +43,10 @@ if [ -f "$SRC_BASE/db/zorg_success_query_index_seed.sql" ]; then
   cat "$SRC_BASE/db/zorg_success_query_index_seed.sql" | "$PG_BIN/psql" -v ON_ERROR_STOP=1
 fi
 
-cp -f "$SRC_BASE/scripts/memory_sql_tool.py" "$WORKDIR/memory_sql_tool.py"
-cp -f "$SRC_BASE/scripts/memory_recall_router.py" "$WORKDIR/memory_recall_router.py"
-cp -f "$SRC_BASE/scripts/memory_speed_test.py" "$WORKDIR/memory_speed_test.py"
-cp -f "$SRC_BASE/scripts/memory_sql_tool" "$WORKDIR/memory_sql_tool"
-cp -f "$SRC_BASE/scripts/memory_recall" "$WORKDIR/memory_recall"
-chmod +x "/memory_sql_tool.py" "/memory_speed_test.py" "/memory_sql_tool" "/memory_recall"
+# Install the skill as the sole executable memory surface. Do not recreate
+# root-level compatibility launchers or a parallel scripts/ route.
+cp -R "$SKILL_DIR/." "$WORKDIR/skills/zorg-db-memory/"
+chmod +x "$WORKDIR/skills/zorg-db-memory/scripts/"*.py "$WORKDIR/skills/zorg-db-memory/scripts/"*.sh 2>/dev/null || true
 
 cat > "$MAP_OUTPUT" <<JSON
 {
@@ -73,7 +70,7 @@ cat > "$MAP_OUTPUT" <<JSON
 JSON
 
 echo "Rollback dump created at: $TMPDIR/rollback/preapply-$STAMP.sql.gz"
-echo "Installed tools into: $WORKDIR"
+echo "Installed canonical memory skill into: $WORKDIR/skills/zorg-db-memory"
 echo "Run verification next:"
-echo "  $WORKDIR/memory_sql_tool.py tables"
-echo "  $WORKDIR/memory_speed_test.py"
+echo "  $WORKDIR/.venv-sqlmem/bin/python $WORKDIR/skills/zorg-db-memory/scripts/memory_sql_tool.py tables"
+echo "  $WORKDIR/.venv-sqlmem/bin/python $WORKDIR/skills/zorg-db-memory/scripts/memory_speed_test.py"

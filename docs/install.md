@@ -41,8 +41,8 @@ The skill is the canonical agent-facing procedure. The package code is the mecha
 ## Required Verification
 
 ```bash
-/home/openclaw/.openclaw/workspace/memory_sql_tool.py tables
-/home/openclaw/.openclaw/workspace/memory_speed_test.py
+/home/openclaw/.openclaw/workspace/.venv-sqlmem/bin/python /home/openclaw/.openclaw/workspace/skills/zorg-db-memory/scripts/memory_sql_tool.py tables
+/home/openclaw/.openclaw/workspace/.venv-sqlmem/bin/python /home/openclaw/.openclaw/workspace/skills/zorg-db-memory/scripts/memory_speed_test.py
 ```
 
 If either command fails, stop unrelated work and repair DB memory first through `skills/zorg-db-memory/SKILL.md`.
@@ -66,7 +66,7 @@ The installer applies `db/memory_ann_bootstrap_2026_07_12.sql` after the base sc
 
 The default provider is local Ollama with model `nomic-embed-text:latest` at `http://127.0.0.1:11434/api/embed`. Install and pull that model before starting the worker: `ollama pull nomic-embed-text:latest`. The public package does not download large models automatically. Set `ZORG_EMBEDDING_ENDPOINT` and `ZORG_EMBEDDING_MODEL` before running the worker when using another compatible local endpoint.
 
-After installation, the packaged worker is available at `memory/memory_embedding_worker.py`. Run a controlled prefill with `python3 memory/memory_embedding_worker.py --maintenance --limit 100`; repeatable runs are safe. The query cache helper is `memory/cache_model_query_embedding.py` and is used by `memory_recall_router.py` for ANN queries. The semantic worker remains available at `skills/zorg-db-memory/scripts/memory_semantic_worker.py` for additive cue/association processing.
+After installation, the packaged worker is available at `skills/zorg-db-memory/scripts/memory_semantic_worker.py`. The query cache helper is `skills/zorg-db-memory/scripts/cache_model_query_embedding.mjs` and is used by the skill router for ANN queries. All recall entry points remain inside `skills/zorg-db-memory`; no root-level compatibility launcher is installed.
 
 The installer must also apply `db/memory_semantic_capture_triggers_2026_07_17.sql`.
 This is the activation step for live typed runtime capture: it creates the trigger

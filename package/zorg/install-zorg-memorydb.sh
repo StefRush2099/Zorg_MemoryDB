@@ -48,6 +48,7 @@ LAN_CHAT_DIR="${LAN_CHAT_DIR:-$OPENCLAW_WORKSPACE/lan-chat}"
 MEMORY_3D_DIR="${MEMORY_3D_DIR:-$OPENCLAW_WORKSPACE/memory-3d}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd -P)"
 PACKAGE_ROOT="$SCRIPT_DIR"
+SKILL_SOURCE_DIR="$(cd "$SCRIPT_DIR/../../skills/zorg-db-memory" 2>/dev/null && pwd -P || true)"
 
 log() { printf '%s\n' "zorg-memorydb: $*"; }
 warn() { printf '%s\n' "zorg-memorydb warning: $*" >&2; }
@@ -402,8 +403,16 @@ write_memory_config() {
   }
 }
 JSON
-  cp "$ZORG_WORKSPACE_DIR/memory/memory_sql_tool.py" "$OPENCLAW_WORKSPACE/memory_sql_tool.py"
-  cp "$ZORG_WORKSPACE_DIR/memory/memory_recall_router.py" "$OPENCLAW_WORKSPACE/memory_recall_router.py"
+  # MemoryDB access is owned exclusively by the installed zorg-db-memory skill.
+  # Do not recreate root-level compatibility launchers: they bypass the skill
+  # routing contract and make the retired path discoverable to callers.
+  local skill_dir="$OPENCLAW_WORKSPACE/skills/zorg-db-memory"
+  mkdir -p "$skill_dir/scripts" "$skill_dir/config"
+  if [[ -n "$SKILL_SOURCE_DIR" && -d "$SKILL_SOURCE_DIR" ]]; then
+    cp -R "$SKILL_SOURCE_DIR/." "$skill_dir/"
+  else
+    warn "Canonical zorg-db-memory skill source is missing from this package; refusing to install legacy launchers."
+  fi
   mkdir -p "$OPENCLAW_WORKSPACE/memory"
   cp "$ZORG_WORKSPACE_DIR/memory/memory_embedding_worker.py" "$OPENCLAW_WORKSPACE/memory/memory_embedding_worker.py"
   cp "$ZORG_WORKSPACE_DIR/memory/cache_model_query_embedding.py" "$OPENCLAW_WORKSPACE/memory/cache_model_query_embedding.py"
@@ -413,7 +422,7 @@ JSON
   if [[ -f "$ZORG_WORKSPACE_DIR/memory/enforce_db_memory_search.py" ]]; then
     cp "$ZORG_WORKSPACE_DIR/memory/enforce_db_memory_search.py" "$OPENCLAW_WORKSPACE/enforce_db_memory_search.py"
   fi
-  chmod +x "$OPENCLAW_WORKSPACE/memory_sql_tool.py" "$OPENCLAW_WORKSPACE/memory_recall_router.py" "$OPENCLAW_WORKSPACE/memory/memory_embedding_worker.py" "$OPENCLAW_WORKSPACE/memory/cache_model_query_embedding.py"
+  chmod +x "$OPENCLAW_WORKSPACE/memory/memory_embedding_worker.py" "$OPENCLAW_WORKSPACE/memory/cache_model_query_embedding.py" 2>/dev/null || true
   [[ -f "$OPENCLAW_WORKSPACE/archive_retired_memory_dir.py" ]] && chmod +x "$OPENCLAW_WORKSPACE/archive_retired_memory_dir.py"
   [[ -f "$OPENCLAW_WORKSPACE/enforce_db_memory_search.py" ]] && chmod +x "$OPENCLAW_WORKSPACE/enforce_db_memory_search.py"
 }
@@ -503,16 +512,16 @@ Zorg MemoryDB is the active durable memory backend for this OpenClaw workspace. 
 ### Local DB Memory Files
 
 - DB config: sql_memory_map.json
-- Recall CLI: memory_sql_tool.py
-- Recall router: memory_recall_router.py
+- Recall CLI: skills/zorg-db-memory/scripts/memory_sql_tool.py
+- Recall router: skills/zorg-db-memory/scripts/memory_recall_router.py
 - Packaged rules: zorg-memorydb/rules/
 - Filesystem resurrection restore path: RESURRECTION.md
 - Master public install rule file: ZORG_MEMORYDB_MASTER_RULES.md
 
 ### Quick Verification Commands
 
-    .venv-sqlmem/bin/python memory_sql_tool.py "Zorg MemoryDB" --limit 5
-    .venv-sqlmem/bin/python memory_recall_router.py "How do I use Zorg MemoryDB for memory?"
+    .venv-sqlmem/bin/python skills/zorg-db-memory/scripts/memory_sql_tool.py "Zorg MemoryDB" --limit 5
+    .venv-sqlmem/bin/python skills/zorg-db-memory/scripts/memory_recall_router.py "How do I use Zorg MemoryDB for memory?"
 
 Expected result: the commands return DB-backed rules or source chunks explaining Zorg MemoryDB usage. A clean install is incomplete if these markdown instructions are missing from agent-readable files.
 <!-- /ZORG_MEMORYDB_AGENT_USAGE -->"""

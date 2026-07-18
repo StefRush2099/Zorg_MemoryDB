@@ -8,9 +8,9 @@ Current install uses:
 
 - `/home/openclaw/.openclaw/workspace/.venv-sqlmem`
 - `skills/zorg-db-memory/config/sql_memory_map.json` (local-only)
-- `/home/openclaw/.openclaw/workspace/memory_sql_tool.py`
-- `/home/openclaw/.openclaw/workspace/memory_recall_router.py`
-- `/home/openclaw/.openclaw/workspace/memory_speed_test.py`
+- `skills/zorg-db-memory/scripts/memory_sql_tool.py`
+- `skills/zorg-db-memory/scripts/memory_recall_router.py`
+- `skills/zorg-db-memory/scripts/memory_speed_test.py`
 - `/home/openclaw/.openclaw/workspace/db_benchmark_queries.json`
 
 ## Known-good install pattern
@@ -25,7 +25,7 @@ Observed install behavior:
 4. install scripts:
    - `memory_sql_tool.py`
    - `memory_recall_router.py`
-   - `memory_speed_test.py`
+   - `skills/zorg-db-memory/scripts/memory_speed_test.py`
    - `scripts/postgres_memory_backup.sh`
 5. place the local `config/sql_memory_map.json` inside the skill
 6. verify with live commands
@@ -33,8 +33,8 @@ Observed install behavior:
 ## Verification commands
 
 ```bash
-/home/openclaw/.openclaw/workspace/memory_sql_tool.py tables
-/home/openclaw/.openclaw/workspace/memory_speed_test.py
+skills/zorg-db-memory/scripts/memory_sql_tool.py tables
+skills/zorg-db-memory/scripts/memory_speed_test.py
 ```
 
 ## Rollback pattern

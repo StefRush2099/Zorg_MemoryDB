@@ -4,7 +4,7 @@ set -euo pipefail
 WORKDIR="${OPENCLAW_WORKSPACE:-${WORKSPACE_DIR:-${HOME:?}/.openclaw/workspace}}"
 SKILL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MAP="${SQL_MEMORY_MAP:-${ZORG_SQL_MEMORY_MAP:-$SKILL_DIR/config/sql_memory_map.json}}"
-TOOL="$WORKDIR/memory_sql_tool.py"
+TOOL="$WORKDIR/skills/zorg-db-memory/scripts/memory_sql_tool.py"
 VENV="$WORKDIR/.venv-sqlmem"
 
 printf 'DB memory workspace: %s\n' "$WORKDIR"

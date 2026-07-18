@@ -140,8 +140,8 @@ This package is designed to support public-safe writeups and posts about Zorg Me
 After installing or updating the skill/package, verify DB access:
 
 ```bash
-/home/openclaw/.openclaw/workspace/memory_sql_tool.py tables
-/home/openclaw/.openclaw/workspace/memory_speed_test.py
+/home/openclaw/.openclaw/workspace/.venv-sqlmem/bin/python /home/openclaw/.openclaw/workspace/skills/zorg-db-memory/scripts/memory_sql_tool.py tables
+/home/openclaw/.openclaw/workspace/.venv-sqlmem/bin/python /home/openclaw/.openclaw/workspace/skills/zorg-db-memory/scripts/memory_speed_test.py
 ```
 
 For browser-visible supporting apps such as LAN Command Chat or Memory Brain 3D, verify with screenshots before claiming the UI works.

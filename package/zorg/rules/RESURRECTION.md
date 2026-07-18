@@ -25,8 +25,8 @@ fallback.
   GitHub from the public MemoryDB update path.
 - Backup script: `/home/openclaw/.openclaw/workspace/scripts/postgres_memory_backup.sh`
 - Restore/drill script: `/home/openclaw/.openclaw/workspace/scripts/postgres_memory_recovery.sh`
-- Recall CLI: `/home/openclaw/.openclaw/workspace/memory_sql_tool.py`
-- Speed test: `/home/openclaw/.openclaw/workspace/memory_speed_test.py`
+- Recall CLI: `skills/zorg-db-memory/scripts/memory_sql_tool.py`
+- Speed test: `/home/openclaw/.openclaw/workspace/skills/zorg-db-memory/scripts/memory_speed_test.py`
 
 ## Find The Latest Backup
 
@@ -92,10 +92,10 @@ docker exec local-postgres psql -U zorg -d postgres -c "alter database zorgdb_re
 
 ```bash
 cd /home/openclaw/.openclaw/workspace
-/home/openclaw/.openclaw/workspace/memory_sql_tool.py tables
-/home/openclaw/.openclaw/workspace/memory_sql_tool.py search "database before work rules before work" --table all --limit 10
-/home/openclaw/.openclaw/workspace/memory_sql_tool.py search "resurrection restore backup memory database" --table all --limit 10
-/home/openclaw/.openclaw/workspace/memory_speed_test.py
+skills/zorg-db-memory/scripts/memory_sql_tool.py tables
+skills/zorg-db-memory/scripts/memory_sql_tool.py search "database before work rules before work" --table all --limit 10
+skills/zorg-db-memory/scripts/memory_sql_tool.py search "resurrection restore backup memory database" --table all --limit 10
+/home/openclaw/.openclaw/workspace/skills/zorg-db-memory/scripts/memory_speed_test.py
 ```
 
 Expected result: table listing succeeds, recall returns DB-backed rules, and the

@@ -11,8 +11,8 @@
 
 ## Bundled Tools
 
-- SQL inspection through `memory_sql_tool.py`.
-- Recall routing through `memory_recall_router.py`.
+- SQL inspection through `skills/zorg-db-memory/scripts/memory_sql_tool.py`.
+- Recall routing through `skills/zorg-db-memory/scripts/memory_recall_router.py`.
 - Health checks through `memory_speed_test.py`.
 - DB-only memory auto-heal through `db_only_memory_autoheal.py`.
 - Semantic worker and dispatcher support through `memory_semantic_worker.py` and `memory_db_llm_dispatcher.py`.

@@ -364,11 +364,17 @@ ensure_postgres_database() {
     memory_correction_learning_2026_07_11.sql \
     memory_ann_bootstrap_2026_07_12.sql \
     memory_ann_provider_defaults_2026_07_12.sql \
+    memory_semantic_capture_triggers_2026_07_17.sql \
     memory_recall_zorg_memorydb_update_2026_07_12.sql; do
     if [[ -f "$ZORG_WORKSPACE_DIR/db/$sql_file" ]]; then
       psql -h "$ZORG_DB_HOST" -p "$ZORG_DB_PORT" -U "$ZORG_DB_USER" -d "$ZORG_DB_NAME" -v ON_ERROR_STOP=1 -f "$ZORG_WORKSPACE_DIR/db/$sql_file" || true
     fi
   done
+  if [[ -f "$ZORG_WORKSPACE_DIR/db/memory_semantic_capture_triggers_2026_07_17.sql" ]]; then
+    psql -h "$ZORG_DB_HOST" -p "$ZORG_DB_PORT" -U "$ZORG_DB_USER" -d "$ZORG_DB_NAME" -Atqc \
+      "SELECT CASE WHEN count(*) = 11 AND bool_and(trigger_enabled) THEN 'semantic-capture-triggers-ok' ELSE 'semantic-capture-triggers-incomplete' END FROM public.memory_semantic_capture_trigger_status_v1" \
+      || warn "Semantic capture trigger verification failed; live runtime capture is not complete."
+  fi
   if [[ -f "$ZORG_WORKSPACE_DIR/db/public_canonical_rules_update_2026_06_02.sql" ]]; then
     psql -h "$ZORG_DB_HOST" -p "$ZORG_DB_PORT" -U "$ZORG_DB_USER" -d "$ZORG_DB_NAME" -v ON_ERROR_STOP=1 -f "$ZORG_WORKSPACE_DIR/db/public_canonical_rules_update_2026_06_02.sql" || true
   fi

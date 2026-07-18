@@ -8,6 +8,9 @@ This directory contains the public-safe Zorg MemoryDB and LAN command chat insta
 - `requirements.txt` declares the Python DB driver used by the recall tools.
 - `db/schema.sql` creates the database structure.
 - `db/memory_recall_*_2026_07_10.sql` installs the stored-procedure recall API
+- `db/memory_semantic_capture_triggers_2026_07_17.sql` is applied by the installer;
+  it wires all eleven typed runtime capture tables to the additive semantic/ANN
+  queues. Copying the file without applying it does not activate capture.
   used by the packaged DB-first recall tools.
 - `db/public_canonical_rules_update_2026_06_02.sql` is the single packaged
   rule file. It creates/updates `zorg_logic_rules`, inserts every public-safe
@@ -63,6 +66,12 @@ The Python recall tools install their dependencies from `zorg/requirements.txt` 
 ## Coding And Install Rule Discipline
 
 Changes to this package must follow the documented OpenClaw/Zorg install procedures and existing package source patterns before code is written. Check the relevant docs, package metadata, lifecycle scripts, generated runtime artifacts, and clean-install behavior instead of relying on generic coding memory or assumed APIs.
+
+An update is incomplete unless the installer applies the semantic-capture migration
+and reports `semantic-capture-triggers-ok`. The ANN recall path also requires the
+query-cache helper to create a `nomic-embed-text:latest` query embedding before
+`public.memory_recall_v2` runs; a source-table export alone cannot provide that
+runtime behavior.
 
 Installer and package fixes are not complete until the actual documented path is verified. For this repository, that means testing the GitHub/package install path or the explicit existing-install overlay path that the documentation tells users to run, not only a local checkout.
 

@@ -68,6 +68,19 @@ The default provider is local Ollama with model `nomic-embed-text:latest` at `ht
 
 After installation, the packaged worker is available at `memory/memory_embedding_worker.py`. Run a controlled prefill with `python3 memory/memory_embedding_worker.py --maintenance --limit 100`; repeatable runs are safe. The query cache helper is `memory/cache_model_query_embedding.py` and is used by `memory_recall_router.py` for ANN queries. The semantic worker remains available at `skills/zorg-db-memory/scripts/memory_semantic_worker.py` for additive cue/association processing.
 
+The installer must also apply `db/memory_semantic_capture_triggers_2026_07_17.sql`.
+This is the activation step for live typed runtime capture: it creates the trigger
+bridge on the eleven `memory_*` capture tables and forwards each inserted or
+updated source row to the existing semantic and ANN queues. The SQL file being
+present in an export is not sufficient. Verify with:
+
+```sql
+select * from public.memory_semantic_capture_trigger_status_v1;
+```
+
+All eleven rows must report `trigger_enabled = true`. If the installer does not
+report `semantic-capture-triggers-ok`, the update is not functionally complete.
+
 Check setup with:
 
 ```sql

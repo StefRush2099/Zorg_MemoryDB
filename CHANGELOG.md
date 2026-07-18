@@ -239,3 +239,7 @@
 - Added Memory Brain 3D desktop/mobile screenshots in light and dark modes.
 - Added LAN Command Chat Memory 3D toggle-panel screenshots.
 - Removed public-package scheduled publishing instructions so installed agents do not inherit maintainer-only release behavior.
+## 3.0.3 - 2026-07-17
+
+- Apply and verify the semantic-capture trigger migration during installation.
+- Document the ANN query-embedding cache prerequisite for uncached queries.

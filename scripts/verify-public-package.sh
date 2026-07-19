@@ -33,13 +33,15 @@ if rg -n --hidden --glob '!.git/**' --glob '!release/*.tar.gz' --glob '!scripts/
   exit 1
 fi
 
-if rg --files --hidden --glob '!.git/**' | rg '(^|/)(node_modules|__pycache__|\\.gradle|build|\\.next|dist|tmp|browser-profile)(/|$)|(^|/)local\\.properties$|sql_memory_map\\.json$|\\.(pyc|dump|backup)$'; then
+if rg --files --hidden --glob '!.git/**' | rg '(^|/)(node_modules|__pycache__|\\.gradle|build|\\.next|tmp|browser-profile)(/|$)|(^|/)local\\.properties$|sql_memory_map\\.json$|\\.(pyc|dump|backup)$' \
+  || rg --files --hidden --glob '!.git/**' | rg '(^|/)dist(/|$)' | rg -v '^skills/zorg-db-memory/plugin-src/dist/'; then
   echo "generated/private artifact path found" >&2
   exit 1
 fi
 
 if [[ -f "$release_archive" ]]; then
-  if tar -tzf "$release_archive" | rg '(^|/)(node_modules|__pycache__|\\.gradle|build|\\.next|dist|tmp|browser-profile)(/|$)|(^|/)local\\.properties$|sql_memory_map\\.json$|\\.(pyc|dump|backup|tar\\.gz)$'; then
+  if tar -tzf "$release_archive" | rg '(^|/)(node_modules|__pycache__|\\.gradle|build|\\.next|tmp|browser-profile)(/|$)|(^|/)local\\.properties$|sql_memory_map\\.json$|\\.(pyc|dump|backup|tar\\.gz)$' \
+    || tar -tzf "$release_archive" | rg '(^|/)dist(/|$)' | rg -v '^skills/zorg-db-memory/plugin-src/dist/'; then
     echo "generated/private artifact found inside release archive" >&2
     exit 1
   fi

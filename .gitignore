@@ -1,6 +1,10 @@
 node_modules/
+!skills/zorg-db-memory/plugin-src/dist/
+!skills/zorg-db-memory/plugin-src/dist/**
 .next/
 dist/
+!skills/zorg-db-memory/plugin-src/dist/
+!skills/zorg-db-memory/plugin-src/dist/**
 tmp/
 *.tmp
 *.log

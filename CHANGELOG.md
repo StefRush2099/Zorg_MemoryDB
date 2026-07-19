@@ -1,5 +1,17 @@
 # Changelog
 
+## v3.0.5 - 2026-07-19
+
+- Publishes the OpenClaw-native Zorg MemoryDB plugin and standalone MCP server
+  as part of the canonical skill package.
+- Aligns the root package, LAN Command Chat package/lockfile, plugin manifest,
+  and gauges to 3.0.5.
+- Documents complete previous-package removal, backend-database preservation,
+  required PostgreSQL/ANN/vector dependencies, runtime inspection, and the
+  mandatory post-update version announcement.
+- Keeps all source memory in PostgreSQL and requires additive ANN/vector repair
+  and verification rather than a legacy fallback.
+
 ## v3.0.4 - 2026-07-18
 
 - Aligns the packaged Memory Brain 3D runtime label with the documented

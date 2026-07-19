@@ -1,21 +1,32 @@
 # Install Zorg MemoryDB Package
 
 1. Install OpenClaw from upstream.
-2. Copy or install `skills/zorg-db-memory` into the OpenClaw workspace skills directory.
-3. Copy or install `package/zorg` into the OpenClaw package/workspace support path.
-4. Run the PostgreSQL schema/install helpers from `package/zorg` for the target host.
-5. Verify backend DB recall before normal assistant work.
+2. Remove 100% of the previous Zorg package/plugin files for an upgrade;
+   preserve only the PostgreSQL backend database.
+3. Install `skills/zorg-db-memory` and its `plugin-src` into the OpenClaw
+   workspace skills directory.
+4. Copy or install `package/zorg` into the OpenClaw package/workspace support path.
+5. Install Node.js/npm, PostgreSQL and required extensions, the configured
+   local embedding provider/model, and run every SQL migration under
+   `package/zorg/db`.
+6. Build/install the plugin, enable it, restart the Gateway, and verify
+   `openclaw plugins inspect zorg-memorydb --runtime --json` plus
+   `node skills/zorg-db-memory/plugin-src/dist/mcp-server.js`.
+7. Verify backend DB recall, ANN/vector index/cache/weights, scheduler
+   mappings, LAN Command Chat, Memory 3D, and the clean-install/upgrade path.
 
 ## LAN services and Android separation
 
-`package/zorg/install-zorg-memorydb.sh` installs three separate surfaces:
+`package/zorg/install-zorg-memorydb.sh` installs the connected OpenClaw/Zorg
+surfaces. LAN Command Chat remains inside the same OpenClaw/Zorg runtime and
+workspace; it is not a separate application or service in the standard install.
 
-- **LAN Console browser:** Next.js LAN Chat, normally on port `3001`; its
+- **LAN Console browser:** Next.js LAN Chat, normally on internal port `3001`; its
   browser page owns browser light/dark controls and the Android APK download
   link.
-- **Memory Brain 3D service:** Node/Express service `zorg-memory-3d` on port
+- **Memory Brain 3D surface:** PostgreSQL-backed Node/Express view on port
   `8097`; it owns `/api/health`, `/api/graph`, and the interactive 3D browser
-  visualizer.
+  visualizer within the connected runtime.
 - **Native Android app:** the separately built APK under
   `package/zorg/lan-command-chat-android/`; it uses authenticated JSON APIs,
   does not load the browser page, and never displays the browser APK link.

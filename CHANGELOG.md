@@ -1,5 +1,12 @@
 # Changelog
 
+## v4.0.1 - 2026-07-21
+
+- Removes the retired Memory 3D package.
+- Adds production Neural Recall Activity assets and install guidance for port
+  8097.
+- Aligns package metadata to 4.0.1.
+
 ## v4.0.0 - 2026-07-20
 
 - Major release: makes the OpenClaw-native `zorg-memorydb` plugin/MCP the sole

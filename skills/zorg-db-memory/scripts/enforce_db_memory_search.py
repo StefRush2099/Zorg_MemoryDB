@@ -196,7 +196,7 @@ def memory_core_paths() -> list[Path]:
             resolved = candidate.expanduser().resolve()
         except FileNotFoundError:
             resolved = candidate.expanduser()
-        if resolved.exists() and resolved not in found:
+        if resolved.exists() and os.access(resolved, os.W_OK) and resolved not in found:
             found.append(resolved)
     return found
 
@@ -219,7 +219,7 @@ def active_memory_paths() -> list[Path]:
             resolved = candidate.resolve()
         except FileNotFoundError:
             resolved = candidate
-        if resolved.exists() and resolved not in found:
+        if resolved.exists() and os.access(resolved, os.W_OK) and resolved not in found:
             found.append(resolved)
     return found
 

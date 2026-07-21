@@ -6,7 +6,7 @@ This repository is intentionally **not** a GitHub fork or full source fork of Op
 
 ## Release Focus
 
-Release `v4.0.0` is the complete connected package: the source-record capture
+Release `v4.0.1` is the complete connected package: the source-record capture
 tables and procedures, derived semantic/ANN recall paths, LAN Command Chat
 integration, and the canonical `zorg-db-memory` skill are versioned and
 verified together.
@@ -96,7 +96,7 @@ package/zorg/
   memory/
   lan-command-chat/
   lan-command-chat-android/
-  memory-3d/
+  neural-recall-activity/
   requirements.txt
 
 docs/

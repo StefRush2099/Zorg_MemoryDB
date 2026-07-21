@@ -20,8 +20,9 @@ This directory contains the public-safe Zorg MemoryDB and LAN command chat insta
   rows remain the source of truth; the installer does not create or copy Markdown
   rule or memory files.
 - `lan-command-chat/` contains the LAN command chat source bundle.
-- `memory-3d/` contains the connected Memory Brain 3D source bundle used by
-  the LAN Command Chat Memory 3D view.
+- `neural-recall-activity/` contains the public production browser assets for
+  the separate live Neural Recall Activity service on port 8097.
+- `memory-3d/` is retired and must not be installed or restored.
 
 ## Install Behavior
 
@@ -32,13 +33,10 @@ Brain 3D source for clean installs and existing installs. It preserves existing
 user data; the separate `prepare_public_baseline.sql` file is only for building
 a distributable public baseline and must not be run against a live user database.
 
-The installer also prepares the Memory Brain 3D Node service: it installs the
-bundle dependencies, runs the syntax check, and creates/enables
-`zorg-memory-3d` on port `8097`. Verify it with
-`curl -fsS http://127.0.0.1:8097/api/health` and
-`curl -fsS http://127.0.0.1:8097/api/graph`. LAN Chat remains a separate web
-service; the native Android client is a separate APK and is not part of either
-web service.
+The 8097 Neural Recall Activity service is a separate production deployment;
+its server and database environment remain on the production host. Verify it
+with `/api/health` and `/api/activity`. LAN Chat remains a separate web
+service; the native Android client is a separate APK.
 
 Clean installs initialize the PostgreSQL schema and native plugin/MCP path. They
 do not import, create, or copy Markdown rules or legacy `memory/**/*.md` files.

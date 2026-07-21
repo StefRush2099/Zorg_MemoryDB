@@ -16,11 +16,12 @@ This directory contains the public-safe Zorg MemoryDB and LAN command chat insta
   rule file. It creates/updates `zorg_logic_rules`, inserts every public-safe
   addable rule, checks the expected count, and raises existing chat timing rule
   weights without creating replacement timing rules.
-- `db/import_markdown_rules.py` imports packaged rules and retired markdown memory files into the database.
+- Markdown rule import is not part of the installer. Existing PostgreSQL MemoryDB
+  rows remain the source of truth; the installer does not create or copy Markdown
+  rule or memory files.
 - `lan-command-chat/` contains the LAN command chat source bundle.
 - `memory-3d/` contains the connected Memory Brain 3D source bundle used by
   the LAN Command Chat Memory 3D view.
-- `rules/` contains public-safe memory and install rules.
 
 ## Install Behavior
 
@@ -39,10 +40,8 @@ bundle dependencies, runs the syntax check, and creates/enables
 service; the native Android client is a separate APK and is not part of either
 web service.
 
-Clean installs import only the packaged bootstrap and recovery rules. Legacy
-`memory/**/*.md` migration is opt-in with `ZORG_IMPORT_RETIRED_MEMORY=1`; those
-files are never required for normal operation and are not included in release
-archives.
+Clean installs initialize the PostgreSQL schema and native plugin/MCP path. They
+do not import, create, or copy Markdown rules or legacy `memory/**/*.md` files.
 
 When the add-on bootstrap is run through `sudo` without an explicit `OPENCLAW_HOME`, it installs into the invoking user's home directory instead of `/root`. This keeps the generated LAN command chat systemd service and its workspace on the same readable path. Set `OPENCLAW_HOME` explicitly only when a root-owned install is intentional.
 
@@ -50,16 +49,16 @@ When the add-on bootstrap is run through `sudo` without an explicit `OPENCLAW_HO
 
 The default clean-install path uses a blank PostgreSQL password and configures passwordless access only to local loopback. Remote PostgreSQL hosts are not configured as unauthenticated.
 
-## Agent-Readable Markdown
+## Native Plugin/MCP Initialization
 
-The bootstrap writes a Zorg MemoryDB usage block into the OpenClaw workspace markdown files the agent reads at startup: `AGENTS.md`, `SOUL.md`, `USER.md`, `TOOLS.md`, `IDENTITY.md`, and `HEARTBEAT.md`. It also copies `RESURRECTION.md` and `ZORG_MEMORYDB_MASTER_RULES.md` into the workspace root.
+The bootstrap installs and verifies the native `zorg-memorydb` OpenClaw
+plugin/MCP. It does not write usage blocks into workspace Markdown files or
+copy filesystem rule/recovery documents into the workspace.
 
-This is required because importing rules into PostgreSQL alone is not enough: the local LLM must be able to read how to use the database memory path before it can reliably call the DB-backed recall tools.
-
-`RESURRECTION.md` is the filesystem-first recovery path for the case where the
-database is empty, damaged, or unavailable. It tells a new agent where backups
-live, how to run a recovery drill, how to restore a verified dump, and how to
-verify recall after restore without relying on broken DB memory.
+The installer enables the `zorg-memorydb` OpenClaw memory plugin/MCP, selects it
+as the memory slot, and verifies its runtime tools. PostgreSQL/Zorg MemoryDB is
+the recovery path for an empty, damaged, or unavailable database; Markdown is
+not an alternate memory or rule channel.
 
 The Python recall tools install their dependencies from `zorg/requirements.txt` into `.venv-sqlmem`. They also re-exec through `.venv-sqlmem/bin/python` when launched with plain `python3`, so agent-readable commands do not fail just because the system Python lacks `psycopg2`.
 

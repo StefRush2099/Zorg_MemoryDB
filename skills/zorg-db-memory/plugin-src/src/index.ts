@@ -9,9 +9,11 @@ const { Pool } = pg;
 type DbConfig = { postgres: { host: string; port: number; database: string; user: string; password: string } };
 let pool: pg.Pool | undefined;
 
+const workspaceRoot = () => process.env.OPENCLAW_WORKSPACE || process.env.WORKSPACE_DIR || resolve(process.env.HOME || ".", ".openclaw/workspace");
+
 async function getPool() {
   if (pool) return pool;
-  const workspace = process.env.OPENCLAW_WORKSPACE || process.env.WORKSPACE_DIR || resolve(process.env.HOME || ".", ".openclaw/workspace");
+  const workspace = workspaceRoot();
   const mapPath = process.env.SQL_MEMORY_MAP || process.env.ZORG_SQL_MEMORY_MAP || resolve(workspace, "skills/zorg-db-memory/config/sql_memory_map.json");
   const cfg = JSON.parse(await readFile(mapPath, "utf8")) as DbConfig;
   pool = new Pool(cfg.postgres);
@@ -57,6 +59,22 @@ export default defineToolPlugin({
       description: "Return the canonical master context assembled by MemoryDB.",
       parameters: Type.Object({ limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 100 })) }),
       execute: async ({ limit = 40 }) => ({ rows: await query("select row_data from public.memory_master_context_v1($1)", [limit]) }),
+    }),
+    tool({
+      name: "memory_ann_status",
+      description: "Inspect additive semantic/ANN queue, embedding, and failure counts without changing source memory.",
+      parameters: Type.Object({}),
+      execute: async () => ({ rows: await query(`select
+        (select count(*) from public.memory_ann_model_embeddings where active) as active_embeddings,
+        (select count(*) from public.memory_semantic_work_queue where status = 'queued') as queued_jobs,
+        (select count(*) from public.memory_semantic_work_queue where status = 'failed') as failed_jobs,
+        (select count(*) from public.memory_query_embedding_cache) as cached_queries`), }),
+    }),
+    tool({
+      name: "memory_recall_preflight",
+      description: "Run the canonical rank-one core-rule preflight before normal structured or ANN recall.",
+      parameters: Type.Object({ query: Type.String({ minLength: 1 }), limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 50 })) }),
+      execute: async ({ query: q, limit = 10 }) => ({ rows: await query("select row_data from public.memory_search_table_v1('all', $1, $2)", [q, limit]) }),
     }),
   ],
 });

@@ -2,7 +2,7 @@
 
 Zorg MemoryDB is the PostgreSQL-backed memory package for OpenClaw-based assistants.
 
-This repository is intentionally **not** a GitHub fork or full source fork of OpenClaw. OpenClaw is the base install and runtime. This repo carries the Zorg MemoryDB layer: the `zorg-db-memory` skill, public-safe database/install code, recovery procedures, LAN Command Chat source package, and documentation needed to reproduce the memory behavior without falling back to markdown files.
+This repository is intentionally **not** a GitHub fork or full source fork of OpenClaw. OpenClaw is the base install and runtime. This repo carries the Zorg MemoryDB layer: the `zorg-db-memory` skill, the OpenClaw-native `zorg-memorydb` plugin/MCP, public-safe database/install code, recovery procedures, LAN Command Chat source package, and documentation needed to reproduce DB-first memory behavior.
 
 ## Release Focus
 
@@ -14,7 +14,7 @@ verified together.
 `zorg-db-memory` consolidates the MemoryDB work into one portable skill package:
 
 - DB-first recall before work or replies.
-- Markdown memory lockout so `MEMORY.md`, `AGENTS.md`, `SOUL.md`, `TOOLS.md`, `USER.md`, and `IDENTITY.md` stay recovery pointers instead of active memory stores.
+- Native plugin/MCP-first recall with PostgreSQL as the only active durable-memory store.
 - Rule Zero repair behavior when memory/database tools fail.
 - Bundled Python and shell tools for SQL inspection, recall routing, speed checks, auto-heal, semantic workers, LLM dispatch, backup, recovery, and install.
 - Context-window pruning through DB-backed execution slices instead of markdown summaries.
@@ -35,7 +35,7 @@ verified together.
 ## What This Repository Contains
 
 - `skills/zorg-db-memory/` - the complete portable skill package.
-- `package/zorg/` - public-safe install, schema, recall, recovery, LAN Command Chat, and verification code.
+- `package/zorg/` - public-safe install, schema, recall, recovery, LAN Command Chat, and verification code; it does not install Markdown rule files.
 - `package/zorg/lan-command-chat-android/` - reproducible native Android client source; private signing and SDK state are excluded.
 - `docs/` - public-safe install, operation, screenshot, and release documentation.
 - `scripts/` - packaging and verification helpers for this repo.
@@ -54,7 +54,7 @@ The public package does not instruct installed agents to publish back to this Gi
 
 ## Memory Rule
 
-`zorg-db-memory` replaces active markdown-file memory with PostgreSQL-backed Zorg MemoryDB behavior. Markdown files such as `AGENTS.md`, `MEMORY.md`, `SOUL.md`, `TOOLS.md`, `USER.md`, and `IDENTITY.md` are bootstrap or recovery pointers only.
+`zorg-db-memory` uses the installed `zorg-memorydb` OpenClaw plugin/MCP first and PostgreSQL-backed Zorg MemoryDB as the only active durable-memory store. The installer does not create, copy, or activate Markdown rule or memory files. Workspace instruction files, when required by the host agent, are host configuration and are not a MemoryDB fallback store.
 
 Rule Zero:
 
@@ -72,7 +72,6 @@ package/zorg/
   install-zorg-memorydb.sh
   db/
   memory/
-  rules/
   lan-command-chat/
   lan-command-chat-android/
   memory-3d/

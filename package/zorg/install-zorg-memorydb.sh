@@ -4,7 +4,7 @@ set -euo pipefail
 # Zorg MemoryDB + LAN command chat bootstrap for OpenClaw installs.
 # This is a GitHub package script. It installs prerequisites, copies packaged
 # public-safe components into the OpenClaw workspace, initializes DB schema,
-# imports packaged markdown rules, imports retired memory/*.md files into DB,
+# configures PostgreSQL-backed recall and the native plugin/MCP path,
 # and prepares LAN command chat. It ships no private memory rows or credentials.
 
 ZORG_DB_NAME="${ZORG_DB_NAME:-zorgdb}"
@@ -17,7 +17,6 @@ LAN_CHAT_HOST="${LAN_CHAT_HOST:-0.0.0.0}"
 OPENCLAW_CONTROL_UI_DISABLE_DEVICE_AUTH="${OPENCLAW_CONTROL_UI_DISABLE_DEVICE_AUTH:-true}"
 ZORG_INSTALL_MODE="${ZORG_INSTALL_MODE:-first-run}"
 ZORG_PATCH_EXISTING_DOCKER_CONFIG="${ZORG_PATCH_EXISTING_DOCKER_CONFIG:-0}"
-ZORG_IMPORT_RETIRED_MEMORY="${ZORG_IMPORT_RETIRED_MEMORY:-0}"
 
 default_openclaw_home() {
   if [[ -n "${OPENCLAW_HOME:-}" ]]; then
@@ -126,14 +125,12 @@ ensure_prerequisites() {
 
 ensure_workspace_layout() {
   mkdir -p "$OPENCLAW_WORKSPACE" "$ZORG_WORKSPACE_DIR" "$LAN_CHAT_DIR"
-  mkdir -p "$ZORG_WORKSPACE_DIR/db" "$ZORG_WORKSPACE_DIR/rules" "$ZORG_WORKSPACE_DIR/memory"
+  mkdir -p "$ZORG_WORKSPACE_DIR/db"
 }
 
 copy_packaged_components() {
   log "Copying packaged Zorg MemoryDB components into $ZORG_WORKSPACE_DIR"
   cp -R "$PACKAGE_ROOT/db/." "$ZORG_WORKSPACE_DIR/db/"
-  cp -R "$PACKAGE_ROOT/rules/." "$ZORG_WORKSPACE_DIR/rules/"
-  cp -R "$PACKAGE_ROOT/memory/." "$ZORG_WORKSPACE_DIR/memory/"
   if [[ -f "$PACKAGE_ROOT/requirements.txt" ]]; then
     cp "$PACKAGE_ROOT/requirements.txt" "$ZORG_WORKSPACE_DIR/requirements.txt"
   fi
@@ -479,95 +476,6 @@ PY
   fi
 }
 
-install_agent_readable_markdown() {
-  log "Installing agent-readable Zorg MemoryDB markdown instructions"
-  if [[ -f "$ZORG_WORKSPACE_DIR/rules/ZORG_MEMORYDB_MASTER_RULES.md" ]]; then
-    cp "$ZORG_WORKSPACE_DIR/rules/ZORG_MEMORYDB_MASTER_RULES.md" "$OPENCLAW_WORKSPACE/ZORG_MEMORYDB_MASTER_RULES.md"
-  fi
-  if [[ -f "$ZORG_WORKSPACE_DIR/rules/RESURRECTION.md" ]]; then
-    cp "$ZORG_WORKSPACE_DIR/rules/RESURRECTION.md" "$OPENCLAW_WORKSPACE/RESURRECTION.md"
-  fi
-  python3 - "$OPENCLAW_WORKSPACE" <<'PY'
-from pathlib import Path
-import sys
-
-workspace = Path(sys.argv[1])
-marker = "<!-- ZORG_MEMORYDB_AGENT_USAGE -->"
-block = """<!-- ZORG_MEMORYDB_AGENT_USAGE -->
-## Zorg MemoryDB Agent Memory Usage
-
-Zorg MemoryDB is the active durable memory backend for this OpenClaw workspace. The agent must use the PostgreSQL-backed memory path for continuity, not MEMORY.md or memory/ markdown files as active memory.
-
-### Required Agent Behavior
-
-1. Before answering or acting, check backend database memory using the configured DB recall path.
-2. If the first DB recall pass is weak or empty, run a deeper DB recall search with alternate terms before concluding there is no prior context.
-3. Do not create, update, or rely on memory/YYYY-MM-DD.md, memory/projects/*.md, memory/*.json, or other flat-file memory as durable memory.
-4. If legacy markdown memory files exist, import them into Zorg MemoryDB, then treat them as retired source files rather than active memory.
-5. If DB recall is unavailable, repair or restore the DB path and fail closed instead of silently falling back to files.
-6. Preserve original memory data. Improve recall with additive DB structures such as indexes, source chunks, entities, associations, observations, and rule rows.
-7. Runtime hooks must not create retired memory markdown files. If a generated memory file appears anyway, import it into PostgreSQL immediately and remove the file after successful import.
-8. User-visible operational replies must include the operator request timestamp, actual response timestamp, and elapsed duration computed from those two times.
-
-### Local DB Memory Files
-
-- DB config: sql_memory_map.json
-- OpenClaw plugin: skills/zorg-db-memory/plugin-src/dist/index.js
-- MCP server: skills/zorg-db-memory/plugin-src/dist/mcp-server.js
-- Packaged rules: zorg-memorydb/rules/
-- Filesystem resurrection restore path: RESURRECTION.md
-- Master public install rule file: ZORG_MEMORYDB_MASTER_RULES.md
-
-### Quick Verification Commands
-
-    openclaw plugins inspect zorg-memorydb
-    node skills/zorg-db-memory/plugin-src/dist/mcp-server.js
-
-Expected result: the commands return DB-backed rules or source chunks explaining Zorg MemoryDB usage. A clean install is incomplete if these markdown instructions are missing from agent-readable files.
-<!-- /ZORG_MEMORYDB_AGENT_USAGE -->"""
-
-targets = [
-    "AGENTS.md",
-    "SOUL.md",
-    "USER.md",
-    "TOOLS.md",
-    "IDENTITY.md",
-    "HEARTBEAT.md",
-]
-for name in targets:
-    path = workspace / name
-    existing = path.read_text(encoding="utf-8", errors="replace") if path.exists() else f"# {name}\n"
-    if marker not in existing:
-        path.write_text(block + "\n\n" + existing, encoding="utf-8")
-PY
-}
-
-import_markdown_rules() {
-  if [[ ! -x "$OPENCLAW_WORKSPACE/.venv-sqlmem/bin/python" ]]; then
-    python3 -m venv "$OPENCLAW_WORKSPACE/.venv-sqlmem" || {
-      warn "Could not create SQL memory virtualenv. Install python3-venv, then rerun this script."
-      return 0
-    }
-  fi
-  if [[ -x "$OPENCLAW_WORKSPACE/.venv-sqlmem/bin/python" ]]; then
-    "$OPENCLAW_WORKSPACE/.venv-sqlmem/bin/python" -m pip install --upgrade pip >/dev/null 2>&1 || true
-    if [[ -f "$ZORG_WORKSPACE_DIR/requirements.txt" ]]; then
-      "$OPENCLAW_WORKSPACE/.venv-sqlmem/bin/python" -m pip install -r "$ZORG_WORKSPACE_DIR/requirements.txt" >/dev/null 2>&1 || true
-    else
-      "$OPENCLAW_WORKSPACE/.venv-sqlmem/bin/python" -m pip install psycopg2-binary >/dev/null 2>&1 || true
-    fi
-    import_args=()
-    if [[ "$ZORG_IMPORT_RETIRED_MEMORY" == "1" ]]; then
-      import_args+=(--include-retired-memory)
-    fi
-    "$OPENCLAW_WORKSPACE/.venv-sqlmem/bin/python" "$ZORG_WORKSPACE_DIR/db/import_markdown_rules.py" \
-      --workspace "$OPENCLAW_WORKSPACE" \
-      --rules-dir "$ZORG_WORKSPACE_DIR/rules" \
-      --database-url "postgresql://$ZORG_DB_USER@$ZORG_DB_HOST:$ZORG_DB_PORT/$ZORG_DB_NAME" \
-      "${import_args[@]}" || true
-  fi
-}
-
 prepare_lan_chat() {
   if [[ ! -f "$LAN_CHAT_DIR/.env.local" && -f "$LAN_CHAT_DIR/.env.local.example" ]]; then
     cp "$LAN_CHAT_DIR/.env.local.example" "$LAN_CHAT_DIR/.env.local"
@@ -762,8 +670,6 @@ main() {
   else
     log "Skipping existing Docker/TUI gateway config patch; set ZORG_PATCH_EXISTING_DOCKER_CONFIG=1 only for an intentional existing Docker repair."
   fi
-  install_agent_readable_markdown
-  import_markdown_rules
   if [[ -x "$OPENCLAW_WORKSPACE/enforce_db_memory_search.py" ]]; then
     "$OPENCLAW_WORKSPACE/.venv-sqlmem/bin/python" "$OPENCLAW_WORKSPACE/enforce_db_memory_search.py" || true
   fi

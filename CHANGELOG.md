@@ -1,5 +1,16 @@
 # Changelog
 
+## v3.0.6 - 2026-07-19
+
+- Completes the OpenClaw-native Zorg MemoryDB plugin/MCP package path.
+- Adds read-only ANN/semantic status and canonical recall-preflight tools.
+- Aligns package, plugin, MCP, and LAN Command Chat versions at 3.0.6.
+- Makes the plugin resolve the SQL map through portable workspace environment
+  variables and verifies the sanitized public archive.
+- Removes installer creation/copying of Markdown rule and memory files,
+  removes the legacy Markdown-rule importer and packaged rule files, and makes
+  the native plugin/MCP the only initialized memory path.
+
 ## v3.0.5 - 2026-07-19
 
 - Publishes the OpenClaw-native Zorg MemoryDB plugin and standalone MCP server

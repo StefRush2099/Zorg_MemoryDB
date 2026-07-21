@@ -6,8 +6,6 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
 SKILL = (ROOT / "skills/zorg-db-memory/SKILL.md").read_text()
-MASTER = (ROOT / "package/zorg/rules/ZORG_MEMORYDB_MASTER_RULES.md").read_text()
-PRODUCTION = (ROOT / "package/zorg/rules/PRODUCTION_MEMORY_RULES.md").read_text()
 
 
 def check() -> None:
@@ -19,10 +17,7 @@ def check() -> None:
     )
     for text in required:
         assert text in SKILL, f"missing timing guard in skill: {text}"
-    assert "runtime response-preparation timestamp" in MASTER
-    assert "Database scan duration and tool timing are never substitutes." in PRODUCTION
-    assert "actual response/send timestamp" not in MASTER
-    assert "actual response timestamp" not in PRODUCTION
+    assert "runtime response-preparation timestamp" in SKILL
 
 
 if __name__ == "__main__":

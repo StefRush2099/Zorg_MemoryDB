@@ -23,7 +23,6 @@ Shell helpers:
 - scripts/cache_model_query_embedding.mjs
 - scripts/backfill_model_ann_embeddings.mjs
 - scripts/nightly_memory_health_check.py
-- scripts/sync_core_rules_to_logic_rules.py
 - config/sql_memory_map.json (local-only secret-bearing config; excluded from releases)
 - scripts/request_category_router.py
 - scripts/import_code_memory_phase1.py

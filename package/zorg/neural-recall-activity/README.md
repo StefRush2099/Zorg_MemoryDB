@@ -1,7 +1,7 @@
 # Neural Recall Activity
 
 This directory is the public production asset capture for the live Zorg Memory
-3D / Neural Recall Activity service at `http://10.7.69.200:8097/`.
+3D / Neural Recall Activity service at `http://127.0.0.1:8097/`.
 
 It is separate from LAN Command Chat and is backed by the Zorg PostgreSQL
 MemoryDB. The captured browser assets are `index.html`, `app.js`, `styles.css`,
@@ -19,6 +19,6 @@ database credentials remain on the production host and are never committed.
 - Verify production with:
 
 ```bash
-curl -fsS http://10.7.69.200:8097/api/health
-curl -fsS http://10.7.69.200:8097/api/activity
+curl -fsS http://127.0.0.1:8097/api/health
+curl -fsS http://127.0.0.1:8097/api/activity
 ```

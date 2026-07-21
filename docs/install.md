@@ -1,4 +1,19 @@
-# Install Zorg MemoryDB Package
+# Install Zorg MemoryDB v4.0.0 Package
+
+## Command-line install from GitHub
+
+```bash
+git clone --branch v4.0.0 https://github.com/StefRush2099/Zorg_MemoryDB.git
+cd Zorg_MemoryDB
+bash package/zorg/install-zorg-memorydb.sh
+```
+
+This is the supported manual installation path. Remove previous Zorg
+package/plugin files before installing the tag, preserving only the PostgreSQL
+MemoryDB. The install initializes and enables the OpenClaw-native
+`zorg-memorydb` plugin/MCP as the first and canonical memory path. It must not
+create, copy, import, or activate Markdown memory or rule files; Markdown is
+not a fallback store.
 
 1. Install OpenClaw from upstream.
 2. Remove 100% of the previous Zorg package/plugin files for an upgrade;

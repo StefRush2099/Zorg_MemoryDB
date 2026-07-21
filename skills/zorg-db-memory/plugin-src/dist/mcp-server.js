@@ -24,7 +24,7 @@ async function query(text, values = []) {
         client.release();
     }
 }
-const server = new McpServer({ name: "zorg-memorydb", version: "3.0.6" });
+const server = new McpServer({ name: "zorg-memorydb", version: "4.0.0" });
 server.registerTool("memory_health", { description: "Check PostgreSQL MemoryDB connectivity.", inputSchema: {} }, async () => ({ content: [{ type: "text", text: JSON.stringify(await query("select current_database() as database, current_user as user, now() as server_time")) }] }));
 server.registerTool("memory_tables", { description: "List canonical MemoryDB tables.", inputSchema: {} }, async () => ({ content: [{ type: "text", text: JSON.stringify(await query("select table_name from public.memory_tables_v1()")) }] }));
 server.registerTool("memory_search", { description: "Search canonical structured MemoryDB records.", inputSchema: { query: z.string().min(1), limit: z.number().int().min(1).max(50).optional() } }, async ({ query: q, limit = 10 }) => ({ content: [{ type: "text", text: JSON.stringify(await query("select row_data from public.memory_search_table_v1('all', $1, $2)", [q, limit])) }] }));

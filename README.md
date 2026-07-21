@@ -6,7 +6,7 @@ This repository is intentionally **not** a GitHub fork or full source fork of Op
 
 ## Release Focus
 
-Release `v3.0.0` is the complete connected package: the source-record capture
+Release `v4.0.0` is the complete connected package: the source-record capture
 tables and procedures, derived semantic/ANN recall paths, LAN Command Chat
 integration, and the canonical `zorg-db-memory` skill are versioned and
 verified together.
@@ -49,6 +49,28 @@ Install OpenClaw first from the upstream project:
 - <https://docs.openclaw.ai/start/getting-started>
 
 Then add this package's `zorg-db-memory` skill and `package/zorg` support files to the OpenClaw workspace or install path.
+
+## Manual command-line installation from GitHub
+
+```bash
+git clone --branch v4.0.0 https://github.com/StefRush2099/Zorg_MemoryDB.git
+cd Zorg_MemoryDB
+bash package/zorg/install-zorg-memorydb.sh
+```
+
+The installer removes previous Zorg package/plugin files while preserving the
+PostgreSQL MemoryDB, installs and enables the native `zorg-memorydb` plugin/MCP,
+and does not create, copy, import, or activate Markdown memory or rule files.
+After the installer completes, restart the OpenClaw Gateway and verify the
+runtime with:
+
+```bash
+openclaw plugins inspect zorg-memorydb --runtime --json
+node skills/zorg-db-memory/plugin-src/dist/mcp-server.js
+```
+
+Do not mix files from an older Zorg release with this tag. Installation testing
+on the publisher's host is not part of this release workflow.
 
 The public package does not instruct installed agents to publish back to this GitHub repository. Release publishing is a maintainer action.
 

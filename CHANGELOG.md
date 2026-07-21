@@ -1,5 +1,18 @@
 # Changelog
 
+## v4.0.0 - 2026-07-20
+
+- Major release: makes the OpenClaw-native `zorg-memorydb` plugin/MCP the sole
+  initialized and highest-priority durable-memory path.
+- Aligns package, plugin, MCP, LAN Command Chat, lockfile, and gauge metadata at
+  `4.0.0`.
+- Publishes an explicit command-line GitHub installation path and upgrade/removal
+  boundaries; PostgreSQL source data is preserved while prior Zorg package files
+  are removed before installation.
+- Removes remaining installer and package behavior that creates, copies, imports,
+  or activates Markdown memory/rule files. Markdown is not a fallback store.
+
+
 ## v3.0.6 - 2026-07-19
 
 - Completes the OpenClaw-native Zorg MemoryDB plugin/MCP package path.

@@ -1,0 +1,14 @@
+[Unit]
+Description=Zorg live OpenClaw trajectory memory capture
+After=postgresql.service
+
+[Service]
+Type=simple
+Environment=OPENCLAW_WORKSPACE=%h/.openclaw/workspace
+Environment=SQL_MEMORY_MAP=%h/.openclaw/workspace/skills/zorg-db-memory/config/sql_memory_map.json
+ExecStart=%h/.openclaw/workspace/.venv-sqlmem/bin/python %h/.openclaw/workspace/skills/zorg-db-memory/scripts/live_trajectory_memory_hook.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target

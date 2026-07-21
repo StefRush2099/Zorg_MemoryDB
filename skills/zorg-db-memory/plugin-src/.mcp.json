@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "zorg-memorydb": {
+      "command": "node",
+      "args": ["${__dirname}/dist/mcp-server.js"],
+      "env": {
+        "OPENCLAW_WORKSPACE": "${OPENCLAW_WORKSPACE}"
+      }
+    }
+  }
+}

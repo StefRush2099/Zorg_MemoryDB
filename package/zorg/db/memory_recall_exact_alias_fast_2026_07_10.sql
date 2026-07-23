@@ -75,7 +75,7 @@ BEGIN
       NULL::integer AS line_end,
       coalesce(r.priority::text, 'critical') AS priority,
       left(concat_ws(E'\n',
-        'Logic rule: ' || coalesce(r.title, r.rule_key),
+        'Logic rule: ' || coalesce(r.rule_title, r.rule_key),
         'Key: ' || r.rule_key,
         'Rule: ' || r.rule_text
       ), 4000) AS content,

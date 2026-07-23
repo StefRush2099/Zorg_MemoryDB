@@ -1,17 +1,12 @@
-import { getDbPool } from "@/lib/db";
-
 export async function compileSystemPrompt(inputText: string, metadata: Record<string, unknown> = {}) {
-  const p = getDbPool();
-  if (!p) {
-    return null;
-  }
-
-  const sql = `
-    select compiled_prompt, detected_intent, matched_rule_keys, matched_tool_keys, matched_categories
-    from zorg_compile_system_prompt($1, $2::jsonb)
-    limit 1
-  `;
-
-  const { rows } = await p.query(sql, [inputText, JSON.stringify(metadata)]);
-  return rows?.[0] || null;
+  const base = process.env.NEURAL_RECALL_ACTIVITY_URL?.trim() || "http://127.0.0.1:8097";
+  const response = await fetch(new URL("/api/compile", base), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ input: inputText, metadata }),
+    cache: "no-store",
+    signal: AbortSignal.timeout(15000),
+  });
+  if (!response.ok) throw new Error(`Zorg MemoryDB MCP compile failed: ${response.status}`);
+  return response.json();
 }

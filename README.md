@@ -6,7 +6,7 @@ This repository is intentionally **not** a GitHub fork or full source fork of Op
 
 ## Release Focus
 
-Release `v4.0.1` is the complete connected package: the source-record capture
+Release `v4.1.0` is the complete connected package: the source-record capture
 tables and procedures, derived semantic/ANN recall paths, LAN Command Chat
 integration, and the canonical `zorg-db-memory` skill are versioned and
 verified together.
@@ -19,10 +19,11 @@ verified together.
 - Bundled Python and shell tools for SQL inspection, recall routing, speed checks, auto-heal, semantic workers, LLM dispatch, backup, recovery, and install.
 - Context-window pruning through DB-backed execution slices instead of markdown summaries.
 - PostgreSQL schema, recall rules, install/rollback guidance, and public-safe canonical rule import material.
-- LAN Command Chat support files and Memory Brain 3D source maps/screenshots for operator-facing memory visibility.
+- LAN Command Chat support files and public Neural Recall Activity browser
+  assets/screenshots for operator-facing memory visibility.
 - Native Android LAN Command Chat source with direct authenticated API access,
-  native chat/theme/gauge views, and a separate Memory 3D client. It is not a
-  WebView wrapper and is not the browser LAN Console.
+  native chat/theme/gauge views, and a separate Neural Recall Activity client.
+  It is not a WebView wrapper and is not the browser LAN Console.
 - Supporting-service discovery rules for `cloudflared`, ComfyUI, `kokoro-fastapi-cpu`, MediaMTX, Ollama, SearXNG, and faster-whisper, with Dockge install requests when services are missing.
 - Passwordless local PostgreSQL bootstrap on loopback, with remote unauthenticated access rejected.
 - Native PostgreSQL 18 operation is supported through a clean-cluster logical restore; the retired container and rollback data remain local and are never packaged.
@@ -53,7 +54,7 @@ Then add this package's `zorg-db-memory` skill and `package/zorg` support files 
 ## Manual command-line installation from GitHub
 
 ```bash
-git clone --branch v4.0.0 https://github.com/StefRush2099/Zorg_MemoryDB.git
+git clone --branch v4.1.0 https://github.com/StefRush2099/Zorg_MemoryDB.git
 cd Zorg_MemoryDB
 bash package/zorg/install-zorg-memorydb.sh
 ```
@@ -165,7 +166,8 @@ After installing or updating the skill/package, verify DB access:
 /home/openclaw/.openclaw/workspace/.venv-sqlmem/bin/python /home/openclaw/.openclaw/workspace/skills/zorg-db-memory/scripts/memory_speed_test.py
 ```
 
-For browser-visible supporting apps such as LAN Command Chat or Memory Brain 3D, verify with screenshots before claiming the UI works.
+For browser-visible supporting apps such as LAN Command Chat or Neural Recall
+Activity, verify with screenshots before claiming the UI works.
 
 For the native PostgreSQL deployment and its cutover/rollback boundaries, see
 [docs/native-postgresql.md](docs/native-postgresql.md).

@@ -2,6 +2,10 @@
 set -euo pipefail
 
 missing=0
+mapfile -t public_source_files < <(
+  git ls-files --cached --others --exclude-standard \
+    | rg -v '^package/zorg/memory-3d/|^release/.*\.tar\.gz$|^scripts/verify-public-package\.sh$'
+)
 package_version="$(sed -n 's/^[[:space:]]*"version"[[:space:]]*:[[:space:]]*"\([0-9][0-9.]*\)".*/\1/p' package.json | head -1)"
 lan_chat_version="$(sed -n 's/^[[:space:]]*"version"[[:space:]]*:[[:space:]]*"\([0-9][0-9.]*\)".*/\1/p' package/zorg/lan-command-chat/package.json | head -1)"
 if [[ "$lan_chat_version" != "$package_version" ]]; then
@@ -27,15 +31,24 @@ if [[ "$missing" -ne 0 ]]; then
   exit 1
 fi
 
-if rg -n --hidden --glob '!.git/**' --glob '!release/*.tar.gz' --glob '!scripts/verify-public-package.sh' \
-  '(cfat_[A-Za-z0-9]|gho_[A-Za-z0-9]|BEGIN (RSA|OPENSSH|EC) PRIVATE KEY|password\\s*=|SECRET_ACCESS_KEY=|AWS_SECRET_ACCESS_KEY=|CLOUDFLARE_API_TOKEN=)' .; then
+if rg -n \
+  '(cfat_[A-Za-z0-9]|gho_[A-Za-z0-9]|github_pat_[A-Za-z0-9]|BEGIN (RSA|OPENSSH|EC) PRIVATE KEY|SECRET_ACCESS_KEY=|AWS_SECRET_ACCESS_KEY=|CLOUDFLARE_API_TOKEN=)' \
+  "${public_source_files[@]}"; then
   echo "possible secret found" >&2
   exit 1
 fi
 
-if rg --files --hidden --glob '!.git/**' | rg '(^|/)(node_modules|__pycache__|\\.gradle|build|\\.next|tmp|browser-profile)(/|$)|(^|/)local\\.properties$|sql_memory_map\\.json$|\\.(pyc|dump|backup)$' \
-  || rg --files --hidden --glob '!.git/**' | rg '(^|/)dist(/|$)' | rg -v '^skills/zorg-db-memory/plugin-src/dist/'; then
+if printf '%s\n' "${public_source_files[@]}" \
+    | rg '(^|/)(node_modules|__pycache__|\\.gradle|build|\\.next|tmp|browser-profile)(/|$)|(^|/)local\\.properties$|sql_memory_map\\.json$|\\.(pyc|dump|backup)$' \
+  || printf '%s\n' "${public_source_files[@]}" \
+    | rg '(^|/)dist(/|$)' \
+    | rg -v '^skills/zorg-db-memory/plugin-src/dist/'; then
   echo "generated/private artifact path found" >&2
+  exit 1
+fi
+
+if git ls-files --error-unmatch package/zorg/memory-3d >/dev/null 2>&1; then
+  echo "retired package/zorg/memory-3d must not be tracked in the public release" >&2
   exit 1
 fi
 
@@ -43,6 +56,11 @@ if [[ -f "$release_archive" ]]; then
   if tar -tzf "$release_archive" | rg '(^|/)(node_modules|__pycache__|\\.gradle|build|\\.next|tmp|browser-profile)(/|$)|(^|/)local\\.properties$|sql_memory_map\\.json$|\\.(pyc|dump|backup|tar\\.gz)$' \
     || tar -tzf "$release_archive" | rg '(^|/)dist(/|$)' | rg -v '^skills/zorg-db-memory/plugin-src/dist/'; then
     echo "generated/private artifact found inside release archive" >&2
+    exit 1
+  fi
+
+  if tar -tzf "$release_archive" | rg -q '^package/zorg/memory-3d/'; then
+    echo "retired package/zorg/memory-3d found inside release archive" >&2
     exit 1
   fi
 

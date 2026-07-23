@@ -1,9 +1,9 @@
-# Install Zorg MemoryDB v4.0.0 Package
+# Install Zorg MemoryDB v4.1.0 Package
 
 ## Command-line install from GitHub
 
 ```bash
-git clone --branch v4.0.0 https://github.com/StefRush2099/Zorg_MemoryDB.git
+git clone --branch v4.1.0 https://github.com/StefRush2099/Zorg_MemoryDB.git
 cd Zorg_MemoryDB
 bash package/zorg/install-zorg-memorydb.sh
 ```
@@ -14,6 +14,13 @@ MemoryDB. The install initializes and enables the OpenClaw-native
 `zorg-memorydb` plugin/MCP as the first and canonical memory path. It must not
 create, copy, import, or activate Markdown memory or rule files; Markdown is
 not a fallback store.
+
+During installation, the existing OpenClaw JSON configuration is merged and
+backed up before the installer disables built-in `memorySearch`, compaction
+`memoryFlush`, and the `session-memory` hook. The `zorg-memorydb` plugin remains
+enabled as the only active durable-memory path. Existing Markdown instruction
+files are preserved for bootstrap/recovery reference, but are not searched or
+written as memory.
 
 1. Install OpenClaw from upstream.
 2. Remove 100% of the previous Zorg package/plugin files for an upgrade;
@@ -28,7 +35,8 @@ not a fallback store.
    `openclaw plugins inspect zorg-memorydb --runtime --json` plus
    `node skills/zorg-db-memory/plugin-src/dist/mcp-server.js`.
 7. Verify backend DB recall, ANN/vector index/cache/weights, scheduler
-   mappings, LAN Command Chat, Memory 3D, and the clean-install/upgrade path.
+   mappings, LAN Command Chat, and the clean-install/upgrade path. Validate
+   Neural Recall Activity separately against its production service.
 
 ## LAN services and Android separation
 
@@ -39,28 +47,26 @@ workspace; it is not a separate application or service in the standard install.
 - **LAN Console browser:** Next.js LAN Chat, normally on internal port `3001`; its
   browser page owns browser light/dark controls and the Android APK download
   link.
-- **Memory Brain 3D surface:** PostgreSQL-backed Node/Express view on port
-  `8097`; it owns `/api/health`, `/api/graph`, and the interactive 3D browser
-  visualizer within the connected runtime.
+- **Neural Recall Activity:** a separate PostgreSQL-backed production service
+  on port `8097`. This repository captures its public browser assets under
+  `package/zorg/neural-recall-activity/`, but does not publish the
+  production-host server, database environment, or credentials.
 - **Native Android app:** the separately built APK under
   `package/zorg/lan-command-chat-android/`; it uses authenticated JSON APIs,
   does not load the browser page, and never displays the browser APK link.
 
-The installer runs `npm install --omit=dev` and `npm run check` in the Memory
-3D directory, then enables/restarts the `zorg-memory-3d` systemd service. After
-installation, verify the service before opening the clients:
+The retired `package/zorg/memory-3d/` package must not be restored or installed.
+When a separately deployed Neural Recall Activity service is available, verify
+it before opening the clients:
 
 ```bash
-systemctl status zorg-memory-3d
 curl -fsS http://127.0.0.1:8097/api/health
-curl -fsS http://127.0.0.1:8097/api/graph
+curl -fsS http://127.0.0.1:8097/api/activity
 ```
 
-The graph response must contain `nodes` and `links`. Empty arrays are a real
-empty-database state; HTTP errors or timeouts are service/database failures and
-must be repaired rather than replaced with fake graph data. See
-`package/zorg/memory-3d/README.md` for manual startup, environment variables,
-logs, and recovery.
+See `package/zorg/neural-recall-activity/README.md` for the production boundary
+and verification contract. HTTP errors or timeouts are service/database
+failures and must not be replaced with fabricated activity data.
 
 The skill is the canonical agent-facing procedure. The package code is the mechanical support layer.
 

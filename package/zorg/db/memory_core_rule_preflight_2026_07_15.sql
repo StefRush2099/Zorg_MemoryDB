@@ -49,7 +49,7 @@ end $$;
 create or replace function public.zorg_core_rule_preflight_v1()
 returns table(rule_key text, rule_id text, title text, rule_text text, priority text, gate_order integer)
 language sql stable as $$
-  select r.rule_key, r.id::text, r.title, r.rule_text, r.priority, 1
+  select r.rule_key, r.id::text, r.rule_title, r.rule_text, r.priority, 1
   from public.zorg_logic_rules r
   where r.rule_key = 'prework-summary-requires-go-before-mutation-2026-07-14'
     and coalesce(r.active,true)

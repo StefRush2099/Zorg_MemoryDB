@@ -22,6 +22,7 @@ tar \
   --exclude='tmp' \
   --exclude='*.env' \
   --exclude='sql_memory_map.json' \
+  --exclude='package/zorg/memory-3d' \
   --exclude='release/*.tar.gz' \
   -czf "$archive" \
   -C "$root" \

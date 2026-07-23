@@ -85,7 +85,7 @@ values
   'critical',
   'public_safe',
   'zorg/db/public_canonical_rules_update_2026_06_02.sql',
-  'A standalone additive agent backchannel is available for local collaborating agents when LAN chat may be affected by OpenClaw updates. On openclaw, the live service is agent-backchannel.service on port 3099, endpoint http://10.7.69.200:3099/messages, health http://10.7.69.200:3099/health, recent messages http://10.7.69.200:3099/messages. It must remain separate from LAN chat and must not change LAN chat authentication, routing, or ports 80/3001. Verify health, POST forwarding, JSONL persistence, and systemd active/enabled before claiming it works.',
+  'A standalone additive agent backchannel may be configured for local collaborating agents when LAN chat may be affected by OpenClaw updates. Configure its bind address, self URL, peers, and port through installation-local environment values; do not publish install-specific addresses in public seed data. It must remain separate from LAN chat and must not change LAN chat authentication or routing. Verify health, POST forwarding, persistence, and service activation before claiming it works.',
   ARRAY['agent_backchannel','LAN_chat','Vorg','AIDJ_Beta','OpenClaw_gateway','systemd']::text[]
 ),
 (
@@ -206,7 +206,7 @@ values
   'zorg/db/public_canonical_rules_update_2026_06_02.sql',
   'Regularly audit all OpenClaw cron jobs to ensure they are functioning as designed. Stay silent when all jobs are healthy. If a job is failing, stale, misrouted, accidentally disabled, or otherwise broken, inspect its schedule, payload, delivery, recent runs, scripts, prompts, and intended purpose. Make safe adaptive repairs directly when the intended design is clear, including schedule corrections, delivery-route fixes, stale/interrupted reruns, obvious script/path prompt updates, and re-enabling jobs disabled by accident. Do not delete jobs or make destructive scope changes unless explicitly directed by the job/user. Notify the operator only when something was repaired, repeatedly fails, is risky/unclear, or needs a decision. Active checker: `scripts/cron_health_audit.py`; active cron: `openclaw-cron-health-audit-and-repair`.
 
-Standing low-space remediation permission: if local free space drops below 20%, the operator authorizes threshold-triggered remediation without asking first: use the established vCenter/PowerCLI path from 10.7.69.104 to grow this OpenClaw VM disk by 20%, then rescan storage inside the VM and grow the partition/LVM/filesystem as needed. Avoid destructive storage actions. Verify free space recovered above 20% and alert the operator with old/new size/free space and actions taken; if blocked/risky/unclear, alert with the exact blocker and recommendation.',
+Installation-specific disk-growth authority, hypervisor routes, hostnames, and addresses are private configuration and must not be seeded publicly. If a local installation supplies an authorized remediation route, use it only within that installation''s explicit scope, avoid destructive storage actions, and verify the resulting free space before reporting completion.',
   ARRAY['executive_assistant','email','calendar','contacts','zorg_memorydb','AGENTS.md']::text[]
 ),
 (
@@ -893,16 +893,6 @@ This applies to website checks, LAN command center verification, browser/CDP scr
   ARRAY['AGENTS.md','IDENTITY.md','SOUL.md','TOOLS.md','USER.md','zorg_memorydb']::text[]
 ),
 (
-  'no-touch-debiansrv02-10-7-69-104-without-explicit-authorization-2026-05-23',
-  'Do not touch DebianSRV02 / 10.7.69.104 without explicit authorization',
-  'authorization_boundary',
-  'critical',
-  'public_safe',
-  'zorg/db/public_canonical_rules_update_2026_06_02.sql',
-  'the operator explicitly instructed on : "Do not touch 10.7.69.104 desbian server you are not authorized to work on that system." Treat DebianSRV02 / 10.7.69.104 as off-limits for commands, SSH, file changes, service checks, restores, vCenter-mediated work, or indirect operations unless the operator gives explicit authorization for that specific action. Historical references to prior use of 10.7.69.104 do not authorize new access.',
-  ARRAY['DebianSRV02','10.7.69.104','jump box','remote host access','repair RCA']::text[]
-),
-(
   'operator_instructions_additive_by_default',
   'Operator Instructions Additive By Default',
   'operating_rule',
@@ -1368,7 +1358,6 @@ begin
       'markdown-marker-block::go-only-approval-rule',
       'markdown-marker-block::os-patch-reboot-maintenance-rule',
       'markdown-marker-block::screenshot-delivery-verification-rule',
-      'no-touch-debiansrv02-10-7-69-104-without-explicit-authorization-2026-05-23',
       'operator_instructions_additive_by_default',
       'outbound-email-copy-hierarchy-public-safe-2026-05-20',
       'outbound-email-rich-text-html-default',
@@ -1400,7 +1389,7 @@ begin
       'runtime-db-only-memory-writer-hard-stop',
       'user-visible-timestamp-duration-rule'
     );
-  if public_rule_count <> 104 then
-    raise exception 'public canonical rule seed expected 104 active public rules, found %', public_rule_count;
+  if public_rule_count <> 103 then
+    raise exception 'public canonical rule seed expected 103 active public rules, found %', public_rule_count;
   end if;
 end $$;

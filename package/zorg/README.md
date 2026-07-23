@@ -28,10 +28,10 @@ This directory contains the public-safe Zorg MemoryDB and LAN command chat insta
 
 The OpenClaw installer calls this bootstrap when the package contains `zorg/install-zorg-memorydb.sh`. Set `ZORG_MEMORYDB_SKIP_BOOTSTRAP=1` to skip it for a special-purpose install.
 
-The bootstrap prepares the database, LAN command chat, and connected Memory
-Brain 3D source for clean installs and existing installs. It preserves existing
-user data; the separate `prepare_public_baseline.sql` file is only for building
-a distributable public baseline and must not be run against a live user database.
+The bootstrap prepares the database and LAN Command Chat for clean installs and
+existing installs. It preserves existing user data; the separate
+`prepare_public_baseline.sql` file is only for building a distributable public
+baseline and must not be run against a live user database.
 
 The 8097 Neural Recall Activity service is a separate production deployment;
 its server and database environment remain on the production host. Verify it

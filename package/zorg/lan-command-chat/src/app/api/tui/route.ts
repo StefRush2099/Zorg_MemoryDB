@@ -53,7 +53,16 @@ async function restartSession() {
 
 async function capture() {
   await startSession();
-  const { stdout } = await tmux(["capture-pane", "-p", "-t", SESSION, "-S", `-${CAPTURE_LINES}`]);
+  let stdout: string;
+  try {
+    ({ stdout } = await tmux(["capture-pane", "-p", "-t", SESSION, "-S", `-${CAPTURE_LINES}`]));
+  } catch {
+    // The TUI can exit while the Gateway or app is restarting, between the
+    // session check and capture. Recreate it once so the browser self-heals.
+    await restartSession();
+    await new Promise((resolve) => setTimeout(resolve, 400));
+    ({ stdout } = await tmux(["capture-pane", "-p", "-t", SESSION, "-S", `-${CAPTURE_LINES}`]));
+  }
   return stdout
     .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, "")
     .split("\n")

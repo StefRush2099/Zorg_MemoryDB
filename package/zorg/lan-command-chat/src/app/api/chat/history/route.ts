@@ -26,12 +26,12 @@ const STREAM_HISTORY_LIMIT = 20;
 const DEFAULT_STREAM_SESSION_KEYS = [
   appConfig.sessionKey,
   "agent:main:main",
-  "agent:main:telegram:default:direct:8481435159",
 ];
 
 function streamSessionKeys() {
   const configured = process.env.CHAT_STREAM_SESSION_KEYS?.split(",").map((item) => item.trim()).filter(Boolean) ?? [];
-  return [...new Set([...configured, ...DEFAULT_STREAM_SESSION_KEYS].filter(Boolean))];
+  const preferredDirectKey = process.env.OPENCLAW_DIRECT_SESSION_KEY?.trim();
+  return [...new Set([...configured, ...DEFAULT_STREAM_SESSION_KEYS, preferredDirectKey].filter(Boolean) as string[])];
 }
 
 async function loadGatewaySessionHistory(sessionKey: string): Promise<StreamMessage[]> {

@@ -55,7 +55,7 @@ begin
       r.source_type, r.source_id, r.path, r.line_start, r.line_end,
       coalesce(r.priority, 'critical') as priority,
       left(r.content, 4000) as content,
-      850::numeric as score,
+      (850 + coalesce((select least(500, public.zorg_logic_rule_effective_weight(lr.rule_key,lr.priority,lr.updated_at)) from public.zorg_logic_rules lr where lr.id::text=r.source_id),0))::numeric as score,
       'logic rule preflight procedure'::text as score_reason,
       jsonb_build_object('procedure', 'zorg_get_logic_context') as metadata,
       850::numeric as layer_boost,
@@ -72,7 +72,7 @@ begin
       coalesce(w.relevance_score, 0)::numeric as score,
       coalesce(w.score_reason, 'weighted recall procedure') as score_reason,
       coalesce(w.weight_breakdown, '{}'::jsonb) || jsonb_build_object('procedure', 'zorg_weighted_recall_context') as metadata,
-      450::numeric as layer_boost,
+      550::numeric as layer_boost,
       'weighted_deep'::text as layer
     from public.zorg_weighted_recall_context(v_query, v_limit) w
     where v_deep
@@ -214,8 +214,14 @@ begin
   begin
     set local lock_timeout = '500ms';
     select z.content into v_text
-    from public.zorg_memory_search_mv z
-    where z.source_table = p_source_type
+    from public.zorg_memory_search_fast_mv z
+    where z.source_table = case p_source_type
+      when 'logic_rule' then 'zorg_logic_rules'
+      when 'memory' then 'zorg_memory'
+      when 'source_chunk' then 'memory_source_chunks'
+      when 'lan_chat' then 'lan_chat_messages'
+      else p_source_type
+    end
       and z.source_id = p_source_key
     order by z.event_ts desc nulls last
     limit 1;

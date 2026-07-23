@@ -44,7 +44,6 @@ fi
 OPENCLAW_WORKSPACE="${OPENCLAW_WORKSPACE:-$OPENCLAW_EFFECTIVE_HOME/.openclaw/workspace}"
 ZORG_WORKSPACE_DIR="${ZORG_WORKSPACE_DIR:-$OPENCLAW_WORKSPACE/zorg-memorydb}"
 LAN_CHAT_DIR="${LAN_CHAT_DIR:-$OPENCLAW_WORKSPACE/lan-chat}"
-MEMORY_3D_DIR="${MEMORY_3D_DIR:-$OPENCLAW_WORKSPACE/memory-3d}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd -P)"
 PACKAGE_ROOT="$SCRIPT_DIR"
 SKILL_SOURCE_DIR="$(cd "$SCRIPT_DIR/../../skills/zorg-db-memory" 2>/dev/null && pwd -P || true)"
@@ -136,11 +135,6 @@ copy_packaged_components() {
   fi
   log "Copying LAN command chat source into $LAN_CHAT_DIR"
   cp -R "$PACKAGE_ROOT/lan-command-chat/." "$LAN_CHAT_DIR/"
-  if [[ -d "$PACKAGE_ROOT/memory-3d" ]]; then
-    mkdir -p "$MEMORY_3D_DIR"
-    log "Copying Memory Brain 3D source into $MEMORY_3D_DIR"
-    cp -R "$PACKAGE_ROOT/memory-3d/." "$MEMORY_3D_DIR/"
-  fi
 }
 
 ensure_db_password() {
@@ -322,17 +316,50 @@ configure_passwordless_local_auth() {
     warn "Could not locate pg_hba.conf; local passwordless access was not configured."
     return 0
   }
-  if ! grep -Eq "^[[:space:]]*host[[:space:]]+$ZORG_DB_NAME[[:space:]]+$ZORG_DB_USER[[:space:]]+127\\.0\\.0\\.1/32[[:space:]]+trust([[:space:]]|$)" "$hba_file"; then
-    if is_root; then
-      printf '\n# Zorg MemoryDB: passwordless local-only access; never expose this rule beyond loopback.\nhost %s %s 127.0.0.1/32 trust\n' "$ZORG_DB_NAME" "$ZORG_DB_USER" >> "$hba_file"
-    elif has_passwordless_sudo; then
-      printf '\n# Zorg MemoryDB: passwordless local-only access; never expose this rule beyond loopback.\nhost %s %s 127.0.0.1/32 trust\n' "$ZORG_DB_NAME" "$ZORG_DB_USER" | sudo -n tee -a "$hba_file" >/dev/null
+  local python_cmd=(python3 - "$hba_file" "$ZORG_DB_NAME" "$ZORG_DB_USER")
+  if ! is_root; then
+    if has_passwordless_sudo; then
+      python_cmd=(sudo -n python3 - "$hba_file" "$ZORG_DB_NAME" "$ZORG_DB_USER")
     else
       warn "Cannot update pg_hba.conf without root; local passwordless access was not configured."
       return 0
     fi
-    run_postgres_superuser_sql "SELECT pg_reload_conf()" >/dev/null || true
   fi
+  "${python_cmd[@]}" <<'PY'
+from pathlib import Path
+import os
+import re
+import sys
+
+path = Path(sys.argv[1])
+database = sys.argv[2]
+user = sys.argv[3]
+stat = path.stat()
+lines = path.read_text(encoding="utf-8").splitlines()
+rule_re = re.compile(
+    rf"^\s*host\s+{re.escape(database)}\s+{re.escape(user)}\s+127\.0\.0\.1/32\s+trust(?:\s|$)"
+)
+comment = "# Zorg MemoryDB: passwordless local-only access; never expose this rule beyond loopback."
+lines = [line for line in lines if not rule_re.match(line) and line != comment]
+insert_at = next(
+    (
+        i
+        for i, line in enumerate(lines)
+        if re.match(r"^\s*host\s+all\s+all\s+127\.0\.0\.1/32\s+", line)
+    ),
+    len(lines),
+)
+lines[insert_at:insert_at] = [
+    comment,
+    f"host    {database}    {user}    127.0.0.1/32    trust",
+]
+tmp = path.with_name(path.name + ".zorg-memorydb.tmp")
+tmp.write_text("\n".join(lines) + "\n", encoding="utf-8")
+os.chown(tmp, stat.st_uid, stat.st_gid)
+os.chmod(tmp, stat.st_mode & 0o7777)
+os.replace(tmp, path)
+PY
+  run_postgres_superuser_sql "SELECT pg_reload_conf()" >/dev/null
 }
 
 ensure_postgres_database() {
@@ -346,15 +373,20 @@ ensure_postgres_database() {
   configure_passwordless_local_auth
   ensure_postgres_extension_packages
   ensure_pg_cron_configuration
+  run_postgres_superuser_target_sql "CREATE EXTENSION IF NOT EXISTS vector" >/dev/null || {
+    warn "The vector extension requires PostgreSQL superuser installation."
+    return 1
+  }
   psql -h "$ZORG_DB_HOST" -p "$ZORG_DB_PORT" -U "$ZORG_DB_USER" -d "$ZORG_DB_NAME" -v ON_ERROR_STOP=1 -f "$ZORG_WORKSPACE_DIR/db/schema.sql" || {
     warn "Schema apply failed. Create database/role or set ZORG_DB_* variables, then rerun this script."
-    return 0
+    return 1
   }
-  if [[ -f "$ZORG_WORKSPACE_DIR/db/memory_file_archive_schema.sql" ]]; then
-    psql -h "$ZORG_DB_HOST" -p "$ZORG_DB_PORT" -U "$ZORG_DB_USER" -d "$ZORG_DB_NAME" -v ON_ERROR_STOP=1 -f "$ZORG_WORKSPACE_DIR/db/memory_file_archive_schema.sql" || true
-  fi
   for sql_file in \
+    memory_file_archive_schema.sql \
+    memory_typed_events_2026_07_16.sql \
+    public_canonical_rules_update_2026_06_02.sql \
     memory_recall_procedure_api_2026_07_10.sql \
+    memory_runtime_compat_2026_07_21.sql \
     memory_core_rule_preflight_2026_07_15.sql \
     memory_recall_exact_alias_fast_2026_07_10.sql \
     memory_recall_fast_mv_bounded_2026_07_10.sql \
@@ -363,20 +395,32 @@ ensure_postgres_database() {
     memory_correction_learning_2026_07_11.sql \
     memory_ann_bootstrap_2026_07_12.sql \
     memory_ann_provider_defaults_2026_07_12.sql \
-    memory_semantic_capture_triggers_2026_07_17.sql \
-    memory_recall_zorg_memorydb_update_2026_07_12.sql; do
+    memory_logic_rule_feedback_2026_07_17.sql \
+    memory_complete_self_repair_rule_2026_07_21.sql \
+    memory_rule_scope_dedup_2026_07_15.sql \
+    memory_semantic_capture_triggers_2026_07_17.sql; do
     if [[ -f "$ZORG_WORKSPACE_DIR/db/$sql_file" ]]; then
-      psql -h "$ZORG_DB_HOST" -p "$ZORG_DB_PORT" -U "$ZORG_DB_USER" -d "$ZORG_DB_NAME" -v ON_ERROR_STOP=1 -f "$ZORG_WORKSPACE_DIR/db/$sql_file" || true
+      psql -h "$ZORG_DB_HOST" -p "$ZORG_DB_PORT" -U "$ZORG_DB_USER" -d "$ZORG_DB_NAME" -v ON_ERROR_STOP=1 -f "$ZORG_WORKSPACE_DIR/db/$sql_file"
     fi
   done
   if [[ -f "$ZORG_WORKSPACE_DIR/db/memory_semantic_capture_triggers_2026_07_17.sql" ]]; then
     psql -h "$ZORG_DB_HOST" -p "$ZORG_DB_PORT" -U "$ZORG_DB_USER" -d "$ZORG_DB_NAME" -Atqc \
       "SELECT CASE WHEN count(*) = 11 AND bool_and(trigger_enabled) THEN 'semantic-capture-triggers-ok' ELSE 'semantic-capture-triggers-incomplete' END FROM public.memory_semantic_capture_trigger_status_v1" \
-      || warn "Semantic capture trigger verification failed; live runtime capture is not complete."
+      | grep -qx 'semantic-capture-triggers-ok' \
+      || { warn "Semantic capture trigger verification failed; live runtime capture is not complete."; return 1; }
   fi
-  if [[ -f "$ZORG_WORKSPACE_DIR/db/public_canonical_rules_update_2026_06_02.sql" ]]; then
-    psql -h "$ZORG_DB_HOST" -p "$ZORG_DB_PORT" -U "$ZORG_DB_USER" -d "$ZORG_DB_NAME" -v ON_ERROR_STOP=1 -f "$ZORG_WORKSPACE_DIR/db/public_canonical_rules_update_2026_06_02.sql" || true
-  fi
+  psql -h "$ZORG_DB_HOST" -p "$ZORG_DB_PORT" -U "$ZORG_DB_USER" -d "$ZORG_DB_NAME" -v ON_ERROR_STOP=1 -Atqc \
+    "SELECT public.refresh_zorg_memory_search_fast_mv(); SELECT public.refresh_zorg_master_context();"
+  ensure_memorydb_pg_cron_jobs
+}
+
+ensure_memorydb_pg_cron_jobs() {
+  run_postgres_superuser_target_sql "GRANT USAGE ON SCHEMA cron TO \"$ZORG_DB_USER\"; GRANT SELECT ON cron.job, cron.job_run_details TO \"$ZORG_DB_USER\"; GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA cron TO \"$ZORG_DB_USER\";" >/dev/null || return 1
+  psql -h "$ZORG_DB_HOST" -p "$ZORG_DB_PORT" -U "$ZORG_DB_USER" -d "$ZORG_DB_NAME" -v ON_ERROR_STOP=1 -Atqc \
+    "SELECT cron.schedule('zorg-memorydb-core-runner','* * * * *','SELECT public.memory_db_run_due_jobs_sql(10);'); SELECT cron.schedule('zorg-memorydb-llm-enqueuer','* * * * *','SELECT public.memory_llm_enqueue_due_jobs_v1(50);');" >/dev/null || {
+    warn "Could not install the two PostgreSQL MemoryDB firing jobs."
+    return 1
+  }
 }
 
 write_memory_config() {
@@ -401,6 +445,9 @@ write_memory_config() {
   }
 }
 JSON
+  mkdir -p "$OPENCLAW_WORKSPACE/skills/zorg-db-memory/config"
+  cp "$OPENCLAW_WORKSPACE/sql_memory_map.json" \
+    "$OPENCLAW_WORKSPACE/skills/zorg-db-memory/config/sql_memory_map.json"
   # MemoryDB access is owned exclusively by the installed native plugin/MCP.
   # Remove known legacy launch surfaces before each update so stale installs
   # cannot win plugin discovery or silently become a fallback.
@@ -416,12 +463,110 @@ JSON
     cp -R "$PLUGIN_SOURCE_DIR" "$plugin_dir"
     (cd "$plugin_dir" && npm ci --omit=optional --ignore-scripts)
     npm --prefix "$plugin_dir" run build
-    openclaw plugins install "$plugin_dir" --force >/dev/null 2>&1 || true
-    openclaw plugins enable zorg-memorydb >/dev/null 2>&1 || true
+    if is_root && [[ -n "${SUDO_USER:-}" && "${SUDO_USER:-}" != "root" ]]; then
+      local sudo_home openclaw_bin
+      sudo_home="$(getent passwd "$SUDO_USER" | awk -F: '{print $6}')"
+      openclaw_bin="$(command -v openclaw)"
+      chown -R "$SUDO_USER:$SUDO_USER" "$OPENCLAW_WORKSPACE/skills/zorg-db-memory"
+      sudo -u "$SUDO_USER" env \
+        HOME="$sudo_home" \
+        OPENCLAW_WORKSPACE="$OPENCLAW_WORKSPACE" \
+        "$openclaw_bin" plugins install "$plugin_dir" --force
+      sudo -u "$SUDO_USER" env \
+        HOME="$sudo_home" \
+        OPENCLAW_WORKSPACE="$OPENCLAW_WORKSPACE" \
+        "$openclaw_bin" plugins enable zorg-memorydb
+    else
+      openclaw plugins install "$plugin_dir" --force
+      openclaw plugins enable zorg-memorydb
+    fi
   else
     warn "Canonical Zorg MemoryDB plugin source is missing; refusing to install legacy launchers."
   fi
   return 0
+}
+
+enforce_plugin_only_memory_config() {
+  python3 - "$OPENCLAW_EFFECTIVE_HOME" "$OPENCLAW_WORKSPACE" <<'PY'
+from pathlib import Path
+import json
+import os
+import shutil
+import sys
+import tempfile
+
+home = Path(sys.argv[1]).expanduser()
+workspace = Path(sys.argv[2]).expanduser()
+candidates = []
+for candidate in (
+    home / "openclaw.json",
+    home / ".openclaw" / "openclaw.json",
+    workspace.parent / "openclaw.json",
+):
+    if candidate not in candidates:
+        candidates.append(candidate)
+
+existing_candidates = [path for path in candidates if path.exists()]
+if not existing_candidates:
+    canonical = home / ".openclaw" / "openclaw.json"
+    canonical.parent.mkdir(parents=True, exist_ok=True)
+    canonical.write_text("{}\n", encoding="utf-8")
+    existing_candidates = [canonical]
+
+updated = False
+for path in existing_candidates:
+    try:
+        config = json.loads(path.read_text(encoding="utf-8"))
+    except Exception as exc:
+        print(f"zorg-memorydb warning: cannot enforce Markdown lockout in {path}: {exc}", file=sys.stderr)
+        continue
+    if not isinstance(config, dict):
+        continue
+
+    agents = config.setdefault("agents", {})
+    defaults = agents.setdefault("defaults", {})
+    defaults["memorySearch"] = {"enabled": False}
+    compaction = defaults.setdefault("compaction", {})
+    compaction["memoryFlush"] = {"enabled": False}
+    for agent in agents.get("list", []):
+        if isinstance(agent, dict):
+            agent["memorySearch"] = {"enabled": False}
+            agent_compaction = agent.setdefault("compaction", {})
+            if isinstance(agent_compaction, dict):
+                agent_compaction["memoryFlush"] = {"enabled": False}
+
+    hooks = config.setdefault("hooks", {})
+    internal = hooks.setdefault("internal", {})
+    entries = internal.setdefault("entries", {})
+    session_memory = entries.setdefault("session-memory", {})
+    session_memory["enabled"] = False
+
+    plugins = config.setdefault("plugins", {})
+    plugin_entries = plugins.setdefault("entries", {})
+    zorg_plugin = plugin_entries.setdefault("zorg-memorydb", {})
+    zorg_plugin["enabled"] = True
+
+    backup = path.with_name(path.name + ".pre-zorg-memory-lockout.bak")
+    if not backup.exists():
+        shutil.copy2(path, backup)
+    payload = json.dumps(config, indent=2) + "\n"
+    fd, tmp_name = tempfile.mkstemp(prefix=path.name + ".", suffix=".tmp", dir=path.parent)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as handle:
+            handle.write(payload)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.chmod(tmp_name, path.stat().st_mode & 0o7777)
+        os.replace(tmp_name, path)
+    finally:
+        if os.path.exists(tmp_name):
+            os.unlink(tmp_name)
+    print(f"zorg-memorydb: enforced plugin-only memory and disabled Markdown memory runtime: {path}")
+    updated = True
+
+if not updated:
+    raise SystemExit("zorg-memorydb: plugin-only Markdown lockout could not be enforced")
+PY
 }
 
 write_gateway_tui_compat_config() {
@@ -491,87 +636,23 @@ prepare_lan_chat() {
   fi
 }
 
-prepare_memory_3d() {
-  if [[ ! -d "$MEMORY_3D_DIR" || ! -f "$MEMORY_3D_DIR/package.json" ]]; then
-    warn "Memory 3D source is missing at $MEMORY_3D_DIR; graph service was not prepared."
-    return 0
+install_memorydb_dispatcher_service() {
+  local source_unit="$PACKAGE_ROOT/systemd/zorg-memorydb-llm-dispatcher.service"
+  [[ -f "$source_unit" ]] || { warn "MemoryDB LLM dispatcher unit template is missing."; return 1; }
+  if [[ "$(id -u)" == "0" && -n "${SUDO_USER:-}" && "${SUDO_USER:-}" != "root" ]]; then
+    local sudo_home
+    sudo_home="$(getent passwd "$SUDO_USER" | awk -F: '{print $6}')"
+    install -d -o "$SUDO_USER" -g "$SUDO_USER" "$sudo_home/.config/systemd/user"
+    sed "s|%h|$sudo_home|g" "$source_unit" > "$sudo_home/.config/systemd/user/zorg-memorydb-llm-dispatcher.service"
+    chown "$SUDO_USER:$SUDO_USER" "$sudo_home/.config/systemd/user/zorg-memorydb-llm-dispatcher.service"
+    sudo -u "$SUDO_USER" env HOME="$sudo_home" systemctl --user daemon-reload
+    sudo -u "$SUDO_USER" env HOME="$sudo_home" systemctl --user enable --now zorg-memorydb-llm-dispatcher.service
+  else
+    mkdir -p "$HOME/.config/systemd/user"
+    cp "$source_unit" "$HOME/.config/systemd/user/zorg-memorydb-llm-dispatcher.service"
+    systemctl --user daemon-reload
+    systemctl --user enable --now zorg-memorydb-llm-dispatcher.service
   fi
-  if ! command -v npm >/dev/null 2>&1; then
-    warn "npm is unavailable; install Node.js/npm and rerun to prepare Memory 3D."
-    return 0
-  fi
-  (cd "$MEMORY_3D_DIR" && npm install --omit=dev)
-  (cd "$MEMORY_3D_DIR" && npm run check)
-}
-
-install_memory_3d_service() {
-  if [[ ! -d "$MEMORY_3D_DIR" || ! -f "$MEMORY_3D_DIR/package.json" ]]; then
-    return 0
-  fi
-  if ! command -v systemctl >/dev/null 2>&1; then
-    warn "systemd is unavailable; Memory 3D source is installed but no service was created. Start it with: cd $MEMORY_3D_DIR && PORT=8097 npm start"
-    return 0
-  fi
-  local npm_bin service_path service_user
-  npm_bin="$(command -v npm || true)"
-  if [[ -z "$npm_bin" ]]; then
-    warn "npm is unavailable; Memory 3D source is installed but no service was created."
-    return 0
-  fi
-  service_path="$(dirname "$npm_bin"):/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-  service_user="$(stat -c '%U' "$OPENCLAW_WORKSPACE" 2>/dev/null || true)"
-  if [[ -z "$service_user" || "$service_user" == "UNKNOWN" || "$service_user" == "root" ]]; then
-    service_user="${SUDO_USER:-$(id -un)}"
-  fi
-  if [[ "$(id -u)" == "0" ]]; then
-    cat > /etc/systemd/system/zorg-memory-3d.service <<SERVICE
-[Unit]
-Description=Zorg Memory Brain 3D API
-After=network-online.target postgresql.service
-
-[Service]
-Type=simple
-User=$service_user
-WorkingDirectory=$MEMORY_3D_DIR
-Environment=PATH=$service_path
-Environment=PORT=8097
-Environment=OPENCLAW_WORKSPACE=$OPENCLAW_WORKSPACE
-Environment=MEMORY_3D_DIR=$MEMORY_3D_DIR
-ExecStart=$npm_bin start
-Restart=always
-RestartSec=5
-
-[Install]
-WantedBy=multi-user.target
-SERVICE
-    systemctl daemon-reload || true
-    systemctl enable zorg-memory-3d.service || true
-    systemctl restart zorg-memory-3d.service || warn "Memory 3D restart failed; run: systemctl status zorg-memory-3d.service"
-    return 0
-  fi
-  mkdir -p "$HOME/.config/systemd/user"
-  cat > "$HOME/.config/systemd/user/zorg-memory-3d.service" <<SERVICE
-[Unit]
-Description=Zorg Memory Brain 3D API
-After=network-online.target
-
-[Service]
-Type=simple
-WorkingDirectory=$MEMORY_3D_DIR
-Environment=PATH=$service_path
-Environment=PORT=8097
-Environment=OPENCLAW_WORKSPACE=$OPENCLAW_WORKSPACE
-Environment=MEMORY_3D_DIR=$MEMORY_3D_DIR
-ExecStart=$npm_bin start
-Restart=always
-RestartSec=5
-
-[Install]
-WantedBy=default.target
-SERVICE
-  systemctl --user daemon-reload || true
-  systemctl --user enable zorg-memory-3d.service || true
-  systemctl --user restart zorg-memory-3d.service || warn "Memory 3D restart failed; run: systemctl --user status zorg-memory-3d.service"
 }
 
 install_lan_chat_service() {
@@ -587,6 +668,8 @@ install_lan_chat_service() {
   fi
   local service_path
   service_path="$(dirname "$npm_bin"):/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+  local openclaw_bin
+  openclaw_bin="$(command -v openclaw || true)"
   if [[ "$(id -u)" == "0" ]]; then
     local service_user
     service_user="$(stat -c '%U' "$OPENCLAW_WORKSPACE" 2>/dev/null || true)"
@@ -607,6 +690,7 @@ Type=simple
 User=$service_user
 WorkingDirectory=$LAN_CHAT_DIR
 Environment=PATH=$service_path
+Environment=OPENCLAW_BIN=$openclaw_bin
 Environment=PORT=$LAN_CHAT_PORT
 Environment=HOSTNAME=$LAN_CHAT_HOST
 ExecStart=$npm_bin run start
@@ -631,6 +715,7 @@ After=network-online.target
 Type=simple
 WorkingDirectory=$LAN_CHAT_DIR
 Environment=PATH=$service_path
+Environment=OPENCLAW_BIN=$openclaw_bin
 Environment=PORT=$LAN_CHAT_PORT
 Environment=HOSTNAME=$LAN_CHAT_HOST
 ExecStart=$npm_bin run start
@@ -665,22 +750,19 @@ main() {
   copy_packaged_components
   ensure_postgres_database
   write_memory_config
+  enforce_plugin_only_memory_config
   if [[ "$ZORG_PATCH_EXISTING_DOCKER_CONFIG" == "1" ]]; then
     write_gateway_tui_compat_config
   else
     log "Skipping existing Docker/TUI gateway config patch; set ZORG_PATCH_EXISTING_DOCKER_CONFIG=1 only for an intentional existing Docker repair."
   fi
-  if [[ -x "$OPENCLAW_WORKSPACE/enforce_db_memory_search.py" ]]; then
-    "$OPENCLAW_WORKSPACE/.venv-sqlmem/bin/python" "$OPENCLAW_WORKSPACE/enforce_db_memory_search.py" || true
-  fi
   if [[ -d "$OPENCLAW_WORKSPACE/memory" && -x "$OPENCLAW_WORKSPACE/archive_retired_memory_dir.py" ]]; then
     ZORG_SKIP_RECALL_REFRESH=1 "$OPENCLAW_WORKSPACE/.venv-sqlmem/bin/python" "$OPENCLAW_WORKSPACE/archive_retired_memory_dir.py" || true
   fi
   prepare_lan_chat
-  prepare_memory_3d
   maybe_chown_sudo_workspace
   install_lan_chat_service
-  install_memory_3d_service
+  install_memorydb_dispatcher_service
   log "Zorg MemoryDB and LAN command chat bootstrap complete."
 }
 main "$@"

@@ -1,5 +1,28 @@
 # Changelog
 
+## v4.1.0 - 2026-07-23
+
+- Adds the complete public-safe MemoryDB self-repair contract, runtime
+  compatibility helpers, canonical preflight ordering, bounded/exact recall
+  improvements, and rule-scope deduplication.
+- Strengthens ANN/semantic processing with provider defaults, automatic vector
+  repair, Ollama synchronization, semantic-worker telemetry compatibility, and
+  additive source preservation.
+- Extends the OpenClaw-native plugin/MCP tools and aligns source, distribution,
+  manifest, package, LAN Command Chat, and release metadata at `4.1.0`.
+- Packages the PostgreSQL-owned LLM dispatcher systemd unit and makes installer
+  failures explicit instead of silently accepting incomplete database,
+  plugin, trigger, or service activation.
+- Updates LAN Command Chat routing, prompt compilation, Compose/nginx defaults,
+  and package locks while keeping it separate from Neural Recall Activity.
+- Preserves the public Neural Recall Activity browser assets and explicitly
+  excludes the retired `package/zorg/memory-3d/` server package.
+- Adds release gates for version consistency, public/private separation,
+  retired-package exclusion, archive integrity, and source/distribution parity.
+- Installation and upgrade testing is intentionally delegated to a different
+  OpenClaw agent on a genuine target system; the source system is not used as
+  an installation target.
+
 ## v4.0.1 - 2026-07-21
 
 - Removes the retired Memory 3D package.

@@ -3,154 +3,136 @@
 
 const fs = require("node:fs");
 const path = require("node:path");
+const { spawnSync } = require("node:child_process");
 
-const root = path.resolve(__dirname, "..");
-const pkg = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8"));
-const EXPECTED_CODEX_PLUGIN_SPEC = `@openclaw/codex@${pkg.version}`;
-
-function fail(message) {
-  console.error("[zorg-verify-package-runtime] " + message);
-  process.exitCode = 1;
-}
-
-function listDistChunksByPrefix(prefix) {
-  const distRoot = path.join(root, "dist");
-  try {
-    return fs
-      .readdirSync(distRoot, { withFileTypes: true })
-      .filter(
-        (entry) =>
-          entry.isFile() && entry.name.startsWith(`${prefix}-`) && entry.name.endsWith(".js"),
-      )
-      .map((entry) => path.join("dist", entry.name))
-      .sort();
-  } catch {
-    return [];
-  }
-}
-
-for (const [subpath, target] of Object.entries(pkg.exports || {})) {
-  if (!subpath.startsWith("./plugin-sdk/")) {
-    continue;
-  }
-  for (const key of ["default", "types"]) {
-    const rel = typeof target === "string" ? target : target && target[key];
-    if (!rel) {
-      continue;
-    }
-    const full = path.join(root, rel);
-    if (!fs.existsSync(full)) {
-      fail(`${subpath} ${key} points to missing file ${rel}`);
-    }
-  }
-}
-
-const harnessRuntimePath = path.join(
-  root,
-  pkg.exports["./plugin-sdk/agent-harness-runtime"].default,
+const repoRoot = path.resolve(__dirname, "..", "..");
+const rootPackage = JSON.parse(
+  fs.readFileSync(path.join(repoRoot, "package.json"), "utf8"),
 );
-const taskRuntimePath = path.join(
-  root,
-  pkg.exports["./plugin-sdk/agent-harness-task-runtime"].default,
+const pluginRoot = path.join(repoRoot, "skills", "zorg-db-memory", "plugin-src");
+const pluginPackage = JSON.parse(
+  fs.readFileSync(path.join(pluginRoot, "package.json"), "utf8"),
 );
-const harnessRuntime = fs.readFileSync(harnessRuntimePath, "utf8");
-const taskRuntime = fs.readFileSync(taskRuntimePath, "utf8");
-const postinstallUpgradePath = path.join(root, "zorg/postinstall-existing-upgrade.cjs");
+const pluginManifest = JSON.parse(
+  fs.readFileSync(path.join(pluginRoot, "openclaw.plugin.json"), "utf8"),
+);
+const lanChatPackage = JSON.parse(
+  fs.readFileSync(
+    path.join(repoRoot, "package", "zorg", "lan-command-chat", "package.json"),
+    "utf8",
+  ),
+);
 
-if (!/hasBeforeToolCallPolicy/.test(harnessRuntime)) {
-  fail("openclaw/plugin-sdk/agent-harness-runtime does not expose hasBeforeToolCallPolicy");
+const failures = [];
+const fail = (message) => failures.push(message);
+const requireFile = (relativePath) => {
+  if (!fs.existsSync(path.join(repoRoot, relativePath))) {
+    fail(`missing required file: ${relativePath}`);
+  }
+};
+
+for (const [name, version] of [
+  ["plugin package", pluginPackage.version],
+  ["plugin manifest", pluginManifest.version],
+  ["LAN Command Chat", lanChatPackage.version],
+]) {
+  if (version !== rootPackage.version) {
+    fail(`${name} version ${version} does not match ${rootPackage.version}`);
+  }
 }
 
-if (!/createAgentHarnessTaskRuntime/.test(taskRuntime)) {
-  fail(
-    "openclaw/plugin-sdk/agent-harness-task-runtime does not expose createAgentHarnessTaskRuntime",
+for (const relativePath of [
+  "package/zorg/install-zorg-memorydb.sh",
+  "package/zorg/db/schema.sql",
+  "package/zorg/db/memory_runtime_compat_2026_07_21.sql",
+  "package/zorg/db/memory_semantic_capture_triggers_2026_07_17.sql",
+  "package/zorg/db/memory_complete_self_repair_rule_2026_07_21.sql",
+  "skills/zorg-db-memory/plugin-src/dist/index.js",
+  "skills/zorg-db-memory/plugin-src/dist/mcp-server.js",
+  "package/zorg/systemd/zorg-memorydb-llm-dispatcher.service",
+]) {
+  requireFile(relativePath);
+}
+
+const installer = fs.readFileSync(
+  path.join(repoRoot, "package", "zorg", "install-zorg-memorydb.sh"),
+  "utf8",
+);
+for (const requiredText of [
+  "CREATE EXTENSION IF NOT EXISTS vector",
+  "memory_runtime_compat_2026_07_21.sql",
+  "memory_typed_events_2026_07_16.sql",
+  "memory_rule_scope_dedup_2026_07_15.sql",
+  "skills/zorg-db-memory/config/sql_memory_map.json",
+  "semantic-capture-triggers-ok",
+  "zorg-memorydb-core-runner",
+  "zorg-memorydb-llm-enqueuer",
+  'defaults["memorySearch"] = {"enabled": False}',
+  'compaction["memoryFlush"] = {"enabled": False}',
+  'session_memory["enabled"] = False',
+  'zorg_plugin["enabled"] = True',
+]) {
+  if (!installer.includes(requiredText)) {
+    fail(`installer is missing required runtime step: ${requiredText}`);
+  }
+}
+
+const mcpSource = fs.readFileSync(path.join(pluginRoot, "src", "mcp-server.ts"), "utf8");
+for (const requiredText of [
+  "skills/zorg-db-memory/config/sql_memory_map.json",
+  "sql_memory_map.json",
+  "memory_graph",
+  `version: "${rootPackage.version}"`,
+]) {
+  if (!mcpSource.includes(requiredText)) {
+    fail(`MCP source is missing: ${requiredText}`);
+  }
+}
+
+if (process.env.ZORG_VERIFY_LIVE === "1") {
+  const workspace =
+    process.env.OPENCLAW_WORKSPACE ||
+    process.env.WORKSPACE_DIR ||
+    path.join(process.env.HOME || ".", ".openclaw", "workspace");
+  const mapPath =
+    process.env.SQL_MEMORY_MAP ||
+    process.env.ZORG_SQL_MEMORY_MAP ||
+    path.join(workspace, "sql_memory_map.json");
+  const map = JSON.parse(fs.readFileSync(mapPath, "utf8"));
+  const pg = map.postgres;
+  const query = [
+    "select case when count(*) = 11 and bool_and(trigger_enabled)",
+    "then 'ok' else 'incomplete' end",
+    "from public.memory_semantic_capture_trigger_status_v1;",
+    "select count(*) from public.memory_search_table_v1('all','database memory',5);",
+  ].join(" ");
+  const result = spawnSync(
+    "psql",
+    [
+      "-v", "ON_ERROR_STOP=1",
+      "-h", String(pg.host),
+      "-p", String(pg.port),
+      "-U", String(pg.user),
+      "-d", String(pg.database),
+      "-Atqc", query,
+    ],
+    { encoding: "utf8", env: { ...process.env, PGPASSWORD: pg.password || "" } },
   );
-}
-
-if (!fs.existsSync(postinstallUpgradePath)) {
-  fail(
-    "missing existing-upgrade postinstall bootstrap wrapper: zorg/postinstall-existing-upgrade.cjs",
-  );
-} else {
-  const postinstallUpgrade = fs.readFileSync(postinstallUpgradePath, "utf8");
-  if (
-    !/ZORG_INSTALL_MODE/.test(postinstallUpgrade) ||
-    !/ZORG_ALLOW_EXISTING_UPGRADE/.test(postinstallUpgrade)
-  ) {
-    fail(
-      "existing-upgrade postinstall wrapper is not gated by ZORG_INSTALL_MODE and ZORG_ALLOW_EXISTING_UPGRADE",
-    );
-  }
-  if (!/install-zorg-memorydb\.sh/.test(postinstallUpgrade)) {
-    fail("existing-upgrade postinstall wrapper does not invoke install-zorg-memorydb.sh");
+  if (result.status !== 0) {
+    fail(`live database verification failed: ${result.stderr.trim()}`);
+  } else if (!result.stdout.split(/\r?\n/).includes("ok")) {
+    fail("live database verification did not report 11 enabled triggers");
   }
 }
 
-if (
-  !/zorg\/postinstall-existing-upgrade\.cjs/.test((pkg.scripts && pkg.scripts.postinstall) || "")
-) {
-  fail("package postinstall does not run zorg/postinstall-existing-upgrade.cjs");
+if (failures.length > 0) {
+  for (const message of failures) {
+    console.error(`[zorg-verify-package-runtime] ${message}`);
+  }
+  process.exit(1);
 }
 
-const codexSpecChecks = [
-  ["src/commands/codex-runtime-plugin-install.ts", /CODEX_RUNTIME_PLUGIN_NPM_SPEC\s*=\s*"([^"]+)"/],
-  [
-    "src/commands/doctor/shared/configured-runtime-plugin-installs.ts",
-    /pluginId:\s*"codex"[\s\S]*?npmSpec:\s*"([^"]+)"/,
-  ],
-  [
-    "scripts/lib/official-external-provider-catalog.json",
-    /"id":\s*"codex"[\s\S]*?"npmSpec":\s*"([^"]+)"/,
-  ],
-  [{ distPrefix: "codex-runtime-plugin-install" }, /CODEX_RUNTIME_PLUGIN_NPM_SPEC\s*=\s*"([^"]+)"/],
-  [
-    { distPrefix: "configured-runtime-plugin-installs" },
-    /pluginId:\s*"codex"[\s\S]*?npmSpec:\s*"([^"]+)"/,
-  ],
-  [
-    { distPrefix: "official-external-plugin-catalog" },
-    /"id":\s*"codex"[\s\S]*?"npmSpec":\s*"([^"]+)"/,
-  ],
-];
-
-for (const [pathSpec, pattern] of codexSpecChecks) {
-  const relativePaths =
-    typeof pathSpec === "string" ? [pathSpec] : listDistChunksByPrefix(pathSpec.distPrefix);
-  if (relativePaths.length === 0) {
-    fail(`missing packaged Codex plugin install spec dist chunk: ${pathSpec.distPrefix}-*.js`);
-    continue;
-  }
-  let matchedPath = null;
-  let match = null;
-  for (const relativePath of relativePaths) {
-    const filePath = path.join(root, relativePath);
-    if (!fs.existsSync(filePath)) {
-      if (relativePath.startsWith("src/")) {
-        continue;
-      }
-      fail(`missing packaged Codex plugin install spec file: ${relativePath}`);
-      continue;
-    }
-    const content = fs.readFileSync(filePath, "utf8");
-    match = pattern.exec(content);
-    if (match) {
-      matchedPath = relativePath;
-      break;
-    }
-  }
-  if (!match) {
-    const label = typeof pathSpec === "string" ? pathSpec : `${pathSpec.distPrefix}-*.js`;
-    fail(`missing Codex plugin npmSpec in ${label}`);
-    continue;
-  }
-  if (match[1] !== EXPECTED_CODEX_PLUGIN_SPEC) {
-    fail(
-      `${matchedPath} installs ${match[1]} instead of ${EXPECTED_CODEX_PLUGIN_SPEC}; unpinned Codex installs can pull an incompatible plugin SDK`,
-    );
-  }
-}
-
-if (process.exitCode) {
-  process.exit(process.exitCode);
-}
-console.log("[zorg-verify-package-runtime] OK");
+console.log(
+  `[zorg-verify-package-runtime] OK version=${rootPackage.version}` +
+    (process.env.ZORG_VERIFY_LIVE === "1" ? " live=verified" : ""),
+);

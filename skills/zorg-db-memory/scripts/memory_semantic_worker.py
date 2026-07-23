@@ -285,6 +285,7 @@ def main():
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
             jobs = claim_jobs(cur, args.limit)
             for job in jobs:
+                cur.execute("savepoint semantic_job")
                 try:
                     stats = process_job(cur, job)
                     cur.execute(
@@ -295,8 +296,10 @@ def main():
                         """,
                         (json.dumps({"worker_stats": stats}), job["id"]),
                     )
+                    cur.execute("release savepoint semantic_job")
                     processed += 1
                 except Exception as exc:  # keep queue robust; one bad row must not stop future work
+                    cur.execute("rollback to savepoint semantic_job")
                     cur.execute(
                         """
                         update public.memory_semantic_work_queue
@@ -307,16 +310,18 @@ def main():
                         (str(exc)[:2000], job["id"]),
                     )
             batch_duration_ms = (time.time() - batch_started) * 1000
-            cur.execute(
-                """
-                select public.memory_record_runtime_timing(
-                  'semantic_worker_batch', %s, %s, null, %s,
-                  (select count(*)::int from public.memory_semantic_work_queue where status in ('queued','running')),
-                  %s::jsonb
+            cur.execute("select to_regprocedure('public.memory_record_runtime_timing(text,text,numeric,text,integer,integer,jsonb)')")
+            if cur.fetchone()["to_regprocedure"] is not None:
+                cur.execute(
+                    """
+                    select public.memory_record_runtime_timing(
+                      'semantic_worker_batch', %s, %s, null, %s,
+                      (select count(*)::int from public.memory_semantic_work_queue where status in ('queued','running')),
+                      %s::jsonb
+                    )
+                    """,
+                    (WORKER_ID, batch_duration_ms, processed, json.dumps({"claimed": len(jobs)})),
                 )
-                """,
-                (WORKER_ID, batch_duration_ms, processed, json.dumps({"claimed": len(jobs)})),
-            )
             if processed and not args.skip_refresh:
                 try:
                     cur.execute("savepoint semantic_refresh_attempt")

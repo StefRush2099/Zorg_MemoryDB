@@ -72,7 +72,8 @@ create table if not exists zorg_memory (
   system_prompt text,
   ai_response text,
   source_path text,
-  logged_at timestamptz not null default now()
+  logged_at timestamptz not null default now(),
+  memory_active boolean not null default true
 );
 
 create table if not exists lan_chat_messages (
@@ -104,14 +105,38 @@ create table if not exists memory_associations (
   unique (source_entity_key, target_entity_key, relation_type)
 );
 
+create table if not exists memory_semantic_nodes (
+  node_key text primary key,
+  node_type text not null default 'concept',
+  canonical_label text not null,
+  aliases text[] not null default '{}',
+  description text,
+  llm_hint text,
+  source_model text,
+  confidence numeric not null default 0.5,
+  metadata jsonb not null default '{}'::jsonb,
+  active boolean not null default true,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists idx_memory_semantic_nodes_type_active
+  on memory_semantic_nodes (node_type, node_key) where active;
+
 create table if not exists memory_recall_hints (
   id uuid primary key default gen_random_uuid(),
-  query_pattern text not null,
-  target_table text not null,
-  target_key text,
+  source_type text not null,
+  source_key text not null,
+  hint_kind text not null default 'query_alias',
+  related_keys text[] not null default '{}',
   weight numeric not null default 1.0,
   hint_text text not null,
-  created_at timestamptz not null default now()
+  source_model text,
+  metadata jsonb not null default '{}'::jsonb,
+  active boolean not null default true,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (source_type, source_key, hint_kind, hint_text)
 );
 
 create table if not exists query_observations (
@@ -122,6 +147,47 @@ create table if not exists query_observations (
   result_count integer,
   observed_at timestamptz not null default now()
 );
+
+create table if not exists memory_query_observations (
+  id uuid primary key default gen_random_uuid(),
+  query_text text not null,
+  query_intent text,
+  source_type text not null,
+  source_key text not null,
+  rank_seen integer,
+  was_useful boolean,
+  usefulness_score numeric not null default 0,
+  feedback_basis text,
+  metadata jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists idx_memory_query_observations_source
+  on memory_query_observations (source_type, source_key, created_at desc);
+
+create table if not exists memory_content_blobs (
+  id uuid primary key default gen_random_uuid(),
+  content_text text,
+  content_json jsonb,
+  content_hash text not null,
+  metadata jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists memory_event_occurrences (
+  id uuid primary key default gen_random_uuid(),
+  event_kind text not null default 'memory_event',
+  payload_blob_id uuid references memory_content_blobs(id) on delete set null,
+  source_name text,
+  source_event_hash text,
+  metadata jsonb not null default '{}'::jsonb,
+  occurred_at timestamptz not null default now(),
+  created_at timestamptz not null default now()
+);
+
+create index if not exists memory_event_occurrences_time_idx
+  on memory_event_occurrences(occurred_at desc);
 
 create table if not exists memory_semantic_edges (
   id uuid primary key default gen_random_uuid(),
@@ -352,6 +418,68 @@ as $$
 begin
   raise notice 'local-hash-v1-384 ANN backfill is retired; use scripts/backfill_model_ann_embeddings.mjs for real local model vectors';
   return 0;
+end;
+$$;
+
+-- Canonical bounded recall surfaces required by the procedure migrations.
+-- Keep these definitions in the public package so clean installs do not rely
+-- on private production-only database objects.
+create materialized view if not exists zorg_memory_search_fast_mv as
+with source_rows as (
+  select 'zorg_logic_rules'::text as source_table, id::text as source_id,
+         priority, rule_type as category,
+         concat_ws(E'\n', rule_title, rule_text) as content,
+         1::integer as source_rank, updated_at as event_ts
+  from zorg_logic_rules where active
+  union all
+  select 'zorg_memory', id::text, memory_priority, memory_category,
+         concat_ws(E'\n', memory_key, memory_value, system_prompt, ai_response),
+         2, logged_at
+  from zorg_memory where memory_active
+  union all
+  select 'memory_source_chunks', id::text, priority, 'source_chunk', content,
+         3, created_at
+  from memory_source_chunks
+  union all
+  select 'lan_chat_messages', id::text, 'normal', 'lan_chat', content,
+         4, created_at
+  from lan_chat_messages
+)
+select source_table, source_id, priority, category, content, source_rank,
+       case lower(coalesce(priority, 'normal'))
+         when 'critical' then 0 when 'high' then 1 when 'medium' then 2
+         when 'normal' then 3 when 'low' then 4 else 3 end::integer as priority_rank,
+       event_ts, length(coalesce(content, ''))::integer as content_len,
+       lower(coalesce(content, '')) as content_lc,
+       to_tsvector('simple', coalesce(content, '')) as content_fts_simple
+from source_rows;
+
+create unique index if not exists zorg_memory_search_fast_mv_source_idx
+  on zorg_memory_search_fast_mv(source_table, source_id);
+create index if not exists zorg_memory_search_fast_mv_fts_idx
+  on zorg_memory_search_fast_mv using gin(content_fts_simple);
+create index if not exists zorg_memory_search_fast_mv_lc_trgm_idx
+  on zorg_memory_search_fast_mv using gin(content_lc gin_trgm_ops);
+
+create or replace function refresh_zorg_memory_search_fast_mv()
+returns void language plpgsql as $$
+begin
+  refresh materialized view zorg_memory_search_fast_mv;
+end;
+$$;
+
+create materialized view if not exists zorg_master_context_mv as
+select source_table as source_type, source_id, priority, event_ts as sort_ts,
+       left(content, 240) as title, content
+from zorg_memory_search_fast_mv;
+
+create unique index if not exists zorg_master_context_mv_source_idx
+  on zorg_master_context_mv(source_type, source_id);
+
+create or replace function refresh_zorg_master_context()
+returns void language plpgsql as $$
+begin
+  refresh materialized view zorg_master_context_mv;
 end;
 $$;
 

@@ -260,7 +260,11 @@ Required hard gates:
 - Inspect the local worktree, branch, tag state, remote `origin/main`, release state, dirty files, and GitHub repository metadata before editing.
 - Preserve existing public assets additively unless exact removal was requested.
 - For screenshot work, visually inspect the image content before committing or sending it; filename checks and API tree checks are not enough.
-- Use the correct source system for screenshots. Local/personal OpenClaw screenshots must show `Zorg Rush` / `10.7.69.200`. Dark-mode screenshots must actually be dark mode and light-mode screenshots must actually be light mode.
+- Use the correct source system for screenshots. Local/personal OpenClaw
+  screenshots must show the installation's configured agent identity and host,
+  never a hard-coded public-package identity or address. Dark-mode screenshots
+  must actually be dark mode and light-mode screenshots must actually be light
+  mode.
 - Update all affected surfaces together: GitHub repository metadata, README, docs, screenshots, changelog, release notes, package metadata, package scripts, verification scripts, skill package files, public-safe support code, package tarball, Git tag, GitHub Release body, and GitHub Release asset.
 - Treat the root `package.json` version as the canonical GitHub release version. Every release/update must set `package/zorg/lan-command-chat/package.json` to that exact same version and verify that the LAN Command Chat gauge page displays the same version stamp before publication. The browser gauge must derive its stamp from package metadata, never from a manually typed or stale version. The public-package verifier must fail closed on any mismatch.
 - Rebuild the package artifact after every repo/package content change.

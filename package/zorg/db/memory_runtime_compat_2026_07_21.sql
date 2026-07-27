@@ -1,4 +1,30 @@
 -- Public clean-install compatibility objects required by bundled recall code.
+--
+-- Pre-v4 queue variants can contain duplicate *derived* query jobs.  Reconcile
+-- them before restoring the unique conflict target used by the runtime helper.
+with ranked as (
+  select id,
+         row_number() over (
+           partition by source_type, source_key
+           order by (status = 'running') desc, priority desc, updated_at desc, created_at desc, id desc
+         ) as rn,
+         max(priority) over (partition by source_type, source_key) as max_priority
+  from public.memory_semantic_work_queue
+), updated as (
+  update public.memory_semantic_work_queue q
+  set priority = greatest(q.priority, r.max_priority), updated_at = now()
+  from ranked r
+  where q.id = r.id and r.rn = 1
+  returning q.id
+)
+delete from public.memory_semantic_work_queue q
+using ranked r
+where q.id = r.id and r.rn > 1;
+
+alter table public.memory_semantic_work_queue
+  drop constraint if exists memory_semantic_work_queue_source_type_source_key_key;
+alter table public.memory_semantic_work_queue
+  add constraint memory_semantic_work_queue_source_type_source_key_key unique (source_type, source_key);
 
 create or replace function public.memory_enqueue_semantic_job(
   p_job_kind text,

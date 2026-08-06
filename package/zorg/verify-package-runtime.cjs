@@ -47,6 +47,7 @@ for (const relativePath of [
   "package/zorg/db/memory_runtime_compat_2026_07_21.sql",
   "package/zorg/db/memory_semantic_capture_triggers_2026_07_17.sql",
   "package/zorg/db/memory_complete_self_repair_rule_2026_07_21.sql",
+  "package/zorg/db/memory_core_scheduler_2026_08_06.sql",
   "skills/zorg-db-memory/plugin-src/dist/index.js",
   "skills/zorg-db-memory/plugin-src/dist/mcp-server.js",
   "package/zorg/systemd/zorg-memorydb-llm-dispatcher.service",
@@ -67,6 +68,8 @@ for (const requiredText of [
   "semantic-capture-triggers-ok",
   "zorg-memorydb-core-runner",
   "zorg-memorydb-llm-enqueuer",
+  "memory_core_scheduler_2026_08_06.sql",
+  "cron.unschedule",
   'defaults["memorySearch"] = {"enabled": False}',
   'compaction["memoryFlush"] = {"enabled": False}',
   'session_memory["enabled"] = False',
@@ -75,6 +78,36 @@ for (const requiredText of [
   if (!installer.includes(requiredText)) {
     fail(`installer is missing required runtime step: ${requiredText}`);
   }
+}
+
+const coreScheduler = fs.readFileSync(
+  path.join(repoRoot, "package", "zorg", "db", "memory_core_scheduler_2026_08_06.sql"),
+  "utf8",
+);
+for (const requiredText of [
+  "CREATE TABLE IF NOT EXISTS public.memory_db_scheduled_jobs",
+  "CREATE TABLE IF NOT EXISTS public.memory_db_scheduled_job_runs",
+  "public.memory_db_schedule_next_due(",
+  "public.memory_db_claim_due_jobs(",
+  "public.memory_db_finish_job(",
+  "public.memory_db_execute_job_sql(",
+  "public.memory_db_run_due_jobs_sql(",
+  "public.memory_db_semantic_worker_batch_sql(",
+  "public.memory_db_health_check_sql()",
+  "memory-semantic-worker-15m",
+  "memory-nightly-health-0320",
+]) {
+  if (!coreScheduler.includes(requiredText)) {
+    fail(`core scheduler migration is missing: ${requiredText}`);
+  }
+}
+
+const dispatcher = fs.readFileSync(
+  path.join(repoRoot, "skills", "zorg-db-memory", "scripts", "memory_db_llm_dispatcher.py"),
+  "utf8",
+);
+for (const requiredText of ["payload.get(\"text\")", "payload.get(\"message\")", "prompt_text or prompt_message"]) {
+  if (!dispatcher.includes(requiredText)) fail(`dispatcher prompt regression: ${requiredText}`);
 }
 
 const mcpSource = fs.readFileSync(path.join(pluginRoot, "src", "mcp-server.ts"), "utf8");

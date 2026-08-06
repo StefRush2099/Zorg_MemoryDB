@@ -7,6 +7,8 @@ This directory contains the public-safe Zorg MemoryDB and LAN command chat insta
 - `install-zorg-memorydb.sh` installs prerequisites and copies packaged components into the OpenClaw workspace.
 - `requirements.txt` declares the Python DB driver used by the recall tools.
 - `db/schema.sql` creates the database structure.
+- `db/memory_core_scheduler_2026_08_06.sql` supplies the complete core
+  scheduler schema, function chain, run history, trigger, and canonical seeds.
 - `db/memory_recall_*_2026_07_10.sql` installs the stored-procedure recall API
 - `db/memory_semantic_capture_triggers_2026_07_17.sql` is applied by the installer;
   it wires all eleven typed runtime capture tables to the additive semantic/ANN

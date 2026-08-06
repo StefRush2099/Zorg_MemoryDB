@@ -1,6 +1,6 @@
 {
   "name": "lan-chat",
-  "version": "4.1.0",
+  "version": "4.1.1",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -9,26 +9,26 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "next": "16.2.11",
+    "next": "16.3.0",
     "pg": "^8.16.3",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "ws": "^8.18.0"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4",
+    "@tailwindcss/postcss": "4.3.3",
     "@types/node": "^20",
     "@types/pg": "^8.18.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/ws": "^8.5.12",
     "eslint": "^9",
-    "eslint-config-next": "16.2.11",
+    "eslint-config-next": "16.3.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   },
   "overrides": {
-    "postcss": "8.5.22",
+    "postcss": "8.5.25",
     "sharp": "0.35.3"
   }
 }

@@ -1,16 +1,14 @@
-# Install Zorg MemoryDB v4.1.0 Package
+# Install Zorg MemoryDB v4.1.1 Package
 
 ## Command-line install from GitHub
 
 ```bash
-git clone --branch v4.1.0 https://github.com/StefRush2099/Zorg_MemoryDB.git
+git clone --branch v4.1.1 https://github.com/StefRush2099/Zorg_MemoryDB.git
 cd Zorg_MemoryDB
 bash package/zorg/install-zorg-memorydb.sh
 ```
 
-This is the supported manual installation path. Remove previous Zorg
-package/plugin files before installing the tag, preserving only the PostgreSQL
-MemoryDB. The install initializes and enables the OpenClaw-native
+This is the supported clean-install path. The install initializes and enables the OpenClaw-native
 `zorg-memorydb` plugin/MCP as the first and canonical memory path. It must not
 create, copy, import, or activate Markdown memory or rule files; Markdown is
 not a fallback store.
@@ -23,8 +21,7 @@ files are preserved for bootstrap/recovery reference, but are not searched or
 written as memory.
 
 1. Install OpenClaw from upstream.
-2. Remove 100% of the previous Zorg package/plugin files for an upgrade;
-   preserve only the PostgreSQL backend database.
+2. For a clean install, create the target database and run the tagged installer.
 3. Install `skills/zorg-db-memory` and its `plugin-src` into the OpenClaw
    workspace skills directory.
 4. Copy or install `package/zorg` into the OpenClaw package/workspace support path.
@@ -37,6 +34,28 @@ written as memory.
 7. Verify backend DB recall, ANN/vector index/cache/weights, scheduler
    mappings, LAN Command Chat, and the clean-install/upgrade path. Validate
    Neural Recall Activity separately against its production service.
+
+## Existing OpenClaw or Zorg MemoryDB upgrade
+
+1. Stop new application writes briefly and take a logical PostgreSQL backup,
+   plus copies of the active OpenClaw JSON, plugin directory, service units,
+   and current package tree. Verify the database archive can be listed.
+2. Clone `v4.1.1` into a new staging directory. Do not delete the running
+   package, database, memory rows, or history.
+3. Run the installer from the staged tag. Its SQL is idempotent and upgrades
+   the existing database in place; the two named pg_cron jobs are reconciled.
+4. Restart the Gateway and the single dispatcher service, then verify plugin
+   version, PostgreSQL objects, exactly two active named pg_cron jobs, recent
+   successful cron history, queue claim/completion, recall, ANN/vector,
+   semantic triggers, LAN Command Chat, and Neural Recall Activity boundaries.
+5. Keep the backup and prior package until verification passes. On failure,
+   stop the new runtime, restore the prior package/config atomically, and use
+   the verified logical backup only if an in-place database rollback is
+   actually required.
+
+Control UI device authentication stays enabled by default. Set
+`OPENCLAW_CONTROL_UI_DISABLE_DEVICE_AUTH=true` only as an explicit compatibility
+override for a protected deployment that cannot use paired-device auth.
 
 ## LAN services and Android separation
 

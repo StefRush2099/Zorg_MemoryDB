@@ -19,7 +19,7 @@ from pathlib import Path
 import psycopg2
 import psycopg2.extras
 
-WORKSPACE = Path(os.environ.get("OPENCLAW_WORKSPACE", "/home/openclaw/.openclaw/workspace"))
+WORKSPACE = Path(os.environ.get("OPENCLAW_WORKSPACE", Path(__file__).resolve().parents[3])).resolve()
 SKILL_ROOT = Path(__file__).resolve().parents[1]
 MAP_PATH = (SKILL_ROOT / "config" / "sql_memory_map.json").resolve()
 OPENCLAW_BIN = os.environ.get("OPENCLAW_BIN", "/home/openclaw/.npm-global/bin/openclaw")
@@ -62,9 +62,14 @@ def build_command(row: dict) -> list[str]:
     snapshot = row["payload_snapshot"]
     payload = snapshot.get("payload") or {}
     delivery = row["delivery_snapshot"] or {}
-    message = str(payload.get("message") or "").strip()
+    prompt_text = str(payload.get("text") or "").strip()
+    prompt_message = str(payload.get("message") or "").strip()
+    if prompt_text and prompt_message and prompt_message != prompt_text:
+        message = f"{prompt_text}\n\n{prompt_message}"
+    else:
+        message = prompt_text or prompt_message
     if not message:
-        raise ValueError(f"job {row['job_key']} has empty payload.message")
+        raise ValueError(f"job {row['job_key']} has empty payload.text and payload.message")
 
     cmd = [
         OPENCLAW_BIN,

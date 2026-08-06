@@ -14,7 +14,7 @@ ZORG_DB_PORT="${ZORG_DB_PORT:-5432}"
 ZORG_DB_PASSWORD=""
 LAN_CHAT_PORT="${LAN_CHAT_PORT:-3001}"
 LAN_CHAT_HOST="${LAN_CHAT_HOST:-0.0.0.0}"
-OPENCLAW_CONTROL_UI_DISABLE_DEVICE_AUTH="${OPENCLAW_CONTROL_UI_DISABLE_DEVICE_AUTH:-true}"
+OPENCLAW_CONTROL_UI_DISABLE_DEVICE_AUTH="${OPENCLAW_CONTROL_UI_DISABLE_DEVICE_AUTH:-false}"
 ZORG_INSTALL_MODE="${ZORG_INSTALL_MODE:-first-run}"
 ZORG_PATCH_EXISTING_DOCKER_CONFIG="${ZORG_PATCH_EXISTING_DOCKER_CONFIG:-0}"
 
@@ -120,6 +120,15 @@ ensure_prerequisites() {
     log "Installing missing prerequisites: ${missing[*]}"
     install_packages "${missing[@]}"
   fi
+  local still_missing=()
+  for required in git python3 psql pg_isready npm node openssl; do
+    command -v "$required" >/dev/null 2>&1 || still_missing+=("$required")
+  done
+  if [[ "${#still_missing[@]}" -gt 0 ]]; then
+    warn "Required prerequisites remain unavailable: ${still_missing[*]}"
+    return 1
+  fi
+  node "$PACKAGE_ROOT/check-node-version.cjs"
 }
 
 ensure_workspace_layout() {
@@ -398,7 +407,8 @@ ensure_postgres_database() {
     memory_logic_rule_feedback_2026_07_17.sql \
     memory_complete_self_repair_rule_2026_07_21.sql \
     memory_rule_scope_dedup_2026_07_15.sql \
-    memory_semantic_capture_triggers_2026_07_17.sql; do
+    memory_semantic_capture_triggers_2026_07_17.sql \
+    memory_core_scheduler_2026_08_06.sql; do
     if [[ -f "$ZORG_WORKSPACE_DIR/db/$sql_file" ]]; then
       psql -h "$ZORG_DB_HOST" -p "$ZORG_DB_PORT" -U "$ZORG_DB_USER" -d "$ZORG_DB_NAME" -v ON_ERROR_STOP=1 -f "$ZORG_WORKSPACE_DIR/db/$sql_file"
     fi
@@ -416,8 +426,21 @@ ensure_postgres_database() {
 
 ensure_memorydb_pg_cron_jobs() {
   run_postgres_superuser_target_sql "GRANT USAGE ON SCHEMA cron TO \"$ZORG_DB_USER\"; GRANT SELECT ON cron.job, cron.job_run_details TO \"$ZORG_DB_USER\"; GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA cron TO \"$ZORG_DB_USER\";" >/dev/null || return 1
-  psql -h "$ZORG_DB_HOST" -p "$ZORG_DB_PORT" -U "$ZORG_DB_USER" -d "$ZORG_DB_NAME" -v ON_ERROR_STOP=1 -Atqc \
-    "SELECT cron.schedule('zorg-memorydb-core-runner','* * * * *','SELECT public.memory_db_run_due_jobs_sql(10);'); SELECT cron.schedule('zorg-memorydb-llm-enqueuer','* * * * *','SELECT public.memory_llm_enqueue_due_jobs_v1(50);');" >/dev/null || {
+  psql -h "$ZORG_DB_HOST" -p "$ZORG_DB_PORT" -U "$ZORG_DB_USER" -d "$ZORG_DB_NAME" -v ON_ERROR_STOP=1 -Atqc "
+    DO \$reconcile\$
+    DECLARE r record;
+    BEGIN
+      FOR r IN SELECT jobid FROM cron.job WHERE jobname IN ('zorg-memorydb-core-runner','zorg-memorydb-llm-enqueuer') LOOP
+        PERFORM cron.unschedule(r.jobid);
+      END LOOP;
+    END \$reconcile\$;
+    SELECT cron.schedule('zorg-memorydb-core-runner','* * * * *','SELECT public.memory_db_run_due_jobs_sql(10);');
+    SELECT cron.schedule('zorg-memorydb-llm-enqueuer','* * * * *','SELECT public.memory_llm_enqueue_due_jobs_v1(50);');
+    SELECT CASE WHEN count(*)=2
+      AND count(*) FILTER (WHERE jobname='zorg-memorydb-core-runner' AND command='SELECT public.memory_db_run_due_jobs_sql(10);' AND active)=1
+      AND count(*) FILTER (WHERE jobname='zorg-memorydb-llm-enqueuer' AND command='SELECT public.memory_llm_enqueue_due_jobs_v1(50);' AND active)=1
+      THEN 'cron-jobs-ok' ELSE 'cron-jobs-incomplete' END
+    FROM cron.job WHERE jobname IN ('zorg-memorydb-core-runner','zorg-memorydb-llm-enqueuer');" | grep -qx 'cron-jobs-ok' || {
     warn "Could not install the two PostgreSQL MemoryDB firing jobs."
     return 1
   }

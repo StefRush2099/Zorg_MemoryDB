@@ -7,6 +7,23 @@ description: "Canonical Zorg MemoryDB skill with DB-first memory, repair, contex
 
 Use this as the one canonical skill for Zorg MemoryDB: DB recall, DB repair, DB install, DB code restoration, context-window memory slicing, GitHub release/posting gates, fact-based pre-work summaries, approval gates, additive semantic/vector/ANN recall tuning, and source lookup for MemoryDB-dependent apps.
 
+Before every substantive response, run targeted backend MemoryDB recall for the
+current subject, prior decisions, exact identifiers, access routes, failure
+history, and acceptance rules. A narrow miss is incomplete recovery, not proof
+that a capability or credential path is unavailable. Deepen through weighted
+and ANN recall, indexed sessions, project artifacts, runbooks, schedules,
+protected credential references, live configuration, and prior-success proof
+before reporting a blocker. Preserve source history and record additive recall
+hints or observations when a broader route was needed.
+
+Complete private backup/recovery belongs only in the private operator backup
+repository and must never enter this public package. A production backup must
+capture the database, connected plugin/MCP and skills, OpenClaw configuration,
+service definitions, schedules, restoration metadata, and connected LAN Chat
+and Neural Recall Activity boundaries without printing credentials. Verify the
+archive is readable and keep the prior package/database until post-upgrade
+acceptance checks pass.
+
 Image generation for canonical Zorg portraits is also owned by this skill. The
 fixed-seed ComfyUI runner, workflow, identity requirements, visual inspection,
 and attachment-delivery gate live in `references/image-generation.md` and its
@@ -61,6 +78,14 @@ implementation contract; do not invent an external scheduler source of truth.
    schedule rows/functions. `cron.job` is not a second policy store. Every
    active row must map to a named schedule in the skill's catalog and must be
    verified against the live database after installation.
+
+The single enabled `zorg-memorydb-llm-dispatcher.service` is the authorized
+bridge that leases queued PostgreSQL LLM jobs and launches their live model
+execution. A scheduled task must never interpret its reminder-only database
+row as a reason to stop, disable, replace, or duplicate that shared dispatcher.
+The row itself is not proof of completion; the dispatcher-launched live run and
+its verified result are. Task-specific prompts may forbid extra subprocesses or
+background workflows without forbidding this required bridge.
 
 For a new system, load this skill, apply its database schema/functions and
 seed/catalog definitions, then verify all three surfaces with counts and

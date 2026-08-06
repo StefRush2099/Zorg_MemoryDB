@@ -1,5 +1,12 @@
 # Changelog
 
+## 4.1.1
+
+- Supply the complete PostgreSQL core scheduler migration and canonical seeds.
+- Reconcile pg_cron firing jobs without duplicates.
+- Include the production dispatcher prompt-contract and portable workspace fixes.
+- Harden install defaults and release verification.
+
 ## v4.1.0 - 2026-07-23
 
 - Adds the complete public-safe MemoryDB self-repair contract, runtime

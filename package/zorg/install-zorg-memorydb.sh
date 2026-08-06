@@ -144,6 +144,11 @@ copy_packaged_components() {
   fi
   log "Copying LAN command chat source into $LAN_CHAT_DIR"
   cp -R "$PACKAGE_ROOT/lan-command-chat/." "$LAN_CHAT_DIR/"
+  # The separate production 8097 service owns its server/API deployment, but
+  # its versioned public browser assets are part of this package and must be
+  # installed with every complete upgrade.
+  mkdir -p "$ZORG_WORKSPACE_DIR/neural-recall-activity"
+  cp -R "$PACKAGE_ROOT/neural-recall-activity/." "$ZORG_WORKSPACE_DIR/neural-recall-activity/"
 }
 
 ensure_db_password() {
@@ -167,9 +172,9 @@ sql_quote_literal() {
 run_postgres_superuser_sql() {
   local sql="$1"
   if is_root; then
-    su - postgres -c "psql -v ON_ERROR_STOP=1 -Atqc \"$sql\""
+    su - postgres -c "psql -h \"$ZORG_DB_HOST\" -p \"$ZORG_DB_PORT\" -v ON_ERROR_STOP=1 -Atqc \"$sql\""
   elif has_passwordless_sudo; then
-    sudo -n -u postgres psql -v ON_ERROR_STOP=1 -Atqc "$sql"
+    sudo -n -u postgres psql -h "$ZORG_DB_HOST" -p "$ZORG_DB_PORT" -v ON_ERROR_STOP=1 -Atqc "$sql"
   else
     return 127
   fi
@@ -178,9 +183,9 @@ run_postgres_superuser_sql() {
 run_postgres_superuser_target_sql() {
   local sql="$1"
   if is_root; then
-    su - postgres -c "psql -v ON_ERROR_STOP=1 -d \"$ZORG_DB_NAME\" -Atqc \"$sql\""
+    su - postgres -c "psql -h \"$ZORG_DB_HOST\" -p \"$ZORG_DB_PORT\" -v ON_ERROR_STOP=1 -d \"$ZORG_DB_NAME\" -Atqc \"$sql\""
   elif has_passwordless_sudo; then
-    sudo -n -u postgres psql -v ON_ERROR_STOP=1 -d "$ZORG_DB_NAME" -Atqc "$sql"
+    sudo -n -u postgres psql -h "$ZORG_DB_HOST" -p "$ZORG_DB_PORT" -v ON_ERROR_STOP=1 -d "$ZORG_DB_NAME" -Atqc "$sql"
   else
     return 127
   fi
@@ -382,10 +387,16 @@ ensure_postgres_database() {
   configure_passwordless_local_auth
   ensure_postgres_extension_packages
   ensure_pg_cron_configuration
-  run_postgres_superuser_target_sql "CREATE EXTENSION IF NOT EXISTS vector" >/dev/null || {
-    warn "The vector extension requires PostgreSQL superuser installation."
-    return 1
-  }
+  # Existing installations may expose the extensions to the configured runtime
+  # role without granting that role the PostgreSQL superuser password.  Do not
+  # block their upgrade by attempting an unnecessary superuser connection.
+  if ! psql -h "$ZORG_DB_HOST" -p "$ZORG_DB_PORT" -U "$ZORG_DB_USER" -d "$ZORG_DB_NAME" -Atqc \
+      "SELECT EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'vector')" | grep -qx 't'; then
+    run_postgres_superuser_target_sql "CREATE EXTENSION IF NOT EXISTS vector" >/dev/null || {
+      warn "The vector extension requires PostgreSQL superuser installation."
+      return 1
+    }
+  fi
   psql -h "$ZORG_DB_HOST" -p "$ZORG_DB_PORT" -U "$ZORG_DB_USER" -d "$ZORG_DB_NAME" -v ON_ERROR_STOP=1 -f "$ZORG_WORKSPACE_DIR/db/schema.sql" || {
     warn "Schema apply failed. Create database/role or set ZORG_DB_* variables, then rerun this script."
     return 1
@@ -425,7 +436,10 @@ ensure_postgres_database() {
 }
 
 ensure_memorydb_pg_cron_jobs() {
-  run_postgres_superuser_target_sql "GRANT USAGE ON SCHEMA cron TO \"$ZORG_DB_USER\"; GRANT SELECT ON cron.job, cron.job_run_details TO \"$ZORG_DB_USER\"; GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA cron TO \"$ZORG_DB_USER\";" >/dev/null || return 1
+  if ! psql -h "$ZORG_DB_HOST" -p "$ZORG_DB_PORT" -U "$ZORG_DB_USER" -d "$ZORG_DB_NAME" -Atqc \
+      "SELECT has_schema_privilege(current_user, 'cron', 'USAGE')" | grep -qx 't'; then
+    run_postgres_superuser_target_sql "GRANT USAGE ON SCHEMA cron TO \"$ZORG_DB_USER\"; GRANT SELECT ON cron.job, cron.job_run_details TO \"$ZORG_DB_USER\"; GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA cron TO \"$ZORG_DB_USER\";" >/dev/null || return 1
+  fi
   psql -h "$ZORG_DB_HOST" -p "$ZORG_DB_PORT" -U "$ZORG_DB_USER" -d "$ZORG_DB_NAME" -v ON_ERROR_STOP=1 -Atqc "
     DO \$reconcile\$
     DECLARE r record;

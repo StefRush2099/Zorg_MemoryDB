@@ -1,8 +1,0 @@
-{
-  "name": "zorg-neural-recall-activity",
-  "version": "4.0.1",
-  "private": true,
-  "type": "module",
-  "scripts": { "start": "node server.js", "check": "node --check server.js" },
-  "dependencies": { "@modelcontextprotocol/sdk": "^1.17.5" }
-}

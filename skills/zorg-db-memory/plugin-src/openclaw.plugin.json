@@ -18,6 +18,7 @@
       "memory_search",
       "memory_recent",
       "memory_master_context",
+      "memory_graph",
       "memory_ann_status",
       "memory_recall_preflight"
     ]

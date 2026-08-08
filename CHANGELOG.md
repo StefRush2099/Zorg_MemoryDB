@@ -1,5 +1,19 @@
 # Changelog
 
+## 4.1.3 - 2026-08-08
+
+- Prohibit connector installation, patching, activation, reload, restart, and
+  runtime testing on the active source OpenClaw system.
+- Permit local LAN Command Chat version, build, restart, and gauge verification
+  as a separate surface.
+- Split source-release checks from external-target installation acceptance;
+  the latter remains pending until a separately supplied test host exists.
+- Add a release verifier guard requiring the GitHub-only source boundary and
+  pending external-acceptance disclosure.
+- Align source package, plugin/MCP, and LAN Command Chat source/build gauge at
+  `v4.1.3` without installing the connector locally; rendered live gauge proof
+  remains pending the authorized LAN service restart.
+
 ## 4.1.2 - 2026-08-08
 
 - Publish the working fail-closed OpenClaw turn gate with exact-request PostgreSQL recall receipts.

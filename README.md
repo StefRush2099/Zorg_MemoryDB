@@ -6,10 +6,12 @@ This repository is intentionally **not** a GitHub fork or full source fork of Op
 
 ## Release Focus
 
-Release `v4.1.2` publishes the recovered fail-closed connector as reproducible
-source. It adds per-turn PostgreSQL recall receipts, held-request recovery,
-duplicate-safe outage/restoration alerts, connector tests, and explicit
-installation, recovery, rollback, and acceptance runbooks.
+Release `v4.1.3` makes the source/test boundary explicit. Connector source is
+built, inspected, packaged, and published without installing, patching,
+reloading, or restarting the maintainer's active OpenClaw system. LAN Command
+Chat remains a separately permitted local update surface. External OpenClaw
+installation, upgrade, recovery, rollback, restart, and runtime-registration
+acceptance are pending until a separate test host is supplied.
 
 `zorg-db-memory` consolidates the MemoryDB work into one portable skill package:
 
@@ -54,15 +56,16 @@ Then add this package's `zorg-db-memory` skill and `package/zorg` support files 
 ## Manual command-line installation from GitHub
 
 ```bash
-git clone --branch v4.1.2 https://github.com/StefRush2099/Zorg_MemoryDB.git
+git clone --branch v4.1.3 https://github.com/StefRush2099/Zorg_MemoryDB.git
 cd Zorg_MemoryDB
 bash package/zorg/install-zorg-memorydb.sh
 ```
 
-The installer stages an in-place update while preserving the PostgreSQL
+Run this installer only on a separately supplied target system, never on the
+source/authoring OpenClaw system. The installer stages an in-place update while preserving the PostgreSQL
 MemoryDB and its history, installs and enables the native `zorg-memorydb` plugin/MCP,
 and does not create, copy, import, or activate Markdown memory or rule files.
-After the installer completes, restart the OpenClaw Gateway and verify the
+After the installer completes on that separate target, restart its OpenClaw Gateway and verify the
 runtime with:
 
 ```bash
@@ -75,6 +78,10 @@ and the current package/config first, keep them until post-upgrade checks pass,
 and use the separate clean-install or upgrade procedure in `docs/install.md`.
 
 The public package does not instruct installed agents to publish back to this GitHub repository. Release publishing is a maintainer action.
+
+Maintainer source releases do not install or activate candidate connector code
+on the active OpenClaw system. Source-only checks are not installation proof.
+See [the source and test boundary](docs/source-and-test-boundary.md).
 
 The authoritative step-by-step procedures are:
 

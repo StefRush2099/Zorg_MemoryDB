@@ -1,5 +1,14 @@
 # Zorg MemoryDB Install Package
 
+## Maintainer source boundary
+
+Never install, patch, activate, reload, or restart the candidate connector on
+the active source OpenClaw system for release testing. LAN Command Chat is a
+separate allowed local update surface. Run connector installation, upgrade,
+recovery, rollback, restart, and runtime acceptance only on a separately
+supplied target; otherwise record those gates as pending. See
+`docs/source-and-test-boundary.md` in the repository root.
+
 This directory contains the public-safe Zorg MemoryDB and LAN command chat install package for OpenClaw.
 
 ## Contents

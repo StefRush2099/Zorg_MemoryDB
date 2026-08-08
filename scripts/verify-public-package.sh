@@ -31,6 +31,7 @@ for path in \
   "README.md" \
   "docs/openclaw-base.md" \
   "docs/install.md" \
+  "docs/source-and-test-boundary.md" \
   "docs/screenshots.md" \
   "release/v${package_version}.md"; do
   if [[ ! -e "$path" ]]; then
@@ -38,6 +39,21 @@ for path in \
     missing=1
   fi
 done
+
+required_boundary='pending a separately supplied test host.'
+if ! rg -Fq "$required_boundary" docs/source-and-test-boundary.md \
+  || ! rg -Fq 'source/authoring OpenClaw system' docs/install.md \
+  || ! rg -Fq "maintainer's active OpenClaw system" README.md \
+  || ! rg -Fq "$required_boundary" "release/v${package_version}.md"; then
+  echo "source-system protection or pending external-acceptance disclosure is missing" >&2
+  exit 1
+fi
+
+if rg -n --glob '!verify-public-package.sh' \
+  'openclaw plugins install .*--force|openclaw gateway restart' scripts package.json; then
+  echo "release automation must not install the connector or restart OpenClaw on the source system" >&2
+  exit 1
+fi
 
 if [[ "$missing" -ne 0 ]]; then
   exit 1

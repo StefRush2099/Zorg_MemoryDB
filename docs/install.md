@@ -1,4 +1,4 @@
-# Install or upgrade Zorg MemoryDB v4.1.2
+# Install or upgrade Zorg MemoryDB v4.1.3
 
 This document is the public entry point. The canonical detailed procedures are in:
 
@@ -16,13 +16,19 @@ The package does not enable Markdown memory, model-memory fallback, a second mem
 ## Obtain the pinned release
 
 ```bash
-git clone --branch v4.1.2 --depth 1 https://github.com/StefRush2099/Zorg_MemoryDB.git
+git clone --branch v4.1.3 --depth 1 https://github.com/StefRush2099/Zorg_MemoryDB.git
 cd Zorg_MemoryDB
 ```
 
 Verify the release asset/tag and checksum before installation. Do not combine files from different releases.
 
 ## Preflight
+
+Run this procedure only on a separately supplied target. Never run it on the
+source/authoring OpenClaw system, and never use that system as a fallback test
+target. If no separate target exists, installation, upgrade, recovery,
+rollback, restart, and runtime-registration acceptance remain pending. Source
+publication may continue only under [the source and test boundary](source-and-test-boundary.md).
 
 Before changing the host:
 
@@ -47,7 +53,7 @@ Configure the DSN through the approved protected configuration file or environme
 
 Explicitly trust and enable the plugin according to host policy. If `plugins.allow` is used, include `zorg-memorydb`; ensure deny does not override it. Select it for the memory slot where that OpenClaw version exposes the exclusive slot. Disable the conflicting stock/legacy memory plugin only after the Zorg plugin has passed pre-activation checks.
 
-Installing or changing plugin code requires a Gateway restart. After the restart, runtime proof is mandatory:
+Installing or changing plugin code on the separate target requires a Gateway restart. After the target restart, runtime proof is mandatory:
 
 ```bash
 openclaw plugins inspect zorg-memorydb --runtime --json

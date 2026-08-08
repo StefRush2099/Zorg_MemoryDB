@@ -55,6 +55,12 @@ if rg -n --glob '!verify-public-package.sh' \
   exit 1
 fi
 
+if rg -n '(^|[[:space:]])(allow|deny)[[:space:]]|10\.[0-9]+\.[0-9]+\.[0-9]+|192\.168\.[0-9]+\.[0-9]+' \
+  package/zorg/lan-command-chat/nginx; then
+  echo "LAN Command Chat nginx must not depend on fixed client addresses or subnets" >&2
+  exit 1
+fi
+
 if [[ "$missing" -ne 0 ]]; then
   exit 1
 fi

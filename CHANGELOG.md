@@ -1,5 +1,18 @@
 # Changelog
 
+## 4.1.4 - 2026-08-08
+
+- Remove fixed client-address and fixed-subnet nginx allowlists from LAN
+  Command Chat; retain password/session authentication.
+- Keep LAN Chat bound to `0.0.0.0:3001` and nginx on port 80 so interface
+  address changes do not require application or proxy configuration changes.
+- Make hostname/mDNS access the human-facing route and add a release gate that
+  rejects hard-coded private addresses or access directives in LAN nginx files.
+- Require staged Next.js builds, controlled LAN-only cutover, authenticated
+  browser login, inspected screenshots, and rendered gauge proof.
+- Align source package, plugin/MCP, packaged/live LAN Chat, release asset, tag,
+  and gauge at `v4.1.4` without modifying the installed OpenClaw connector.
+
 ## 4.1.3 - 2026-08-08
 
 - Prohibit connector installation, patching, activation, reload, restart, and

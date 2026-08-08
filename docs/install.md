@@ -1,4 +1,4 @@
-# Install or upgrade Zorg MemoryDB v4.1.3
+# Install or upgrade Zorg MemoryDB v4.1.4
 
 This document is the public entry point. The canonical detailed procedures are in:
 
@@ -16,7 +16,7 @@ The package does not enable Markdown memory, model-memory fallback, a second mem
 ## Obtain the pinned release
 
 ```bash
-git clone --branch v4.1.3 --depth 1 https://github.com/StefRush2099/Zorg_MemoryDB.git
+git clone --branch v4.1.4 --depth 1 https://github.com/StefRush2099/Zorg_MemoryDB.git
 cd Zorg_MemoryDB
 ```
 

@@ -6,7 +6,10 @@ This repository is intentionally **not** a GitHub fork or full source fork of Op
 
 ## Release Focus
 
-Release `v4.1.3` makes the source/test boundary explicit. Connector source is
+Release `v4.1.4` removes fixed-address and fixed-subnet dependencies from the
+LAN Command Chat front door. The service binds generically and is advertised
+through the machine hostname/mDNS route, while application authentication
+remains mandatory. It also preserves the v4.1.3 source/test boundary: connector source is
 built, inspected, packaged, and published without installing, patching,
 reloading, or restarting the maintainer's active OpenClaw system. LAN Command
 Chat remains a separately permitted local update surface. External OpenClaw
@@ -56,7 +59,7 @@ Then add this package's `zorg-db-memory` skill and `package/zorg` support files 
 ## Manual command-line installation from GitHub
 
 ```bash
-git clone --branch v4.1.3 https://github.com/StefRush2099/Zorg_MemoryDB.git
+git clone --branch v4.1.4 https://github.com/StefRush2099/Zorg_MemoryDB.git
 cd Zorg_MemoryDB
 bash package/zorg/install-zorg-memorydb.sh
 ```

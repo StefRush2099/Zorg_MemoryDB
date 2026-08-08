@@ -120,7 +120,7 @@ The skill should include this exact sentence:
 - Do not skip screenshot verification when the affected surface is visual/browser-visible.
 - Do not continue from a compacted summary if DB memory tools are broken.
 - Do not use memory addresses as permission to exceed the approved scope.
-- Do not apply personal-agent context process changes to remote hosts unless Stefan explicitly targets that host.
+- Do not apply personal-agent context process changes to remote hosts unless the operator explicitly targets that host.
 
 ## Output Shape For Future Summaries
 

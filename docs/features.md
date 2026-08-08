@@ -15,8 +15,8 @@
 - Recall routing through `skills/zorg-db-memory/scripts/memory_recall_router.py`.
 - Health checks through `memory_speed_test.py`.
 - DB-only memory auto-heal through `db_only_memory_autoheal.py`.
-- Semantic worker and dispatcher support through `memory_semantic_worker.py` and `memory_db_llm_dispatcher.py`.
-- ANN/vector bootstrap through the model-slot registry, source queue, embedding worker, query cache helper, and idempotent scheduled-job seeds.
+- Fail-closed turn preparation through the native plugin hook and exact-request PostgreSQL receipts.
+- ANN/vector bootstrap through the model-slot registry, source queue, query cache helper, and idempotent PostgreSQL-owned maintenance functions.
 - PostgreSQL backup, recovery, install, and display helpers under `scripts/`.
 
 ## Context Window Process

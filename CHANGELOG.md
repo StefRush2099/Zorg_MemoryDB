@@ -1,5 +1,14 @@
 # Changelog
 
+## 4.1.2 - 2026-08-08
+
+- Publish the working fail-closed OpenClaw turn gate with exact-request PostgreSQL recall receipts.
+- Hold requests during database failure, permit only bounded recovery operations, and suppress duplicate outage/restoration alerts.
+- Add connector installation, recovery, rollback, and 13-gate acceptance runbooks based on official PostgreSQL 18, pgvector, OpenClaw, and GitHub guidance.
+- Replace stale skill routing that could recreate delegated executors or parallel memory fallbacks.
+- Add turn-gate regression tests and strengthen version, gauge, privacy, archive, and release verification.
+- Align the root package, plugin/MCP, packaged/live LAN Command Chat, release archive, tag, and visible gauge at `v4.1.2`.
+
 ## 4.1.1
 
 - Supply the complete PostgreSQL core scheduler migration and canonical seeds.

@@ -11,7 +11,7 @@ The console provides a local browser chat surface that talks to the OpenClaw Gat
 - LAN front door: `lan-chat-nginx` on port `80`, proxying to the 3001 service.
 - Port `3000` is retired for this host and should not be treated as the live console.
 - A user-level `lan-chat-health.timer` checks the 3001 service and LAN front door every minute and safely restarts the affected service if either path fails.
-- This channel must remain available for Stefan and authorized local AI-agent coordination, including La DJ Beta / DJ Beta back-channel handoffs.
+- This channel must remain available for the operator and authorized local AI-agent coordination, including La DJ Beta / DJ Beta back-channel handoffs.
 
 ## Features
 
@@ -57,7 +57,7 @@ The default landing page is a password login gate for the LAN command chat. To r
 
 The command chat can request browser notification permission and unlock audio playback from a user click via the **Enable alerts + speech** button. This follows browser autoplay/notification policy: notification permission and audio playback must be initiated from a user gesture, and secure contexts are required for the browser prompt. When enabled, new assistant replies may trigger a browser notification and play speech through `/api/tts`; if a browser/API blocks either path, the UI reports the degraded state instead of pretending it is active.
 
-Visual verification for UI changes must include desktop light mode, desktop dark mode, and mobile viewport screenshots, and screenshots must be sent to Stefan rather than only saved locally.
+Visual verification for UI changes must include desktop light mode, desktop dark mode, and mobile viewport screenshots, and screenshots must be sent to the operator rather than only saved locally.
 
 ## Telemetry verification
 

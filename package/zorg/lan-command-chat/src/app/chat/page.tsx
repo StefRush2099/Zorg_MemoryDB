@@ -859,7 +859,12 @@ export default function Home() {
                   <Gauge label={metricLabel("dbSize")} metric={metrics.dbSize} />
                 </div>
                 <div className="db-detail-grid">
-                  <span className="health">v{LAN_CHAT_RELEASE_VERSION}</span>
+                  <span
+                    className="health"
+                    data-lan-chat-gauge-version={LAN_CHAT_RELEASE_VERSION}
+                  >
+                    v{LAN_CHAT_RELEASE_VERSION}
+                  </span>
                   <span>DB size <b>{formatBytes(Number(dbStatus?.details?.dbSizeBytes ?? 0))}</b></span>
                   <span>Free space <b>{formatBytes(Number(dbStatus?.details?.storageFreeBytes ?? 0))}</b></span>
                 </div>

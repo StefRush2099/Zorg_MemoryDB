@@ -9,8 +9,6 @@ Python tools:
 - scripts/memory_recall_router.py
 - scripts/memory_speed_test.py
 - scripts/db_only_memory_autoheal.py
-- scripts/memory_semantic_worker.py
-- scripts/memory_db_llm_dispatcher.py
 
 Shell helpers:
 - scripts/postgres_memory_backup.sh
@@ -19,10 +17,8 @@ Shell helpers:
 - scripts/install_db_memory.sh
 - scripts/install_db_memory_full.sh
 - scripts/enforce_db_memory_search.py
-- scripts/memory_db_llm_dispatcher.py
 - scripts/cache_model_query_embedding.mjs
 - scripts/backfill_model_ann_embeddings.mjs
-- scripts/nightly_memory_health_check.py
 - config/sql_memory_map.json (local-only secret-bearing config; excluded from releases)
 - scripts/request_category_router.py
 - scripts/import_code_memory_phase1.py

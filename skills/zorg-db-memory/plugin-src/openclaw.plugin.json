@@ -2,7 +2,7 @@
   "id": "zorg-memorydb",
   "name": "Zorg MemoryDB",
   "description": "Typed PostgreSQL access to the canonical Zorg MemoryDB.",
-  "version": "4.1.1",
+  "version": "4.1.2",
   "configSchema": {
     "type": "object",
     "properties": {},

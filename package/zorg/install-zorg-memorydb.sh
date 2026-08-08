@@ -415,6 +415,7 @@ ensure_postgres_database() {
     memory_correction_learning_2026_07_11.sql \
     memory_ann_bootstrap_2026_07_12.sql \
     memory_ann_provider_defaults_2026_07_12.sql \
+    memory_recall_fast_cache_2026_08_06.sql \
     memory_logic_rule_feedback_2026_07_17.sql \
     memory_complete_self_repair_rule_2026_07_21.sql \
     memory_rule_scope_dedup_2026_07_15.sql \
@@ -673,25 +674,6 @@ prepare_lan_chat() {
   fi
 }
 
-install_memorydb_dispatcher_service() {
-  local source_unit="$PACKAGE_ROOT/systemd/zorg-memorydb-llm-dispatcher.service"
-  [[ -f "$source_unit" ]] || { warn "MemoryDB LLM dispatcher unit template is missing."; return 1; }
-  if [[ "$(id -u)" == "0" && -n "${SUDO_USER:-}" && "${SUDO_USER:-}" != "root" ]]; then
-    local sudo_home
-    sudo_home="$(getent passwd "$SUDO_USER" | awk -F: '{print $6}')"
-    install -d -o "$SUDO_USER" -g "$SUDO_USER" "$sudo_home/.config/systemd/user"
-    sed "s|%h|$sudo_home|g" "$source_unit" > "$sudo_home/.config/systemd/user/zorg-memorydb-llm-dispatcher.service"
-    chown "$SUDO_USER:$SUDO_USER" "$sudo_home/.config/systemd/user/zorg-memorydb-llm-dispatcher.service"
-    sudo -u "$SUDO_USER" env HOME="$sudo_home" systemctl --user daemon-reload
-    sudo -u "$SUDO_USER" env HOME="$sudo_home" systemctl --user enable --now zorg-memorydb-llm-dispatcher.service
-  else
-    mkdir -p "$HOME/.config/systemd/user"
-    cp "$source_unit" "$HOME/.config/systemd/user/zorg-memorydb-llm-dispatcher.service"
-    systemctl --user daemon-reload
-    systemctl --user enable --now zorg-memorydb-llm-dispatcher.service
-  fi
-}
-
 install_lan_chat_service() {
   if ! command -v systemctl >/dev/null 2>&1; then
     warn "systemd is unavailable; LAN chat source is installed but no service was created."
@@ -799,7 +781,6 @@ main() {
   prepare_lan_chat
   maybe_chown_sudo_workspace
   install_lan_chat_service
-  install_memorydb_dispatcher_service
   log "Zorg MemoryDB and LAN command chat bootstrap complete."
 }
 main "$@"

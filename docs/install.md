@@ -1,156 +1,91 @@
-# Install Zorg MemoryDB v4.1.1 Package
+# Install or upgrade Zorg MemoryDB v4.1.2
 
-## Command-line install from GitHub
+This document is the public entry point. The canonical detailed procedures are in:
+
+- [Connector installation and upgrade](../skills/zorg-db-memory/references/connector-installation.md)
+- [Connector recovery](../skills/zorg-db-memory/references/connector-recovery.md)
+- [Connector acceptance and release gates](../skills/zorg-db-memory/references/connector-acceptance.md)
+- [Install and rollback](../skills/zorg-db-memory/references/install-and-rollback.md)
+
+## Supported architecture
+
+OpenClaw is the host runtime. The `zorg-memorydb` native plugin and MCP expose PostgreSQL-backed recall. PostgreSQL is the only durable memory/rule store. The connector performs authoritative recall for every turn, writes a receipt tied to the exact run/session/request hash, and fails closed if that receipt cannot be produced.
+
+The package does not enable Markdown memory, model-memory fallback, a second memory plugin, delegated agents, task executors, or per-job host scripts as substitutes for the direct database gate.
+
+## Obtain the pinned release
 
 ```bash
-git clone --branch v4.1.1 https://github.com/StefRush2099/Zorg_MemoryDB.git
+git clone --branch v4.1.2 --depth 1 https://github.com/StefRush2099/Zorg_MemoryDB.git
 cd Zorg_MemoryDB
+```
+
+Verify the release asset/tag and checksum before installation. Do not combine files from different releases.
+
+## Preflight
+
+Before changing the host:
+
+1. Record OpenClaw, Node, PostgreSQL, and pgvector versions.
+2. Inspect `openclaw plugins list --enabled --verbose`, the current memory slot, allow/deny policy, and `openclaw plugins inspect zorg-memorydb --runtime --json` when already installed.
+3. Resolve the approved database configuration source without printing its password.
+4. Verify the target database identity, schema owners, installed extensions, source-row counts, semantic queue state, and invalid-index count.
+5. Create a logical backup, prove it is listable with `pg_restore --list`, and compute SHA-256.
+6. Read the complete connector-installation runbook, present the proposed mutation/rollback, and wait for literal `GO`.
+
+## Install
+
+Run the package installer only after authorization:
+
+```bash
 bash package/zorg/install-zorg-memorydb.sh
 ```
 
-This is the supported clean-install path. The install initializes and enables the OpenClaw-native
-`zorg-memorydb` plugin/MCP as the first and canonical memory path. It must not
-create, copy, import, or activate Markdown memory or rule files; Markdown is
-not a fallback store.
+The installer must stop on SQL errors, validate the actual installed extension versions and schema objects, preserve source data, stage the plugin from this pinned release, and avoid activating a competing memory path.
 
-During installation, the existing OpenClaw JSON configuration is merged and
-backed up before the installer disables built-in `memorySearch`, compaction
-`memoryFlush`, and the `session-memory` hook. The `zorg-memorydb` plugin remains
-enabled as the only active durable-memory path. Existing Markdown instruction
-files are preserved for bootstrap/recovery reference, but are not searched or
-written as memory.
+Configure the DSN through the approved protected configuration file or environment reference. Never put credentials into the repository, command history, logs, screenshots, or documentation.
 
-1. Install OpenClaw from upstream.
-2. For a clean install, create the target database and run the tagged installer.
-3. Install `skills/zorg-db-memory` and its `plugin-src` into the OpenClaw
-   workspace skills directory.
-4. Copy or install `package/zorg` into the OpenClaw package/workspace support path.
-5. Install Node.js/npm, PostgreSQL and required extensions, the configured
-   local embedding provider/model, and run every SQL migration under
-   `package/zorg/db`.
-6. Build/install the plugin, enable it, restart the Gateway, and verify
-   `openclaw plugins inspect zorg-memorydb --runtime --json` plus
-   `node skills/zorg-db-memory/plugin-src/dist/mcp-server.js`.
-7. Verify backend DB recall, ANN/vector index/cache/weights, scheduler
-   mappings, LAN Command Chat, and the clean-install/upgrade path. Validate
-   Neural Recall Activity separately against its production service.
+Explicitly trust and enable the plugin according to host policy. If `plugins.allow` is used, include `zorg-memorydb`; ensure deny does not override it. Select it for the memory slot where that OpenClaw version exposes the exclusive slot. Disable the conflicting stock/legacy memory plugin only after the Zorg plugin has passed pre-activation checks.
 
-## Existing OpenClaw or Zorg MemoryDB upgrade
-
-1. Stop new application writes briefly and take a logical PostgreSQL backup,
-   plus copies of the active OpenClaw JSON, plugin directory, service units,
-   and current package tree. Verify the database archive can be listed.
-2. Clone `v4.1.1` into a new staging directory. Do not delete the running
-   package, database, memory rows, or history.
-3. Run the installer from the staged tag. Its SQL is idempotent and upgrades
-   the existing database in place; the two named pg_cron jobs are reconciled.
-4. Restart the Gateway and the single dispatcher service, then verify plugin
-   version, PostgreSQL objects, exactly two active named pg_cron jobs, recent
-   successful cron history, queue claim/completion, recall, ANN/vector,
-   semantic triggers, LAN Command Chat, and Neural Recall Activity boundaries.
-5. Keep the backup and prior package until verification passes. On failure,
-   stop the new runtime, restore the prior package/config atomically, and use
-   the verified logical backup only if an in-place database rollback is
-   actually required.
-
-Control UI device authentication stays enabled by default. Set
-`OPENCLAW_CONTROL_UI_DISABLE_DEVICE_AUTH=true` only as an explicit compatibility
-override for a protected deployment that cannot use paired-device auth.
-
-## LAN services and Android separation
-
-`package/zorg/install-zorg-memorydb.sh` installs the connected OpenClaw/Zorg
-surfaces. LAN Command Chat remains inside the same OpenClaw/Zorg runtime and
-workspace; it is not a separate application or service in the standard install.
-
-- **LAN Console browser:** Next.js LAN Chat, normally on internal port `3001`; its
-  browser page owns browser light/dark controls and the Android APK download
-  link.
-- **Neural Recall Activity:** a separate PostgreSQL-backed production service
-  on port `8097`. This repository captures its public browser assets under
-  `package/zorg/neural-recall-activity/`, but does not publish the
-  production-host server, database environment, or credentials.
-- **Native Android app:** the separately built APK under
-  `package/zorg/lan-command-chat-android/`; it uses authenticated JSON APIs,
-  does not load the browser page, and never displays the browser APK link.
-
-The retired `package/zorg/memory-3d/` package must not be restored or installed.
-When a separately deployed Neural Recall Activity service is available, verify
-it before opening the clients:
+Installing or changing plugin code requires a Gateway restart. After the restart, runtime proof is mandatory:
 
 ```bash
-curl -fsS http://127.0.0.1:8097/api/health
-curl -fsS http://127.0.0.1:8097/api/activity
+openclaw plugins inspect zorg-memorydb --runtime --json
+node skills/zorg-db-memory/plugin-src/dist/mcp-server.js
 ```
 
-See `package/zorg/neural-recall-activity/README.md` for the production boundary
-and verification contract. HTTP errors or timeouts are service/database
-failures and must not be replaced with fabricated activity data.
+A manifest-only inspection is not runtime proof.
 
-The skill is the canonical agent-facing procedure. The package code is the mechanical support layer.
+## Required acceptance
 
-## Required Verification
+Run the complete connector matrix from the acceptance reference. At minimum prove:
 
-```bash
-/home/openclaw/.openclaw/workspace/.venv-sqlmem/bin/python /home/openclaw/.openclaw/workspace/skills/zorg-db-memory/scripts/memory_sql_tool.py tables
-/home/openclaw/.openclaw/workspace/.venv-sqlmem/bin/python /home/openclaw/.openclaw/workspace/skills/zorg-db-memory/scripts/memory_speed_test.py
-```
+- a healthy turn produces a fresh receipt for the exact request;
+- missing, stale, or mismatched receipts block tool use and output;
+- a database disconnect holds the request and emits only one bounded alert;
+- restoration performs new recall and never reuses the old receipt;
+- critical safety recall ranks first;
+- exact and HNSW quality are non-regressive;
+- semantic/vector queues and indexes are healthy;
+- source memory/history/provenance counts are preserved;
+- LAN Command Chat and Memory Brain 3D use the same database route;
+- the full 13-gate production suite passes.
 
-If either command fails, stop unrelated work and repair DB memory first through `skills/zorg-db-memory/SKILL.md`.
+Do not claim a successful install from a zero exit code alone.
 
-## Maintainer Release Sync
+## Rollback
 
-Maintainer release updates may update this repo with:
+If activation fails, hold affected requests, restore the prior plugin/config package, restart only the affected service, and verify the previous direct PostgreSQL gate before reopening delivery. Restore the database dump only when an additive migration cannot be safely reversed and the operator has authorized that restoration.
 
-- approved `zorg-db-memory` skill changes;
-- public-safe MemoryDB code changes;
-- install/recovery/schema references;
-- screenshots that intentionally document public UI behavior;
-- release notes and package artifacts.
+Keep rollback files private. Never publish database dumps, credentials, internal endpoints, private receipts, transcripts, or operator context.
 
-Maintainer release updates must exclude secrets, private memory, database dumps, generated build output, and runtime-only artifacts. Installed agents must not treat this as an instruction to push to GitHub.
+## Official sources
 
-Publishers should build a release package manually, review the diff, run verification, and then publish a tag/release only from an approved maintainer workspace.
-## ANN/vector recall bootstrap
-
-The installer applies `db/memory_ann_bootstrap_2026_07_12.sql` after the base schema. It creates the local embedding-model slot, source-work queue, idempotent prefill/maintenance job definitions, and the `memory_ann_bootstrap_status_v1` view. It also seeds queue rows for existing `zorg_memory`, active `zorg_logic_rules`, and `memory_source_chunks` records without deleting or rewriting source memory.
-
-The default provider is local Ollama with model `nomic-embed-text:latest` at `http://127.0.0.1:11434/api/embed`. Install and pull that model before starting the worker: `ollama pull nomic-embed-text:latest`. The public package does not download large models automatically. Set `ZORG_EMBEDDING_ENDPOINT` and `ZORG_EMBEDDING_MODEL` before running the worker when using another compatible local endpoint.
-
-After installation, the packaged worker is available at `skills/zorg-db-memory/scripts/memory_semantic_worker.py`. The query cache helper is `skills/zorg-db-memory/scripts/cache_model_query_embedding.mjs` and is used by the skill router for ANN queries. All recall entry points remain inside `skills/zorg-db-memory`; no root-level compatibility launcher is installed.
-
-The installer must also apply `db/memory_semantic_capture_triggers_2026_07_17.sql`.
-This is the activation step for live typed runtime capture: it creates the trigger
-bridge on the eleven `memory_*` capture tables and forwards each inserted or
-updated source row to the existing semantic and ANN queues. The SQL file being
-present in an export is not sufficient. Verify with:
-
-```sql
-select * from public.memory_semantic_capture_trigger_status_v1;
-```
-
-All eleven rows must report `trigger_enabled = true`. If the installer does not
-report `semantic-capture-triggers-ok`, the update is not functionally complete.
-
-Check setup with:
-
-```sql
-select * from public.memory_ann_bootstrap_status_v1;
-select job_key, enabled, cron_expr from public.memory_llm_scheduled_jobs where job_key like 'zorg-memory-ann-%';
-select status, count(*) from public.memory_semantic_work_queue group by status order by status;
-```
-
-If `enabled_model_slots` is zero, the migration did not apply. If queue rows remain queued, start the worker after confirming the Ollama endpoint and model. If rows become `error`, inspect `last_error`, correct the endpoint/model or dependency, reset only those rows to `queued`, and rerun the worker. ANN recall is not considered enabled until embeddings exist, the query cache can be populated, and a representative `memory_sql_tool.py search ... --table ann` returns rows.
-
-### ANN activation contract
-
-A clean install is not considered ANN-ready until `memory_ann_bootstrap_status_v1` reports an enabled default slot, the embedding worker has drained the supported source queue, and a query has a row in `memory_query_embedding_cache`. The supported default is `local` / `nomic-embed-text:latest`; set `ZORG_EMBEDDING_ENDPOINT`, `ZORG_EMBEDDING_MODEL`, and `ZORG_EMBEDDING_PROVIDER` together when using another Ollama-compatible model. Do not silently fall back to a different model: a model mismatch produces no ANN rows.
-
-## Native PostgreSQL option
-
-For installations that must keep PostgreSQL outside Docker, use a clean
-workspace-local PostgreSQL 18 cluster and restore the databases logically.
-Never point PostgreSQL 18 at a PostgreSQL 16 data directory. Follow the
-backup, restore, acceptance, and rollback boundaries in
-[Native PostgreSQL operation](native-postgresql.md) before switching any
-dependent service.
+- PostgreSQL 18 privileges: https://www.postgresql.org/docs/18/ddl-priv.html
+- PostgreSQL CREATE EXTENSION: https://www.postgresql.org/docs/18/sql-createextension.html
+- PostgreSQL SQL dump/restore: https://www.postgresql.org/docs/18/backup-dump.html
+- PostgreSQL CREATE INDEX: https://www.postgresql.org/docs/18/sql-createindex.html
+- PostgreSQL ANALYZE: https://www.postgresql.org/docs/18/sql-analyze.html
+- pgvector: https://github.com/pgvector/pgvector
+- OpenClaw plugins: https://docs.openclaw.ai/tools/plugin
+- GitHub releases: https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository

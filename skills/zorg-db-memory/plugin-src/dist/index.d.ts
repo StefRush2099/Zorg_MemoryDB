@@ -1,2 +1,5 @@
-declare const _default: import("openclaw/plugin-sdk/tool-plugin").DefinedToolPluginEntry;
-export default _default;
+import pg from "pg";
+export declare function query<T extends pg.QueryResultRow = pg.QueryResultRow>(text: string, values?: unknown[]): Promise<T[]>;
+export declare function recallPreflight(queryText: string, limit: number): Promise<import("pg").QueryResultRow[]>;
+declare const plugin: import("openclaw/plugin-sdk/tool-plugin").DefinedToolPluginEntry;
+export default plugin;

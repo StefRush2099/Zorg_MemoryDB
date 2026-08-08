@@ -6,17 +6,17 @@ This repository is intentionally **not** a GitHub fork or full source fork of Op
 
 ## Release Focus
 
-Release `v4.1.1` is the complete connected package: the source-record capture
-tables and procedures, derived semantic/ANN recall paths, LAN Command Chat
-integration, and the canonical `zorg-db-memory` skill are versioned and
-verified together.
+Release `v4.1.2` publishes the recovered fail-closed connector as reproducible
+source. It adds per-turn PostgreSQL recall receipts, held-request recovery,
+duplicate-safe outage/restoration alerts, connector tests, and explicit
+installation, recovery, rollback, and acceptance runbooks.
 
 `zorg-db-memory` consolidates the MemoryDB work into one portable skill package:
 
 - DB-first recall before work or replies.
 - Native plugin/MCP-first recall with PostgreSQL as the only active durable-memory store.
 - Rule Zero repair behavior when memory/database tools fail.
-- Bundled Python and shell tools for SQL inspection, recall routing, speed checks, auto-heal, semantic workers, LLM dispatch, backup, recovery, and install.
+- Bundled tools for SQL inspection, recall routing, speed checks, additive ANN repair, backup, recovery, and install. Scheduled prompts are executed by the live LLM; the package does not authorize a delegated task executor.
 - Context-window pruning through DB-backed execution slices instead of markdown summaries.
 - PostgreSQL schema, recall rules, install/rollback guidance, and public-safe canonical rule import material.
 - LAN Command Chat support files and public Neural Recall Activity browser
@@ -54,7 +54,7 @@ Then add this package's `zorg-db-memory` skill and `package/zorg` support files 
 ## Manual command-line installation from GitHub
 
 ```bash
-git clone --branch v4.1.1 https://github.com/StefRush2099/Zorg_MemoryDB.git
+git clone --branch v4.1.2 https://github.com/StefRush2099/Zorg_MemoryDB.git
 cd Zorg_MemoryDB
 bash package/zorg/install-zorg-memorydb.sh
 ```
@@ -75,6 +75,13 @@ and the current package/config first, keep them until post-upgrade checks pass,
 and use the separate clean-install or upgrade procedure in `docs/install.md`.
 
 The public package does not instruct installed agents to publish back to this GitHub repository. Release publishing is a maintainer action.
+
+The authoritative step-by-step procedures are:
+
+- `skills/zorg-db-memory/references/connector-installation.md`
+- `skills/zorg-db-memory/references/connector-recovery.md`
+- `skills/zorg-db-memory/references/connector-acceptance.md`
+- `skills/zorg-db-memory/references/install-and-rollback.md`
 
 ## Memory Rule
 

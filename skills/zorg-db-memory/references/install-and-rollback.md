@@ -132,9 +132,9 @@ Every meaningful tuning change must record the research basis, before/after benc
 <!-- GO_ONLY_APPROVAL_RULE -->
 ## GO-Only Approval Rule
 
-When Stefan gives a command that requires confirmation before execution, ask only for `GO`. Do not invent longer approval phrases, magic words, task-specific confirmations, or exact response strings such as `GO REIP ...`, `GO SCORCHED ...`, or any other expanded form. Stefan decides how to respond; the assistant may request only the simple approval token `GO`.
+When the operator gives a command that requires confirmation before execution, ask only for `GO`. Do not invent longer approval phrases, magic words, task-specific confirmations, or exact response strings such as `GO REIP ...`, `GO SCORCHED ...`, or any other expanded form. the operator decides how to respond; the assistant may request only the simple approval token `GO`.
 
-If the requested action is unsafe, ambiguous, destructive, externally risky, or missing a necessary decision, explain the blocker or the exact intended change briefly, then end with only `GO` as the approval request when approval is the only thing needed. Never require Stefan to repeat the task, include extra words, or match an assistant-authored phrase.
+If the requested action is unsafe, ambiguous, destructive, externally risky, or missing a necessary decision, explain the blocker or the exact intended change briefly, then end with only `GO` as the approval request when approval is the only thing needed. Never require the operator to repeat the task, include extra words, or match an assistant-authored phrase.
 <!-- /GO_ONLY_APPROVAL_RULE -->
 
 <!-- SAME_DAY_NEWS_FRESHNESS_RULE -->

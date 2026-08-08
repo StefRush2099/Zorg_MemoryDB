@@ -15,7 +15,7 @@ CORPUS = BASE / 'db_benchmark_queries.json'
 DEFAULT_QUERIES = [
     'vcenter',
     'OpenClaw',
-    'Stefan',
+    'the operator',
     'backup',
     'directive',
 ]

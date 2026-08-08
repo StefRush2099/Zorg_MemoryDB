@@ -91,26 +91,13 @@ begin
 end;
 $$;
 
-insert into public.memory_llm_scheduled_jobs
-  (job_key, name, agent_id, schedule, cron_expr, timezone, enabled, session_target, wake_mode, payload, metadata)
-values
-  ('zorg-memory-ann-prefill', 'Zorg Memory ANN embedding prefill', 'main',
-   jsonb_build_object('kind','interval','minutes',15), '*/15 * * * *', 'America/Los_Angeles', true, 'isolated', 'now',
-   jsonb_build_object('kind','command','argv',jsonb_build_array('/home/openclaw/.openclaw/workspace/.venv-sqlmem/bin/python','/home/openclaw/.openclaw/workspace/skills/zorg-db-memory/scripts/memory_semantic_worker.py','--once','--limit','100'),'timeoutSeconds',900),
-   jsonb_build_object('purpose','enqueue and embed new or changed source memory','job_class','core_llm','owner','core_llm')),
-  ('zorg-memory-ann-maintenance', 'Zorg Memory ANN maintenance', 'main',
-   jsonb_build_object('kind','daily','hour','03:20'), '20 3 * * *', 'America/Los_Angeles', true, 'isolated', 'now',
-   jsonb_build_object('kind','command','argv',jsonb_build_array('/home/openclaw/.openclaw/workspace/.venv-sqlmem/bin/python','/home/openclaw/.openclaw/workspace/skills/zorg-db-memory/scripts/ann_vector_autoheal.py'),'timeoutSeconds',1800),
-   jsonb_build_object('purpose','retry failed work and report embedding slot health','job_class','core_llm','owner','core_llm'))
-on conflict (job_key) do update set
-  name = excluded.name,
-  schedule = excluded.schedule,
-  cron_expr = excluded.cron_expr,
-  payload = excluded.payload,
-  enabled = true,
-  source_scheduler = 'core-llm',
-  metadata = excluded.metadata,
-  updated_at = now();
+-- v4.1.2 removes historical command-executing schedule records. ANN repair is
+-- performed live through direct tools under a natural-language systemPrompt;
+-- executable task payloads and disabled copies are not retained.
+delete from public.memory_llm_job_queue
+where job_key in ('zorg-memory-ann-prefill','zorg-memory-ann-maintenance');
+delete from public.memory_llm_scheduled_jobs
+where job_key in ('zorg-memory-ann-prefill','zorg-memory-ann-maintenance');
 
 create or replace view public.memory_ann_bootstrap_status_v1 as
 select
@@ -119,7 +106,7 @@ select
   (select count(*) from public.memory_query_embedding_cache where active) as query_cache_rows,
   (select count(*) from public.memory_semantic_work_queue where status = 'queued' and source_type in ('memory','zorg_memory','logic_rule','source_chunk')) as queued_source_rows,
   (select count(*) from public.memory_semantic_work_queue where status = 'failed' and source_type in ('memory','zorg_memory','logic_rule','source_chunk')) as failed_source_rows,
-  (select count(*) from public.memory_llm_scheduled_jobs where enabled and job_key like 'zorg-memory-ann-%') as enabled_ann_jobs;
+  (select count(*) from public.memory_llm_scheduled_jobs where job_key like 'zorg-memory-ann-%') as forbidden_ann_job_rows;
 
 create or replace function public.memory_dynamic_worker_batch_limit(p_requested integer default 50)
 returns integer language sql stable as $$

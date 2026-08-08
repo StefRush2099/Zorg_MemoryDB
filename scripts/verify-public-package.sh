@@ -12,6 +12,18 @@ if [[ "$lan_chat_version" != "$package_version" ]]; then
   echo "LAN Command Chat version $lan_chat_version does not match GitHub package version $package_version" >&2
   exit 1
 fi
+node scripts/sync-lan-chat-release-version.mjs
+if ! rg -q 'import packageMetadata from "\.\./\.\./\.\./package\.json"' package/zorg/lan-command-chat/src/app/chat/page.tsx \
+  || ! rg -q 'data-lan-chat-gauge-version=\{LAN_CHAT_RELEASE_VERSION\}' package/zorg/lan-command-chat/src/app/chat/page.tsx \
+  || ! rg -q 'v\{LAN_CHAT_RELEASE_VERSION\}' package/zorg/lan-command-chat/src/app/chat/page.tsx; then
+  echo "LAN Command Chat gauge does not derive and render the canonical package version" >&2
+  exit 1
+fi
+if [[ ! -f package/zorg/lan-command-chat/scripts/verify-live-version.mjs ]] \
+  || ! rg -q 'data-lan-chat-gauge-version' package/zorg/lan-command-chat/scripts/verify-live-version.mjs; then
+  echo "LAN Command Chat gauge-specific compiled/rendered verifier is missing" >&2
+  exit 1
+fi
 release_archive="release/zorg-db-memory-v${package_version}.tar.gz"
 for path in \
   "skills/zorg-db-memory/SKILL.md" \
@@ -30,6 +42,13 @@ done
 if [[ "$missing" -ne 0 ]]; then
   exit 1
 fi
+
+privacy_scan_targets=(.)
+if [[ -f "$release_archive" ]]; then
+  privacy_scan_targets+=("$release_archive")
+fi
+python3 skills/zorg-db-memory/scripts/verify_public_rule_name_privacy.py \
+  --self-test "${privacy_scan_targets[@]}"
 
 if rg -n \
   '(cfat_[A-Za-z0-9]|gho_[A-Za-z0-9]|github_pat_[A-Za-z0-9]|BEGIN (RSA|OPENSSH|EC) PRIVATE KEY|SECRET_ACCESS_KEY=|AWS_SECRET_ACCESS_KEY=|CLOUDFLARE_API_TOKEN=)' \

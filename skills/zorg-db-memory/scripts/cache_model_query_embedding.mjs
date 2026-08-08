@@ -1,31 +1,42 @@
 import { createRequire } from 'node:module';
 import { readFile, readdir } from 'node:fs/promises';
 import { stdin } from 'node:process';
-import { pathToFileURL } from 'node:url';
+import { pathToFileURL, fileURLToPath } from 'node:url';
+import { homedir } from 'node:os';
+import { dirname, resolve } from 'node:path';
 
-// OpenClaw bundle filenames are content-hashed and change on upgrades. Find
-// the installed embeddings module instead of pinning yesterday's hash.
+// OpenClaw bundle filenames are content-hashed and change on upgrades. Resolve
+// the live installation instead of pinning an account-specific absolute path.
 async function loadLocalEmbeddingProvider() {
-  const dist = '/home/openclaw/.npm-global/lib/node_modules/openclaw/dist';
-  const candidates = (await readdir(dist))
-    .filter((name) => /^embeddings-[^/]+\.js$/.test(name))
-    .sort();
-  for (const name of candidates) {
+  const roots = [
+    process.env.OPENCLAW_DIST,
+    resolve(homedir(), '.npm-global/lib/node_modules/openclaw/dist'),
+    '/usr/local/lib/node_modules/openclaw/dist',
+  ].filter(Boolean);
+  for (const dist of roots) {
+    let candidates = [];
     try {
-      const mod = await import(pathToFileURL(`${dist}/${name}`).href);
-      if (typeof mod.n === 'function') return mod.n;
+      candidates = (await readdir(dist)).filter((name) => /^embeddings-[^/]+\.js$/.test(name)).sort();
     } catch {
-      // Some bundles are helpers; continue until the provider bundle is found.
+      continue;
+    }
+    for (const name of candidates) {
+      try {
+        const mod = await import(pathToFileURL(`${dist}/${name}`).href);
+        if (typeof mod.n === 'function') return mod.n;
+      } catch {
+        // Some bundles are helpers; continue until the provider bundle is found.
+      }
     }
   }
   throw new Error('OpenClaw local embeddings provider bundle not found');
 }
 
-const require = createRequire('/home/openclaw/.openclaw/workspace/lan-chat/package.json');
+const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
+const SKILL_ROOT = resolve(SCRIPT_DIR, '..');
+const WORKSPACE = resolve(process.env.OPENCLAW_WORKSPACE || process.env.WORKSPACE_DIR || resolve(SKILL_ROOT, '../..'));
+const require = createRequire(resolve(SKILL_ROOT, 'plugin-src/package.json'));
 const { Client } = require('pg');
-
-const WORKSPACE = '/home/openclaw/.openclaw/workspace';
-const SKILL_ROOT = new URL('..', import.meta.url).pathname;
 const CONFIG_PATH = `${SKILL_ROOT}/config/sql_memory_map.json`;
 const PROVIDER = 'local';
 const MODEL = 'embeddinggemma-300m-qat-q8_0';

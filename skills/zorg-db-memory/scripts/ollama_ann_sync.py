@@ -4,6 +4,7 @@
 import argparse
 import hashlib
 import json
+from pathlib import Path
 import urllib.request
 
 import psycopg2
@@ -33,24 +34,66 @@ def vector_literal(vector):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--dsn", default="host=127.0.0.1 port=5432 dbname=zorgdb user=zorg")
+    parser.add_argument("--dsn")
     parser.add_argument("--endpoint", default="http://127.0.0.1:11434/api/embed")
     parser.add_argument("--model", default="nomic-embed-text:latest")
     parser.add_argument("--batch-size", type=int, default=16)
+    parser.add_argument("--missing-only", action="store_true")
+    parser.add_argument("--limit", type=int)
     parser.add_argument("--query", action="append", default=[])
+    parser.add_argument("--source-key", action="append", default=[], help="embed only matching canonical source IDs")
+    parser.add_argument("--skip-refresh", action="store_true", help="use the already refreshed search view")
     args = parser.parse_args()
 
-    connection = psycopg2.connect(args.dsn)
+    if args.dsn:
+        connection = psycopg2.connect(args.dsn)
+    else:
+        config_path = Path(__file__).resolve().parents[1] / "config" / "sql_memory_map.json"
+        connection = psycopg2.connect(**json.loads(config_path.read_text())["postgres"])
     connection.autocommit = False
     with connection, connection.cursor() as cursor:
-        cursor.execute("REFRESH MATERIALIZED VIEW public.zorg_memory_search_fast_mv")
+        if not args.skip_refresh:
+            cursor.execute("REFRESH MATERIALIZED VIEW CONCURRENTLY public.zorg_memory_search_fast_mv")
         cursor.execute("""
             SELECT source_table, source_id, priority, event_ts, content
             FROM public.zorg_memory_search_fast_mv
             WHERE btrim(coalesce(content, '')) <> ''
-            ORDER BY source_table, source_id
+            ORDER BY
+              CASE source_table
+                WHEN 'zorg_logic_rules' THEN 0
+                WHEN 'runbook' THEN 1
+                WHEN 'memory_source_chunks' THEN 2
+                ELSE 3
+              END,
+              CASE lower(coalesce(priority, ''))
+                WHEN 'critical' THEN 0
+                WHEN '100' THEN 1
+                WHEN '95' THEN 2
+                ELSE 3
+              END,
+              source_table,
+              source_id
         """)
         rows = cursor.fetchall()
+        if args.source_key:
+            wanted = set(args.source_key)
+            rows = [row for row in rows if str(row[1]) in wanted]
+        if args.missing_only:
+            cursor.execute(
+                """
+                SELECT source_type, source_key
+                FROM public.memory_ann_model_embeddings
+                WHERE active AND embedding_provider='local' AND embedding_model=%s
+                """,
+                (args.model,),
+            )
+            existing = set(cursor.fetchall())
+            rows = [
+                row for row in rows
+                if (SOURCE_TYPES.get(row[0], row[0]), str(row[1])) not in existing
+            ]
+        if args.limit is not None:
+            rows = rows[:max(args.limit, 0)]
 
         active_keys = set()
         for offset in range(0, len(rows), args.batch_size):
@@ -81,6 +124,14 @@ def main():
                                   metadata = EXCLUDED.metadata, active = true, updated_at = now()
                 """, (source_type, source_key, args.model, vector_literal(vector), content_hash,
                       content, priority, event_ts, source_table))
+            connection.commit()
+            if offset == 0 or (offset // args.batch_size + 1) % 100 == 0:
+                print(
+                    json.dumps(
+                        {"embedded": min(offset + len(batch), len(rows)), "total": len(rows)}
+                    ),
+                    flush=True,
+                )
 
         queries = list(dict.fromkeys(args.query))
         if queries:

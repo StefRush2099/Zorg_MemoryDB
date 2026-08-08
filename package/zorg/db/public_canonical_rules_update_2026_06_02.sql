@@ -1199,6 +1199,16 @@ For public-facing email, messaging, voice, contact forms, and similar outward ch
   'zorg/db/public_canonical_rules_update_2026_06_02.sql',
   'Operational progress updates, blocker reports, completion claims, and final source-channel replies must include concrete timestamps when timing is relevant or after timing behavior has been challenged. Use the inbound message timestamp as request time, the actual send time as response time, and compute duration from those two real values only after the response time is known.',
   array['visible_reply','timing','duration','status_update']
+),
+(
+  'cognitive-memory-v1-practical-brain-lifecycle',
+  'Make the memory database work like a real brain — Cognitive Memory v1',
+  'memory_rule',
+  'critical',
+  'public_safe',
+  'zorg/db/public_canonical_rules_update_2026_06_02.sql',
+  'Treat durable memory as a coordinated lifecycle across bounded working activation, episodic experience, semantic beliefs, procedures, and prospective intentions. Recall must combine exact safety-rule preflight, lexical evidence, bounded semantic spreading activation, and ANN retrieval while preserving provenance, contradictions, supersession, and reversible consolidation. Brain-like recall cues include: make the memory database work like a real brain; cognitive memory; working, episodic, semantic, procedural, and prospective memory; spreading activation; remember contradictions, unfinished goals, intentions, corrections, and superseded beliefs. The single daily maintenance job must review official dependency guidance and may automatically apply only compatible additive and reversible cognitive improvements after backup, rehearsal, regression checks, and proven rollback. Privileged, destructive, restart-requiring, or uncertain upgrades must stop for authorization. Never delete source memories, history, provenance, or embeddings merely to improve speed.',
+  array['memory','cognition','recall','consolidation','prospective-memory','provenance']
 )
 on conflict (rule_key) do update
 set rule_title = excluded.rule_title,
@@ -1389,7 +1399,7 @@ begin
       'runtime-db-only-memory-writer-hard-stop',
       'user-visible-timestamp-duration-rule'
     );
-  if public_rule_count <> 103 then
-    raise exception 'public canonical rule seed expected 103 active public rules, found %', public_rule_count;
+  if public_rule_count <> 104 then
+    raise exception 'public canonical rule seed expected 104 active public rules, found %', public_rule_count;
   end if;
 end $$;

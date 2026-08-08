@@ -50,7 +50,7 @@ for (const relativePath of [
   "package/zorg/db/memory_core_scheduler_2026_08_06.sql",
   "skills/zorg-db-memory/plugin-src/dist/index.js",
   "skills/zorg-db-memory/plugin-src/dist/mcp-server.js",
-  "package/zorg/systemd/zorg-memorydb-llm-dispatcher.service",
+  "skills/zorg-db-memory/plugin-src/dist/turn-gate.js",
 ]) {
   requireFile(relativePath);
 }
@@ -102,12 +102,18 @@ for (const requiredText of [
   }
 }
 
-const dispatcher = fs.readFileSync(
-  path.join(repoRoot, "skills", "zorg-db-memory", "scripts", "memory_db_llm_dispatcher.py"),
+const turnGate = fs.readFileSync(
+  path.join(pluginRoot, "src", "turn-gate.ts"),
   "utf8",
 );
-for (const requiredText of ["payload.get(\"text\")", "payload.get(\"message\")", "prompt_text or prompt_message"]) {
-  if (!dispatcher.includes(requiredText)) fail(`dispatcher prompt regression: ${requiredText}`);
+for (const requiredText of [
+  "agent_turn_prepare",
+  "memory_turn_recall_receipts",
+  "request_hash",
+  "before_tool_call",
+  "reply_payload_sending",
+]) {
+  if (!turnGate.includes(requiredText)) fail(`turn-gate regression: ${requiredText}`);
 }
 
 const mcpSource = fs.readFileSync(path.join(pluginRoot, "src", "mcp-server.ts"), "utf8");

@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import pg from "pg";
 import { defineToolPlugin } from "openclaw/plugin-sdk/tool-plugin";
+import { registerZorgMemoryHooks } from "./turn-gate.js";
 const { Pool } = pg;
 let pool;
 const workspaceRoot = () => process.env.OPENCLAW_WORKSPACE || process.env.WORKSPACE_DIR || resolve(process.env.HOME || ".", ".openclaw/workspace");
@@ -33,7 +34,7 @@ async function getPool() {
     pool = new Pool(cfg.postgres);
     return pool;
 }
-async function query(text, values = []) {
+export async function query(text, values = []) {
     const client = await (await getPool()).connect();
     try {
         return (await client.query(text, values)).rows;
@@ -69,12 +70,18 @@ async function ensureQueryEmbedding(queryText) {
     set query_text=excluded.query_text,embedding=excluded.embedding,active=true,updated_at=now()`, [queryText, slot.embedding_provider, slot.embedding_model, slot.embedding_dim, `[${vector.join(",")}]`]);
     return slot;
 }
-async function recallPreflight(queryText, limit) {
+export async function recallPreflight(queryText, limit) {
     const slot = await ensureQueryEmbedding(queryText);
-    const context = { mode: "deep", embedding_provider: slot?.embedding_provider || "local", embedding_model: slot?.embedding_model || "nomic-embed-text:latest", caller: "zorg-memorydb-plugin" };
+    const context = {
+        mode: "deep",
+        embedding_provider: slot?.embedding_provider || "local",
+        embedding_model: slot?.embedding_model || "nomic-embed-text:latest",
+        caller: "zorg-memorydb-plugin",
+        ann_mode: "cached_additive",
+    };
     return query("select * from public.memory_recall_v2($1,$2,$3::jsonb)", [queryText, limit, JSON.stringify(context)]);
 }
-export default defineToolPlugin({
+const plugin = defineToolPlugin({
     id: "zorg-memorydb",
     name: "Zorg MemoryDB",
     description: "Typed PostgreSQL access to the canonical Zorg MemoryDB.",
@@ -151,3 +158,9 @@ export default defineToolPlugin({
         }),
     ],
 });
+const registerTools = plugin.register;
+plugin.register = (api) => {
+    registerTools(api);
+    registerZorgMemoryHooks(api, { query, recall: recallPreflight });
+};
+export default plugin;

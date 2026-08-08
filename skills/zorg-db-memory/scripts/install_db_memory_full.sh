@@ -69,6 +69,9 @@ cat > "$MAP_OUTPUT" <<JSON
 }
 JSON
 
+"$WORKDIR/.venv-sqlmem/bin/python" \
+  "$WORKDIR/skills/zorg-db-memory/scripts/apply_cognitive_memory_v1.py"
+
 echo "Rollback dump created at: $TMPDIR/rollback/preapply-$STAMP.sql.gz"
 echo "Installed canonical memory skill into: $WORKDIR/skills/zorg-db-memory"
 echo "Run verification next:"

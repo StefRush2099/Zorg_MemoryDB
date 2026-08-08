@@ -2,6 +2,8 @@
 set -euo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$root"
+node scripts/sync-lan-chat-release-version.mjs
 package_version="$(sed -n 's/^[[:space:]]*"version"[[:space:]]*:[[:space:]]*"\([0-9][0-9.]*\)".*/\1/p' "$root/package.json" | head -1)"
 version="${1:-$package_version}"
 out_dir="$root/release"

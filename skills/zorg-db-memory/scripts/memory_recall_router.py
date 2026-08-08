@@ -11,7 +11,7 @@ SKILL_ROOT = Path(__file__).resolve().parents[1]
 SQL_CFG = (SKILL_ROOT / 'config' / 'sql_memory_map.json').resolve()
 VENV_PYTHON = Path(os.environ.get('ZORG_VENV_PYTHON') or (BASE / '.venv-sqlmem' / 'bin' / 'python')).expanduser().resolve()
 ANN_QUERY_CACHE_TIMEOUT_MS = int(os.environ.get('ZORG_RECALL_ANN_QUERY_CACHE_TIMEOUT_MS', '12000'))
-ANN_QUERY_CACHE_SCRIPT = SKILL_ROOT / 'scripts' / 'cache_model_query_embedding.mjs'
+ANN_QUERY_CACHE_SCRIPT = SKILL_ROOT / 'scripts' / 'cache_query_embedding.py'
 ANN_ENABLED = os.environ.get('ZORG_RECALL_ANN_ENABLED', '1').lower() not in {'0', 'false', 'no', 'off'}
 
 try:
@@ -66,8 +66,7 @@ def ensure_model_query_embedding_cached(query: str) -> bool:
         return True
     try:
         result = subprocess.run(
-            ['node', str(ANN_QUERY_CACHE_SCRIPT)],
-            input=query or '',
+            [str(VENV_PYTHON), str(ANN_QUERY_CACHE_SCRIPT), query],
             text=True,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,

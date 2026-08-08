@@ -18,6 +18,8 @@ A GitHub update is not complete when only a file exists, an API tree lists it, o
 - Correct dark/light mode content, not only filenames.
 - Update every affected surface: GitHub repository metadata, README, docs, screenshots, changelog, release notes, package metadata, package scripts, verification scripts, skill package files, support code, tarball, tag, GitHub Release body, and Release asset.
 - Include the complete PostgreSQL scheduler source for every core MemoryDB maintenance job: schedule-table seed/upsert definitions, PostgreSQL function definitions, job-to-function catalog, and verification/count checks. Compare it with live `public.memory_db_scheduled_jobs`; a core job that exists only in the live database or only in a runtime deployment output is a release failure.
+- Before every GitHub update or release, run the canonical LAN Chat version synchronizer. Root package, LAN package, and LAN lock versions must match. The gauge must derive its label from package metadata and emit the dedicated `data-lan-chat-gauge-version` marker.
+- Build both packaged and live LAN Chat, restart only LAN Chat, and verify the exact canonical version in the gauge-specific compiled chunk and the authenticated rendered gauge. Unrelated version strings, redirects, source maps, framework dependencies, and lockfiles are not rendered proof. A mismatch blocks packaging, push, tag, release creation, and asset publication.
 - Rebuild package archive after content changes.
 - Run public-package verification, secret scan, generated-artifact scan, archive-content check, and DB health checks.
 - Push exact commit and tag.

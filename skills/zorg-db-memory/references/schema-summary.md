@@ -163,9 +163,9 @@ Every meaningful tuning change must record the research basis, before/after benc
 <!-- GO_ONLY_APPROVAL_RULE -->
 ## GO-Only Approval Rule
 
-When Stefan gives a command that requires confirmation before execution, ask only for `GO`. Do not invent longer approval phrases, magic words, task-specific confirmations, or exact response strings such as `GO REIP ...`, `GO SCORCHED ...`, or any other expanded form. Stefan decides how to respond; the assistant may request only the simple approval token `GO`.
+When the operator gives a command that requires confirmation before execution, ask only for `GO`. Do not invent longer approval phrases, magic words, task-specific confirmations, or exact response strings such as `GO REIP ...`, `GO SCORCHED ...`, or any other expanded form. the operator decides how to respond; the assistant may request only the simple approval token `GO`.
 
-If the requested action is unsafe, ambiguous, destructive, externally risky, or missing a necessary decision, explain the blocker or the exact intended change briefly, then end with only `GO` as the approval request when approval is the only thing needed. Never require Stefan to repeat the task, include extra words, or match an assistant-authored phrase.
+If the requested action is unsafe, ambiguous, destructive, externally risky, or missing a necessary decision, explain the blocker or the exact intended change briefly, then end with only `GO` as the approval request when approval is the only thing needed. Never require the operator to repeat the task, include extra words, or match an assistant-authored phrase.
 <!-- /GO_ONLY_APPROVAL_RULE -->
 
 <!-- SAME_DAY_NEWS_FRESHNESS_RULE -->
@@ -191,6 +191,6 @@ Primary objects:
 - `memory_enqueue_semantic_job(...)` - idempotent enqueue helper using `pg_notify`.
 - Trigger functions on `zorg_memory`, `zorg_contacts_crm`, and `zorg_success_query_index`.
 - `zorg_weighted_recall_context(...)` - weighted recall entry point.
-- `scripts/memory_semantic_worker.py` - bounded external worker for semantic nodes, weighted edges, query observations, and recall hints.
+- PostgreSQL-owned bounded functions maintain semantic nodes, weighted edges, query observations, and recall hints; live model sessions invoke direct repair tools when embeddings require an external provider.
 
-This layer keeps triggers lightweight and uses `FOR UPDATE SKIP LOCKED` worker claims. It does not run generated code inside PostgreSQL triggers and does not remove original/source memory data.
+This layer keeps triggers lightweight and uses bounded PostgreSQL queue claims. It does not run generated task code inside triggers and does not remove original/source memory data.

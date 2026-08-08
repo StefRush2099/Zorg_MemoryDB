@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import pg from "pg";
 import { defineToolPlugin } from "openclaw/plugin-sdk/tool-plugin";
+import { registerZorgMemoryHooks } from "./turn-gate.js";
 
 const { Pool } = pg;
 
@@ -36,7 +37,7 @@ async function getPool() {
   return pool;
 }
 
-async function query<T extends pg.QueryResultRow = pg.QueryResultRow>(text: string, values: unknown[] = []) {
+export async function query<T extends pg.QueryResultRow = pg.QueryResultRow>(text: string, values: unknown[] = []) {
   const client = await (await getPool()).connect();
   try { return (await client.query<T>(text, values)).rows; } finally { client.release(); }
 }
@@ -69,13 +70,19 @@ async function ensureQueryEmbedding(queryText: string) {
   return slot;
 }
 
-async function recallPreflight(queryText: string, limit: number) {
+export async function recallPreflight(queryText: string, limit: number) {
   const slot = await ensureQueryEmbedding(queryText);
-  const context = { mode: "deep", embedding_provider: slot?.embedding_provider || "local", embedding_model: slot?.embedding_model || "nomic-embed-text:latest", caller: "zorg-memorydb-plugin" };
+  const context = {
+    mode: "deep",
+    embedding_provider: slot?.embedding_provider || "local",
+    embedding_model: slot?.embedding_model || "nomic-embed-text:latest",
+    caller: "zorg-memorydb-plugin",
+    ann_mode: "cached_additive",
+  };
   return query("select * from public.memory_recall_v2($1,$2,$3::jsonb)", [queryText, limit, JSON.stringify(context)]);
 }
 
-export default defineToolPlugin({
+const plugin = defineToolPlugin({
   id: "zorg-memorydb",
   name: "Zorg MemoryDB",
   description: "Typed PostgreSQL access to the canonical Zorg MemoryDB.",
@@ -152,3 +159,11 @@ export default defineToolPlugin({
     }),
   ],
 });
+
+const registerTools = plugin.register;
+plugin.register = (api) => {
+  registerTools(api);
+  registerZorgMemoryHooks(api, { query, recall: recallPreflight });
+};
+
+export default plugin;

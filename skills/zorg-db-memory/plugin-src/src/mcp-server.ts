@@ -73,16 +73,21 @@ async function recallPreflight(queryText: string, limit: number) {
   return query("select * from public.memory_recall_v2($1,$2,$3::jsonb)", [queryText, limit, JSON.stringify(context)]);
 }
 
-const server = new McpServer({ name: "zorg-memorydb", version: "4.1.4" });
+const server = new McpServer({ name: "zorg-memorydb", version: "4.1.5" });
 server.registerTool("memory_health", { description: "Check PostgreSQL MemoryDB connectivity.", inputSchema: {} }, async () => ({ content: [{ type: "text", text: JSON.stringify(await query("select current_database() as database, current_user as user, now() as server_time")) }] }));
 server.registerTool("memory_tables", { description: "List canonical MemoryDB tables.", inputSchema: {} }, async () => ({ content: [{ type: "text", text: JSON.stringify(await query("select table_name from public.memory_tables_v1()")) }] }));
+server.registerTool("memory_table_categories", { description: "Return the live dynamic functional table-category catalog used by Memory 3D.", inputSchema: {} }, async () => ({ content: [{ type: "text", text: JSON.stringify(await query("select public.memory_table_category_catalog_v1() as catalog")) }] }));
 server.registerTool("memory_search", { description: "Search canonical structured MemoryDB records.", inputSchema: { query: z.string().min(1), limit: z.number().int().min(1).max(50).optional() } }, async ({ query: q, limit = 10 }) => ({ content: [{ type: "text", text: JSON.stringify(await query("select row_data from public.memory_search_table_v1('all', $1, $2)", [q, limit])) }] }));
 server.registerTool("memory_recent", { description: "Return recent canonical MemoryDB context.", inputSchema: { limit: z.number().int().min(1).max(100).optional() } }, async ({ limit = 20 }) => ({ content: [{ type: "text", text: JSON.stringify(await query("select row_data from public.memory_recent_v1($1)", [limit])) }] }));
 server.registerTool("memory_master_context", { description: "Return canonical MemoryDB master context.", inputSchema: { limit: z.number().int().min(1).max(100).optional() } }, async ({ limit = 40 }) => ({ content: [{ type: "text", text: JSON.stringify(await query("select row_data from public.memory_master_context_v1($1)", [limit])) }] }));
-server.registerTool("memory_graph", { description: "Return a paginated semantic node/edge graph with complete live totals.", inputSchema: { limit: z.number().int().min(1).max(5000).optional(), offset: z.number().int().min(0).optional() } }, async ({ limit = 1000, offset = 0 }) => ({ content: [{ type: "text", text: JSON.stringify(await query(`with selected as (
-  select node_key,node_type,canonical_label,description,confidence,updated_at
-  from public.memory_semantic_nodes where active
-  order by confidence desc nulls last, updated_at desc, node_key
+server.registerTool("memory_graph", { description: "Return a paginated, functionally categorized semantic node/edge graph with complete live totals.", inputSchema: { limit: z.number().int().min(1).max(5000).optional(), offset: z.number().int().min(0).optional() } }, async ({ limit = 1000, offset = 0 }) => ({ content: [{ type: "text", text: JSON.stringify(await query(`with selected as (
+  select n.node_key,n.node_type,n.canonical_label,n.description,n.confidence,n.updated_at,
+         a.category_key,a.category_name,a.category_color,a.assignment_status,
+         a.matched_rules,a.assignment_evidence
+  from public.memory_semantic_nodes n
+  join public.memory_semantic_category_assignments_v1() a using(node_key)
+  where n.active
+  order by n.confidence desc nulls last, n.updated_at desc, n.node_key
   limit $1 offset $2
 ), graph_edges as (
   select e.subject_key,e.object_key,e.relation,e.weight

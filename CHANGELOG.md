@@ -1,5 +1,19 @@
 # Changelog
 
+## 4.1.5 - 2026-08-12
+
+- Remove the race-prone runtime import of OpenClaw's ESM tool-plugin helper;
+  register tools through the stable plugin API supplied at startup.
+- Add fail-closed response enforcement, exact-turn mandatory-rule receipt
+  evidence, and regression coverage for missing or malformed time proofs.
+- Add a reusable gateway startup verifier that rejects service startup unless
+  the plugin, PostgreSQL database, receipt table, and mandatory rules are ready.
+- Add dynamic PostgreSQL-owned functional categories for Neural Recall Activity
+  and expose them through the plugin, MCP server, and categorized graph output.
+- Remove the destructive public-baseline helper from the distributable package.
+- Align root, plugin/MCP, LAN Command Chat package/lock, archive, tag, release,
+  and rendered gauge at `v4.1.5` without installing the connector locally.
+
 ## 4.1.4 - 2026-08-08
 
 - Remove fixed client-address and fixed-subnet nginx allowlists from LAN

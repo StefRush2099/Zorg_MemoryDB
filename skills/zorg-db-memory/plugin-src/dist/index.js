@@ -2,9 +2,55 @@ import { Type } from "typebox";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import pg from "pg";
-import { defineToolPlugin } from "openclaw/plugin-sdk/tool-plugin";
 import { registerZorgMemoryHooks } from "./turn-gate.js";
 const { Pool } = pg;
+// Keep mandatory enforcement independent of OpenClaw's tool-plugin helper.
+// Importing that ESM helper during parallel gateway bootstrap can trigger
+// ERR_REQUIRE_ESM_RACE_CONDITION and prevent the complete plugin from loading.
+const TOOL_PLUGIN_METADATA = Symbol.for("openclaw.plugin-sdk.tool-plugin.metadata");
+const defineToolPlugin = (definition) => {
+    const tools = [...definition.tools((tool) => ({
+            name: tool.name, label: tool.label ?? tool.name, description: tool.description,
+            parameters: tool.parameters, optional: tool.optional === true,
+            execute: tool.execute, factory: tool.factory,
+        }))];
+    const configSchema = {
+        safeParse(value) {
+            if (value === undefined || (value && typeof value === "object" && !Array.isArray(value) && Object.keys(value).length === 0)) {
+                return { success: true, data: value };
+            }
+            return { success: false, error: { issues: [{ path: [], message: "config must be empty" }] } };
+        },
+        jsonSchema: { type: "object", properties: {}, additionalProperties: false },
+    };
+    const entry = {
+        id: definition.id, name: definition.name, description: definition.description, configSchema,
+        register(api) {
+            const config = api.pluginConfig ?? {};
+            for (const tool of tools) {
+                const opts = { name: tool.name, ...(tool.optional ? { optional: true } : {}) };
+                if (tool.factory) {
+                    api.registerTool((toolContext) => tool.factory({ api, config, toolContext }), opts);
+                    continue;
+                }
+                api.registerTool({
+                    name: tool.name, label: tool.label, description: tool.description, parameters: tool.parameters,
+                    execute: async (toolCallId, params, signal, onUpdate) => {
+                        const result = await tool.execute(params, config, { api, signal, toolCallId, onUpdate });
+                        const text = typeof result === "string" ? result : JSON.stringify(result, null, 2);
+                        return { content: [{ type: "text", text }], details: result };
+                    },
+                }, tool.optional ? { optional: true } : undefined);
+            }
+        },
+    };
+    Object.defineProperty(entry, TOOL_PLUGIN_METADATA, { value: {
+            id: definition.id, name: definition.name, description: definition.description,
+            activation: definition.activation ?? { onStartup: true }, configSchema: configSchema.jsonSchema,
+            tools: tools.map(({ name, label, description, parameters, optional }) => ({ name, label, description, parameters, ...(optional ? { optional: true } : {}) })),
+        }, enumerable: false });
+    return entry;
+};
 let pool;
 const workspaceRoot = () => process.env.OPENCLAW_WORKSPACE || process.env.WORKSPACE_DIR || resolve(process.env.HOME || ".", ".openclaw/workspace");
 async function getPool() {
@@ -99,6 +145,12 @@ const plugin = defineToolPlugin({
             execute: async () => ({ rows: await query("select table_name from public.memory_tables_v1()") }),
         }),
         tool({
+            name: "memory_table_categories",
+            description: "Return the live dynamic functional table-category catalog used by Memory 3D.",
+            parameters: Type.Object({}),
+            execute: async () => ({ rows: await query("select public.memory_table_category_catalog_v1() as catalog") }),
+        }),
+        tool({
             name: "memory_search",
             description: "Search canonical structured MemoryDB records through the approved database function.",
             parameters: Type.Object({ query: Type.String({ minLength: 1 }), limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 50 })) }),
@@ -118,12 +170,16 @@ const plugin = defineToolPlugin({
         }),
         tool({
             name: "memory_graph",
-            description: "Return a paginated semantic node/edge graph with complete live totals.",
+            description: "Return a paginated, functionally categorized semantic node/edge graph with complete live totals.",
             parameters: Type.Object({ limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 5000 })), offset: Type.Optional(Type.Integer({ minimum: 0 })) }),
             execute: async ({ limit = 1000, offset = 0 }) => ({ rows: await query(`with selected as (
-        select node_key,node_type,canonical_label,description,confidence,updated_at
-        from public.memory_semantic_nodes where active
-        order by confidence desc nulls last, updated_at desc, node_key
+        select n.node_key,n.node_type,n.canonical_label,n.description,n.confidence,n.updated_at,
+               a.category_key,a.category_name,a.category_color,a.assignment_status,
+               a.matched_rules,a.assignment_evidence
+        from public.memory_semantic_nodes n
+        join public.memory_semantic_category_assignments_v1() a using(node_key)
+        where n.active
+        order by n.confidence desc nulls last, n.updated_at desc, n.node_key
         limit $1 offset $2
       ), graph_edges as (
         select e.subject_key,e.object_key,e.relation,e.weight

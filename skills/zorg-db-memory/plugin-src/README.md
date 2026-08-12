@@ -1,9 +1,14 @@
 # Zorg MemoryDB OpenClaw plugin/MCP package
 
-Version 3.0.6 provides the OpenClaw-native `zorg-memorydb` plugin and the
+Version 4.1.5 provides the OpenClaw-native `zorg-memorydb` plugin and the
 standalone MCP server over the same PostgreSQL-backed MemoryDB configuration.
 It exposes health, table, structured search, recent-context, and master-context
 operations; it does not create a second memory store or a markdown fallback.
+
+The read-only `memory_table_categories` operation returns the live functional
+category registry, current non-system table assignments, display metadata, and
+classification-health counts used by Neural Recall Activity. Category names
+and memberships come from PostgreSQL rather than a hard-coded application list.
 
 ## Build
 
@@ -34,8 +39,13 @@ embeds an operator-specific absolute path. The MCP entry point is
 `dist/mcp-server.js`. Configure the same environment and run it through an MCP
 client when standalone MCP access is required.
 
+`verify-gateway-startup.sh` is the fail-closed systemd `ExecStartPost` guard.
+Pass it `$MAINPID`; it accepts startup only after the exact gateway process
+reports the plugin loaded and PostgreSQL confirms the database identity,
+receipt table, and mandatory rules. A failed check makes systemd retry.
+
 For an upgrade from any previous Zorg package, remove the complete previous
-package/plugin files before installing 3.0.6. Preserve only the PostgreSQL
+package/plugin files before installing 4.1.5. Preserve only the PostgreSQL
 backend database and apply the included schema/migration scripts. After the
 update, the first clear-channel announcement must state: `I have just updated
-to Zorg MemoryDB 3.0.6.`
+to Zorg MemoryDB 4.1.5.`

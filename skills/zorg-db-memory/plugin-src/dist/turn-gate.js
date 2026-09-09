@@ -60,6 +60,48 @@ const elapsed = (start) => {
     const total = Math.max(0, Math.floor((Date.now() - start) / 1000));
     return `${Math.floor(total / 60)}m ${String(total % 60).padStart(2, "0")}s`;
 };
+const redact = (value, depth = 0) => {
+    if (depth > 4)
+        return "[depth-limited]";
+    if (typeof value === "string")
+        return value.length > 12000 ? `${value.slice(0, 12000)}…[truncated]` : value;
+    if (Array.isArray(value))
+        return value.slice(0, 100).map(item => redact(item, depth + 1));
+    if (!value || typeof value !== "object")
+        return value;
+    const source = value;
+    const out = {};
+    for (const [key, item] of Object.entries(source).slice(0, 100)) {
+        if (/token|secret|password|api[_-]?key|authorization|credential/i.test(key))
+            out[key] = "[redacted]";
+        else
+            out[key] = redact(item, depth + 1);
+    }
+    return out;
+};
+const textOf = (value) => {
+    if (typeof value === "string")
+        return value;
+    if (Array.isArray(value))
+        return value.map(textOf).filter(Boolean).join("\n");
+    if (value && typeof value === "object") {
+        const record = value;
+        return [record.text, record.content, record.message].map(textOf).filter(Boolean).join("\n");
+    }
+    return value == null ? "" : String(value);
+};
+async function recordTypedEvent(query, state, kind, payload) {
+    if (!state?.runId || state.status === "preparing")
+        return;
+    try {
+        await query("select public.memory_record_typed_event($1,$2,$3::uuid,$4::jsonb)", [
+            kind, state.runId, null, JSON.stringify(redact(payload)),
+        ]);
+    }
+    catch {
+        // Memory capture must never break the live turn; the DB queue/receipt remains authoritative.
+    }
+}
 async function ensureTables(query) {
     await query(`create table if not exists public.memory_turn_recall_receipts(
     receipt_id uuid primary key, run_id text not null, session_key text not null,
@@ -193,6 +235,49 @@ export function registerZorgMemoryHooks(api, deps) {
                 pendingSessions.delete(sessionKey);
         }
     }, { priority: 1000 });
+    api.on("llm_output", async (event, ctx) => {
+        const state = runs.get(event.runId) || sessions.get(ctx.sessionKey || "");
+        for (const content of event.assistantTexts || []) {
+            await recordTypedEvent(deps.query, state, "model_output", {
+                content,
+                output_kind: "assistant_model_output",
+                metadata: { provider: event.provider, model: event.model, resolved_ref: event.resolvedRef },
+            });
+        }
+    }, { priority: -900 });
+    api.on("after_tool_call", async (event, ctx) => {
+        const state = runs.get(event.runId || ctx.runId || "") || sessions.get(ctx.sessionKey || "");
+        await recordTypedEvent(deps.query, state, "tool_call", {
+            tool_name: event.toolName,
+            arguments: event.params || {},
+            status: event.error ? "error" : "completed",
+            metadata: { tool_call_id: event.toolCallId, duration_ms: event.durationMs },
+        });
+        await recordTypedEvent(deps.query, state, "tool_result", {
+            result_kind: "after_tool_call",
+            result_text: event.error || textOf(event.result),
+            result_json: event.error ? { error: event.error } : redact(event.result),
+            status: event.error ? "error" : "completed",
+        });
+    }, { priority: -900 });
+    api.on("tool_result_persist", (event, ctx) => {
+        const state = sessions.get(ctx.sessionKey || "");
+        void recordTypedEvent(deps.query, state, "tool_result", {
+            result_kind: "persisted_tool_result",
+            result_text: textOf(event.message),
+            result_json: redact(event.message),
+            status: event.isSynthetic ? "synthetic" : "persisted",
+        });
+    });
+    api.on("agent_end", async (event, ctx) => {
+        const state = runs.get(event.runId || ctx.runId || "") || sessions.get(ctx.sessionKey || "");
+        await recordTypedEvent(deps.query, state, "verification", {
+            verification_kind: "agent_end",
+            subject_type: "turn",
+            passed: event.success,
+            evidence: { duration_ms: event.durationMs, error: event.error || null },
+        });
+    }, { priority: -900 });
     api.on("before_tool_call", async (event, ctx) => {
         await (pendingRuns.get(event.runId || ctx.runId || "") || pendingSessions.get(ctx.sessionKey || "") || Promise.resolve());
         const state = runs.get(event.runId || ctx.runId || "") || sessions.get(ctx.sessionKey || "");

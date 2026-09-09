@@ -222,6 +222,10 @@ const registerTools = plugin.register;
 plugin.register = (api: any) => {
   registerTools(api);
   registerZorgMemoryHooks(api, { query, recall: recallPreflight });
+  const maintenance = setInterval(() => {
+    void query("select public.memory_db_health_check_sql() as result").catch(() => undefined);
+  }, 15000);
+  maintenance.unref?.();
 };
 
 export default plugin;

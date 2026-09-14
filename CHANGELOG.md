@@ -1,5 +1,15 @@
 # Changelog
 
+## 4.1.7 - 2026-09-14
+
+- Capture typed MemoryDB turn events for model output, tool calls, tool results,
+  persisted tool results, and agent-end verification.
+- Redact, bound, and truncate typed-event payloads before storage.
+- Add a lightweight plugin maintenance health check that calls
+  `public.memory_db_health_check_sql()` without blocking live turns.
+- Align root, LAN Command Chat, plugin package, plugin lock, and plugin manifest
+  versions at `v4.1.7`.
+
 ## 4.1.5 - 2026-08-12
 
 - Remove the race-prone runtime import of OpenClaw's ESM tool-plugin helper;

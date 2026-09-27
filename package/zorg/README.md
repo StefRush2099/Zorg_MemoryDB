@@ -77,7 +77,7 @@ Changes to this package must follow the documented OpenClaw/Zorg install procedu
 
 An update is incomplete unless the installer applies the semantic-capture migration
 and reports `semantic-capture-triggers-ok`. The ANN recall path also requires the
-query-cache helper to create a `nomic-embed-text:latest` query embedding before
+query-cache helper to create a `embeddinggemma-300m-qat-q8_0` query embedding before
 `public.memory_recall_v2` runs; a source-table export alone cannot provide that
 runtime behavior.
 

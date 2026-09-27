@@ -260,7 +260,7 @@ begin
     where active
       and query_hash = md5(lower(btrim(v_query)))
       and embedding_provider = coalesce(p_context->>'embedding_provider', 'local')
-      and embedding_model = coalesce(p_context->>'embedding_model', 'nomic-embed-text:latest')
+      and embedding_model = coalesce(p_context->>'embedding_model', 'embeddinggemma-300m-qat-q8_0')
   ) into v_has_ann;
 
   return query
@@ -317,7 +317,7 @@ begin
         'procedure', 'memory_provider_ann_recall',
         'vector_distance', a.vector_distance,
         'embedding_provider', coalesce(p_context->>'embedding_provider', 'local'),
-        'embedding_model', coalesce(p_context->>'embedding_model', 'nomic-embed-text:latest')
+        'embedding_model', coalesce(p_context->>'embedding_model', 'embeddinggemma-300m-qat-q8_0')
       ) as metadata,
       300::numeric as layer_boost,
       'pgvector_ann'::text as layer
@@ -325,7 +325,7 @@ begin
       v_query,
       v_ann_limit,
       coalesce(p_context->>'embedding_provider', 'local'),
-      coalesce(p_context->>'embedding_model', 'nomic-embed-text:latest')
+      coalesce(p_context->>'embedding_model', 'embeddinggemma-300m-qat-q8_0')
     ) a
     where v_has_ann
   ), combined as (

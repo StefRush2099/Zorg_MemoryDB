@@ -123,7 +123,7 @@ export async function recallPreflight(queryText: string, limit: number) {
   const context = {
     mode: "deep",
     embedding_provider: slot?.embedding_provider || "local",
-    embedding_model: slot?.embedding_model || "nomic-embed-text:latest",
+    embedding_model: slot?.embedding_model || "embeddinggemma-300m-qat-q8_0",
     caller: "zorg-memorydb-plugin",
     ann_mode: "cached_additive",
   };

@@ -213,7 +213,7 @@ create table if not exists memory_ann_model_embeddings (
   source_type text not null,
   source_key text not null,
   embedding_provider text not null default 'local',
-  embedding_model text not null default 'nomic-embed-text:latest',
+  embedding_model text not null default 'embeddinggemma-300m-qat-q8_0',
   embedding_dim integer not null default 768,
   embedding vector(768) not null,
   content_hash text not null,
@@ -232,7 +232,7 @@ create table if not exists memory_query_embedding_cache (
   query_hash text not null,
   query_text text not null,
   embedding_provider text not null default 'local',
-  embedding_model text not null default 'nomic-embed-text:latest',
+  embedding_model text not null default 'embeddinggemma-300m-qat-q8_0',
   embedding_dim integer not null default 768,
   embedding vector(768) not null,
   metadata jsonb not null default '{}'::jsonb,
@@ -302,7 +302,7 @@ create index if not exists idx_memory_associations_source on memory_associations
 create index if not exists idx_memory_semantic_edges_subject on memory_semantic_edges(subject_type, subject_key, relation) where active;
 create index if not exists idx_memory_semantic_edges_object on memory_semantic_edges(object_type, object_key, relation) where active;
 create index if not exists idx_memory_ann_model_embeddings_hnsw_cosine on memory_ann_model_embeddings using hnsw (embedding vector_cosine_ops) with (m = 16, ef_construction = 64);
-create index if not exists idx_memory_ann_model_embeddings_hnsw_active_local_cosine on memory_ann_model_embeddings using hnsw (embedding vector_cosine_ops) with (m = 16, ef_construction = 64) where active and embedding_provider = 'local' and embedding_model = 'nomic-embed-text:latest';
+create index if not exists idx_memory_ann_model_embeddings_hnsw_active_local_cosine on memory_ann_model_embeddings using hnsw (embedding vector_cosine_ops) with (m = 16, ef_construction = 64) where active and embedding_provider = 'local' and embedding_model = 'embeddinggemma-300m-qat-q8_0';
 create index if not exists idx_memory_ann_model_embeddings_identity on memory_ann_model_embeddings(source_type, source_key, embedding_provider, embedding_model, content_hash);
 create index if not exists idx_memory_ann_model_embeddings_priority on memory_ann_model_embeddings(priority, event_ts desc) where active;
 create index if not exists idx_memory_ann_model_embeddings_source on memory_ann_model_embeddings(source_type, source_key) where active;
@@ -334,7 +334,7 @@ create or replace function memory_provider_ann_recall(
   p_query text,
   p_limit integer default 20,
   p_provider text default 'local',
-  p_model text default 'nomic-embed-text:latest'
+  p_model text default 'embeddinggemma-300m-qat-q8_0'
 )
 returns table(
   source_type text,
@@ -347,17 +347,22 @@ returns table(
   vector_distance double precision,
   vector_score numeric
 )
-language sql
+language plpgsql
 stable
 as $$
-  with q as (
-    select embedding
-    from memory_query_embedding_cache
-    where active
-      and query_hash = md5(lower(btrim(coalesce(p_query, ''))))
-      and embedding_provider = coalesce(p_provider, 'local')
-      and embedding_model = coalesce(p_model, 'nomic-embed-text:latest')
-    order by updated_at desc
+begin
+  perform set_config('hnsw.ef_search', '1000', true);
+  perform set_config('hnsw.iterative_scan', 'strict_order', true);
+
+  return query
+  with q as materialized (
+    select c.embedding
+    from memory_query_embedding_cache c
+    where c.active
+      and c.query_hash = md5(lower(btrim(coalesce(p_query, ''))))
+      and c.embedding_provider = coalesce(p_provider, 'local')
+      and c.embedding_model = coalesce(p_model, 'embeddinggemma-300m-qat-q8_0')
+    order by c.updated_at desc
     limit 1
   )
   select
@@ -373,7 +378,8 @@ as $$
   from memory_ann_model_embeddings e, q
   where e.active
     and e.embedding_provider = coalesce(p_provider, 'local')
-    and e.embedding_model = coalesce(p_model, 'nomic-embed-text:latest')
+    and e.embedding_model = coalesce(p_model, 'embeddinggemma-300m-qat-q8_0')
+    and e.source_type not like 'capture:%'
     and (
       e.source_type <> 'logic_rule'
       or exists (
@@ -385,6 +391,7 @@ as $$
     )
   order by e.embedding <=> q.embedding
   limit greatest(coalesce(p_limit, 20), 1);
+end;
 $$;
 
 create or replace function memory_ann_recall(p_query text, p_limit integer default 20)
@@ -399,16 +406,22 @@ returns table(
   vector_distance double precision,
   vector_score numeric
 )
-language sql
+language plpgsql
 stable
 as $$
+begin
+  perform set_config('hnsw.ef_search', '1000', true);
+  perform set_config('hnsw.iterative_scan', 'strict_order', true);
+
+  return query
   select *
   from memory_provider_ann_recall(
     p_query,
     greatest(coalesce(p_limit, 20), 1),
     'local',
-    'nomic-embed-text:latest'
+    'embeddinggemma-300m-qat-q8_0'
   );
+end;
 $$;
 
 create or replace function memory_backfill_ann_embeddings(p_limit integer default 1000)
@@ -508,7 +521,7 @@ begin
     from memory_ann_model_embeddings
     where active
       and embedding_provider = 'local'
-      and embedding_model = 'nomic-embed-text:latest'
+      and embedding_model = 'embeddinggemma-300m-qat-q8_0'
     order by updated_at desc, event_ts desc nulls last
     limit greatest(coalesce(p_limit, 200), 1)
   ), pairs as (
@@ -524,7 +537,7 @@ begin
       from memory_ann_model_embeddings n
       where n.active
         and n.embedding_provider = 'local'
-        and n.embedding_model = 'nomic-embed-text:latest'
+        and n.embedding_model = 'embeddinggemma-300m-qat-q8_0'
         and not (n.source_type = s.source_type and n.source_key = s.source_key)
       order by n.embedding <=> s.embedding
       limit 3

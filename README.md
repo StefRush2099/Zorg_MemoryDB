@@ -6,15 +6,17 @@ This repository is intentionally **not** a GitHub fork or full source fork of Op
 
 ## Release Focus
 
-Release `v4.1.4` removes fixed-address and fixed-subnet dependencies from the
-LAN Command Chat front door. The service binds generically and is advertised
-through the machine hostname/mDNS route, while application authentication
-remains mandatory. It also preserves the v4.1.3 source/test boundary: connector source is
-built, inspected, packaged, and published without installing, patching,
-reloading, or restarting the maintainer's active OpenClaw system. LAN Command
-Chat remains a separately permitted local update surface. External OpenClaw
-installation, upgrade, recovery, rollback, restart, and runtime-registration
-acceptance are pending until a separate test host is supplied.
+Release `v4.1.8` publishes the live ANN recall repair and supersedes the stale
+`v4.1.5` plugin/MCP version surfaces. Packaged ANN recall now uses the active
+`embeddinggemma-300m-qat-q8_0` model, stronger HNSW search, strict iterative
+scan, and pre-ranking telemetry exclusion so current-turn recall can return
+real MemoryDB rows instead of being crowded by captured tool-call records. It
+keeps the v4.1.3 source/test boundary: connector source is built, inspected,
+packaged, and published without installing, patching, reloading, or restarting
+the maintainer's active OpenClaw system. LAN Command Chat remains a separately
+permitted local update surface. External OpenClaw installation, upgrade,
+recovery, rollback, restart, and runtime-registration acceptance are pending
+until a separate test host is supplied.
 
 `zorg-db-memory` consolidates the MemoryDB work into one portable skill package:
 
@@ -59,7 +61,7 @@ Then add this package's `zorg-db-memory` skill and `package/zorg` support files 
 ## Manual command-line installation from GitHub
 
 ```bash
-git clone --branch v4.1.4 https://github.com/StefRush2099/Zorg_MemoryDB.git
+git clone --branch v4.1.8 https://github.com/StefRush2099/Zorg_MemoryDB.git
 cd Zorg_MemoryDB
 bash package/zorg/install-zorg-memorydb.sh
 ```

@@ -1,5 +1,16 @@
 # Changelog
 
+## 4.1.8 - 2026-09-27
+
+- Publish the live ANN recall repair in packaged schema sources: default ANN
+  recall now targets `embeddinggemma-300m-qat-q8_0`, raises HNSW search depth,
+  enables strict iterative scan, and excludes `capture:%` telemetry before
+  nearest-neighbor ranking.
+- Update stale plugin/MCP and plugin README version surfaces from `4.1.5` to
+  `4.1.8`.
+- Align root, LAN Command Chat package/lock, plugin package/lock, plugin
+  manifest, and LAN gauge-derived package metadata at `v4.1.8`.
+
 ## 4.1.7 - 2026-09-14
 
 - Capture typed MemoryDB turn events for model output, tool calls, tool results,

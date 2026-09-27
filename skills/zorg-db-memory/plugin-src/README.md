@@ -1,6 +1,6 @@
 # Zorg MemoryDB OpenClaw plugin/MCP package
 
-Version 4.1.5 provides the OpenClaw-native `zorg-memorydb` plugin and the
+Version 4.1.8 provides the OpenClaw-native `zorg-memorydb` plugin and the
 standalone MCP server over the same PostgreSQL-backed MemoryDB configuration.
 It exposes health, table, structured search, recent-context, and master-context
 operations; it does not create a second memory store or a markdown fallback.
@@ -45,7 +45,7 @@ reports the plugin loaded and PostgreSQL confirms the database identity,
 receipt table, and mandatory rules. A failed check makes systemd retry.
 
 For an upgrade from any previous Zorg package, remove the complete previous
-package/plugin files before installing 4.1.5. Preserve only the PostgreSQL
+package/plugin files before installing 4.1.8. Preserve only the PostgreSQL
 backend database and apply the included schema/migration scripts. After the
 update, the first clear-channel announcement must state: `I have just updated
-to Zorg MemoryDB 4.1.5.`
+to Zorg MemoryDB 4.1.8.`

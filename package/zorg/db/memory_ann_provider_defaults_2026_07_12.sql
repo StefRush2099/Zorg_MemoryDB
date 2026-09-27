@@ -3,7 +3,7 @@ create or replace function memory_provider_ann_recall(
   p_query text,
   p_limit integer default 20,
   p_provider text default 'local',
-  p_model text default 'nomic-embed-text:latest'
+  p_model text default 'embeddinggemma-300m-qat-q8_0'
 )
 returns table(
   source_type text,
@@ -16,17 +16,22 @@ returns table(
   vector_distance double precision,
   vector_score numeric
 )
-language sql
+language plpgsql
 stable
 as $$
-  with q as (
-    select embedding
-    from memory_query_embedding_cache
-    where active
-      and query_hash = md5(lower(btrim(coalesce(p_query, ''))))
-      and embedding_provider = coalesce(p_provider, 'local')
-      and embedding_model = coalesce(p_model, 'nomic-embed-text:latest')
-    order by updated_at desc
+begin
+  perform set_config('hnsw.ef_search', '1000', true);
+  perform set_config('hnsw.iterative_scan', 'strict_order', true);
+
+  return query
+  with q as materialized (
+    select c.embedding
+    from memory_query_embedding_cache c
+    where c.active
+      and c.query_hash = md5(lower(btrim(coalesce(p_query, ''))))
+      and c.embedding_provider = coalesce(p_provider, 'local')
+      and c.embedding_model = coalesce(p_model, 'embeddinggemma-300m-qat-q8_0')
+    order by c.updated_at desc
     limit 1
   )
   select
@@ -42,7 +47,8 @@ as $$
   from memory_ann_model_embeddings e, q
   where e.active
     and e.embedding_provider = coalesce(p_provider, 'local')
-    and e.embedding_model = coalesce(p_model, 'nomic-embed-text:latest')
+    and e.embedding_model = coalesce(p_model, 'embeddinggemma-300m-qat-q8_0')
+    and e.source_type not like 'capture:%'
     and (
       e.source_type <> 'logic_rule'
       or exists (
@@ -54,6 +60,7 @@ as $$
     )
   order by e.embedding <=> q.embedding
   limit greatest(coalesce(p_limit, 20), 1);
+end;
 $$;
 
 create or replace function memory_ann_recall(p_query text, p_limit integer default 20)
@@ -68,16 +75,22 @@ returns table(
   vector_distance double precision,
   vector_score numeric
 )
-language sql
+language plpgsql
 stable
 as $$
+begin
+  perform set_config('hnsw.ef_search', '1000', true);
+  perform set_config('hnsw.iterative_scan', 'strict_order', true);
+
+  return query
   select *
   from memory_provider_ann_recall(
     p_query,
     greatest(coalesce(p_limit, 20), 1),
     'local',
-    'nomic-embed-text:latest'
+    'embeddinggemma-300m-qat-q8_0'
   );
+end;
 $$;
 
 -- Bound the hot recall procedure so normal calls stay fast. Deep weighted
@@ -125,7 +138,7 @@ begin
     where active
       and query_hash = md5(lower(btrim(v_query)))
       and embedding_provider = coalesce(p_context->>'embedding_provider', 'local')
-      and embedding_model = coalesce(p_context->>'embedding_model', 'nomic-embed-text:latest')
+      and embedding_model = coalesce(p_context->>'embedding_model', 'embeddinggemma-300m-qat-q8_0')
   ) into v_has_ann;
 
   return query
@@ -169,7 +182,7 @@ begin
         'procedure', 'memory_provider_ann_recall',
         'vector_distance', a.vector_distance,
         'embedding_provider', coalesce(p_context->>'embedding_provider', 'local'),
-        'embedding_model', coalesce(p_context->>'embedding_model', 'nomic-embed-text:latest')
+        'embedding_model', coalesce(p_context->>'embedding_model', 'embeddinggemma-300m-qat-q8_0')
       ) as metadata,
       425::numeric as layer_boost,
       'pgvector_ann'::text as layer
@@ -177,7 +190,7 @@ begin
       v_query,
       v_ann_limit,
       coalesce(p_context->>'embedding_provider', 'local'),
-      coalesce(p_context->>'embedding_model', 'nomic-embed-text:latest')
+      coalesce(p_context->>'embedding_model', 'embeddinggemma-300m-qat-q8_0')
     ) a
     where v_has_ann
   ), combined as (
@@ -238,7 +251,7 @@ $$;
 create or replace function public.memory_query_embedding_cache_exists_v1(
   p_query text,
   p_provider text default 'local',
-  p_model text default 'nomic-embed-text:latest'
+  p_model text default 'embeddinggemma-300m-qat-q8_0'
 )
 returns boolean
 language sql
@@ -250,7 +263,7 @@ as $$
     where active
       and query_hash = md5(lower(btrim(coalesce(p_query, ''))))
       and embedding_provider = coalesce(p_provider, 'local')
-      and embedding_model = coalesce(p_model, 'nomic-embed-text:latest')
+      and embedding_model = coalesce(p_model, 'embeddinggemma-300m-qat-q8_0')
   )
 $$;
 

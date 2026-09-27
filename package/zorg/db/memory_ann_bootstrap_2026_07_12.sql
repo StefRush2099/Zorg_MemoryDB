@@ -53,7 +53,7 @@ create index if not exists idx_memory_semantic_work_queue_claim
 insert into public.memory_embedding_model_slots
   (slot_key, embedding_provider, embedding_model, embedding_dim, endpoint, enabled, is_default, metadata)
 values
-  ('local-nomic-embed-text:latest', 'local', 'nomic-embed-text:latest', 768,
+  ('local-embeddinggemma-300m-qat-q8_0', 'local', 'embeddinggemma-300m-qat-q8_0', 768,
    'http://127.0.0.1:11434/api/embed', true, true,
    jsonb_build_object('setup', 'Install Ollama and pull the model before enabling workers', 'source', 'zorg-memorydb'))
 on conflict (slot_key) do update set

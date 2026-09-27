@@ -69,11 +69,11 @@ async function ensureQueryEmbedding(queryText: string) {
 
 async function recallPreflight(queryText: string, limit: number) {
   const slot = await ensureQueryEmbedding(queryText);
-  const context = { mode: "deep", embedding_provider: slot?.embedding_provider || "local", embedding_model: slot?.embedding_model || "nomic-embed-text:latest", caller: "zorg-memorydb-mcp" };
+  const context = { mode: "deep", embedding_provider: slot?.embedding_provider || "local", embedding_model: slot?.embedding_model || "embeddinggemma-300m-qat-q8_0", caller: "zorg-memorydb-mcp" };
   return query("select * from public.memory_recall_v2($1,$2,$3::jsonb)", [queryText, limit, JSON.stringify(context)]);
 }
 
-const server = new McpServer({ name: "zorg-memorydb", version: "4.1.5" });
+const server = new McpServer({ name: "zorg-memorydb", version: "4.1.8" });
 server.registerTool("memory_health", { description: "Check PostgreSQL MemoryDB connectivity.", inputSchema: {} }, async () => ({ content: [{ type: "text", text: JSON.stringify(await query("select current_database() as database, current_user as user, now() as server_time")) }] }));
 server.registerTool("memory_tables", { description: "List canonical MemoryDB tables.", inputSchema: {} }, async () => ({ content: [{ type: "text", text: JSON.stringify(await query("select table_name from public.memory_tables_v1()")) }] }));
 server.registerTool("memory_table_categories", { description: "Return the live dynamic functional table-category catalog used by Memory 3D.", inputSchema: {} }, async () => ({ content: [{ type: "text", text: JSON.stringify(await query("select public.memory_table_category_catalog_v1() as catalog")) }] }));

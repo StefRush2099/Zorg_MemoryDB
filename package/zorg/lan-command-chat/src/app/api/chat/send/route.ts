@@ -70,18 +70,22 @@ export async function POST(request: Request) {
 
     const finalMessage = [envelope, compiledPrompt || userInput].filter(Boolean).join("\n\n");
 
-    await logAppActivity({
-      activityKey: `send:${Date.now()}:${message.slice(0, 80)}`,
-      activityType: "chat_send",
-    });
+    try {
+      await logAppActivity({
+        activityKey: `send:${Date.now()}:${message.slice(0, 80)}`,
+        activityType: "chat_send",
+      });
 
-    await logInboundChatToDb({
-      sessionKey: appConfig.sessionKey,
-      source: "lan-chat",
-      message,
-      compiledPrompt,
-      attachmentSummary: normalizedAttachments.length ? JSON.stringify(normalizedAttachments) : null,
-    });
+      await logInboundChatToDb({
+        sessionKey: appConfig.sessionKey,
+        source: "lan-chat",
+        message,
+        compiledPrompt,
+        attachmentSummary: normalizedAttachments.length ? JSON.stringify(normalizedAttachments) : null,
+      });
+    } catch (logError) {
+      console.error("chat.send logging degraded", logError);
+    }
 
     const idempotencyKey = randomUUID();
 

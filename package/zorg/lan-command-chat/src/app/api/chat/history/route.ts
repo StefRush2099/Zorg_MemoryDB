@@ -14,7 +14,7 @@ type ChatHistoryResponse = {
   messages?: unknown[];
 };
 
-type StreamMessage = {
+export type StreamMessage = {
   id: string;
   role: "user" | "assistant" | "system";
   text: string;
@@ -22,7 +22,7 @@ type StreamMessage = {
   attachments?: Array<{ name: string; type: string; size: number; url: string; path?: string; containerPath?: string }>;
 };
 
-const STREAM_HISTORY_LIMIT = 20;
+export const STREAM_HISTORY_LIMIT = 20;
 const DEFAULT_STREAM_SESSION_KEYS = [
   appConfig.sessionKey,
   "agent:main:main",
@@ -30,8 +30,7 @@ const DEFAULT_STREAM_SESSION_KEYS = [
 
 function streamSessionKeys() {
   const configured = process.env.CHAT_STREAM_SESSION_KEYS?.split(",").map((item) => item.trim()).filter(Boolean) ?? [];
-  const preferredDirectKey = process.env.OPENCLAW_DIRECT_SESSION_KEY?.trim();
-  return [...new Set([...configured, ...DEFAULT_STREAM_SESSION_KEYS, preferredDirectKey].filter(Boolean) as string[])];
+  return [...new Set([...configured, ...DEFAULT_STREAM_SESSION_KEYS].filter(Boolean))];
 }
 
 async function loadGatewaySessionHistory(sessionKey: string): Promise<StreamMessage[]> {
@@ -106,9 +105,7 @@ function transcriptSessionKey(jsonlPath: string) {
 function includeTranscriptSession(sessionKey: string) {
   return (
     sessionKey === "agent:main:main" ||
-    sessionKey === appConfig.sessionKey ||
-    sessionKey.includes(":telegram:") ||
-    sessionKey.includes(":direct:")
+    sessionKey === appConfig.sessionKey
   );
 }
 
@@ -224,25 +221,29 @@ function unifiedLatest(messages: StreamMessage[] | null) {
     });
 }
 
+export async function loadUnifiedHistory() {
+  const [gatewayResult, dbResult] = await Promise.allSettled([loadGatewayHistory(), loadDbHistory()]);
+  const gatewayMessages = gatewayResult.status === "fulfilled" ? gatewayResult.value : [];
+  const dbMessages = dbResult.status === "fulfilled" ? dbResult.value ?? [] : [];
+  const transcriptMessages = loadTranscriptHistory();
+  const messages = unifiedLatest([...dbMessages, ...gatewayMessages, ...transcriptMessages]);
+
+  return {
+    messages,
+    source: "unified",
+    limit: STREAM_HISTORY_LIMIT,
+    sources: {
+      gateway: gatewayMessages.length,
+      db: dbMessages.length,
+      transcripts: transcriptMessages.length,
+    },
+    degraded: gatewayResult.status === "rejected" || dbResult.status === "rejected",
+  };
+}
+
 export async function GET() {
   try {
-    const [gatewayResult, dbResult] = await Promise.allSettled([loadGatewayHistory(), loadDbHistory()]);
-    const gatewayMessages = gatewayResult.status === "fulfilled" ? gatewayResult.value : [];
-    const dbMessages = dbResult.status === "fulfilled" ? dbResult.value ?? [] : [];
-    const transcriptMessages = loadTranscriptHistory();
-    const messages = unifiedLatest([...dbMessages, ...gatewayMessages, ...transcriptMessages]);
-
-    return NextResponse.json({
-      messages,
-      source: "unified",
-      limit: STREAM_HISTORY_LIMIT,
-      sources: {
-        gateway: gatewayMessages.length,
-        db: dbMessages.length,
-        transcripts: transcriptMessages.length,
-      },
-      degraded: gatewayResult.status === "rejected" || dbResult.status === "rejected",
-    });
+    return NextResponse.json(await loadUnifiedHistory());
   } catch (error) {
     console.error("chat.history unified load failed", error);
 

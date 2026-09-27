@@ -81,25 +81,17 @@ function sessionTokens(session: SessionSummary | undefined) {
 
 function isRelevantCommandSession(session: SessionSummary) {
   const key = cleanText(session.key);
-  const provider = cleanText(session.origin?.provider);
-  const preferredDirectKey = cleanText(process.env.OPENCLAW_DIRECT_SESSION_KEY);
   return (
     key === appConfig.sessionKey ||
-    key === "agent:main:main" ||
-    (preferredDirectKey && key === preferredDirectKey) ||
-    provider === "webchat" ||
-    cleanText(session.channel) === "telegram" ||
-    cleanText(session.lastChannel) === "webchat"
+    key === "agent:main:main"
   );
 }
 
 function sessionTelemetryScore(session: SessionSummary) {
   const key = cleanText(session.key);
-  const preferredDirectKey = cleanText(process.env.OPENCLAW_DIRECT_SESSION_KEY);
   let score = asNumber(session.updatedAt);
-  if (key === appConfig.sessionKey) score += 25_000;
-  if (key === "agent:main:main") score += 20_000;
-  if (preferredDirectKey && key === preferredDirectKey) score += 10_000;
+  if (key === appConfig.sessionKey) score += 250_000;
+  if (key === "agent:main:main") score += 200_000;
   if (session.hasActiveRun || session.status === "running") score += 60_000;
   if (session.totalTokensFresh) score += 5_000;
   if (sessionTokens(session) > 0) score += 3_000;
@@ -163,11 +155,7 @@ function statusFromPayload(payload: StatusPayload, degraded = false) {
         : [];
   const target = pickSession(sessions);
   const mainSession = sessions.find((session) => session.key === "agent:main:main");
-  const preferredDirectKey = cleanText(process.env.OPENCLAW_DIRECT_SESSION_KEY);
-  const directSession = preferredDirectKey
-    ? sessions.find((session) => session.key === preferredDirectKey)
-    : undefined;
-  const thinkingTarget = sessionFileThinking(target) ? target : sessionFileThinking(mainSession) ? mainSession : sessionFileThinking(directSession) ? directSession : target;
+  const thinkingTarget = sessionFileThinking(target) ? target : sessionFileThinking(mainSession) ? mainSession : target;
   const defaults = (Array.isArray(sessionPayload) ? payload?.defaults : sessionPayload?.defaults) || payload?.defaults || {};
   const inputTokens = asNumber(target?.inputTokens);
   const outputTokens = asNumber(target?.outputTokens);

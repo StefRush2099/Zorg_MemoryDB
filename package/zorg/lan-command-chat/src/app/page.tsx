@@ -61,6 +61,14 @@ export default function LoginPage() {
     }
   }
 
+  function toggleTheme() {
+    setTheme((current) => {
+      const next = current === "light" ? "dark" : "light";
+      localStorage.setItem("lan-chat:theme", next);
+      return next;
+    });
+  }
+
   return (
     <main className={cx("console-shell", "login-shell", `theme-${theme}`)}>
       <div className="ambient ambient-one" />
@@ -84,7 +92,9 @@ export default function LoginPage() {
           {error ? <p className="login-error">{error}</p> : null}
           <button className="primary" disabled={busy || !password.trim()} type="submit">{busy ? "Checking…" : "Login"}</button>
         </form>
-        <span className="ghost login-theme theme-indicator">{theme === "light" ? "Light" : "Dark"} mode</span>
+        <button className="ghost login-theme theme-indicator" onClick={toggleTheme} type="button">
+          {theme === "light" ? "Dark" : "Light"} mode
+        </button>
       </section>
     </main>
   );

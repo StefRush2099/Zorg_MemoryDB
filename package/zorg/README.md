@@ -32,7 +32,9 @@ This directory contains the public-safe Zorg MemoryDB and LAN command chat insta
   rule or memory files.
 - `lan-command-chat/` contains the LAN command chat source bundle.
 - `neural-recall-activity/` contains the public production browser assets for
-  the separate live Neural Recall Activity service on port 8097.
+  the separate live Neural Recall Activity service. The verified maintainer
+  deployment exposes it through nginx HTTPS on port 8097 and keeps the local
+  backend on port 8098.
 - `memory-3d/` is retired and must not be installed or restored.
 
 ## Install Behavior
@@ -44,10 +46,11 @@ existing installs. It preserves existing user data. No packaged helper truncates
 source-memory tables to build a distributable baseline; public fixtures must be
 created in an isolated test database through reviewed, one-time release tooling.
 
-The 8097 Neural Recall Activity service is a separate production deployment;
-its server and database environment remain on the production host. Verify it
-with `/api/health` and `/api/activity`. LAN Chat remains a separate web
-service; the native Android client is a separate APK.
+The 8097 Neural Recall Activity HTTPS front door is a separate production
+deployment; its server and database environment remain on the production host.
+Verify the local backend on its private port and the HTTPS nginx front door with
+`/api/health`. LAN Chat remains a separate web service; the native Android
+client is a separate APK.
 
 Clean installs initialize the PostgreSQL schema and native plugin/MCP path. They
 do not import, create, or copy Markdown rules or legacy `memory/**/*.md` files.

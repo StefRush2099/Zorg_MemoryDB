@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 
-const UPSTREAM = process.env.NEURAL_RECALL_ACTIVITY_URL || "http://127.0.0.1:8097";
+const UPSTREAM = process.env.NEURAL_RECALL_ACTIVITY_URL || "http://127.0.0.1:8098";
 
 function upstreamUrl(request: NextRequest, parts: string[] = []) {
   const url = new URL(request.url);

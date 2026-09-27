@@ -1,7 +1,9 @@
 # Neural Recall Activity
 
 This directory is the public production asset capture for the live Zorg Memory
-3D / Neural Recall Activity service at `http://0.0.0.0:8097/`.
+3D / Neural Recall Activity service. The verified maintainer LAN front door is
+`https://10.6.69.108:8097/`, with nginx TLS termination proxying to the local
+service port.
 
 It is separate from LAN Command Chat and is backed by the Zorg PostgreSQL
 MemoryDB. The captured browser assets are `index.html`, `app.js`, `styles.css`,
@@ -16,9 +18,10 @@ database credentials remain on the production host and are never committed.
   its PostgreSQL environment on that host.
 - Do not install or restore the retired `package/zorg/memory-3d/` package; it
   was removed from this release.
-- Verify production with:
+- Verify production from the host with the local backend port, or through the
+  HTTPS front door after nginx and the certificate are installed:
 
 ```bash
-curl -fsS http://127.0.0.1:8097/api/health
-curl -fsS http://127.0.0.1:8097/api/activity
+curl -fsS http://127.0.0.1:8098/api/health
+curl -k -fsS https://127.0.0.1:8097/api/health
 ```

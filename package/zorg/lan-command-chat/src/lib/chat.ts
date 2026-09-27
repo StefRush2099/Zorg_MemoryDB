@@ -28,6 +28,11 @@ function stripInjectedEnvelope(text: string): string {
     "",
   );
 
+  const currentRequestMatch = out.match(/(?:^|\n)Current (?:user )?request:\s*([\s\S]*)$/i);
+  if (currentRequestMatch?.[1]) {
+    out = currentRequestMatch[1];
+  }
+
   const hasCompiledPrompt = /SYSTEM PROMPT \(DYNAMICALLY COMPILED\)/i.test(out);
   if (hasCompiledPrompt) {
     const userInputMatch = out.match(/User Input:\s*([\s\S]*)$/i);

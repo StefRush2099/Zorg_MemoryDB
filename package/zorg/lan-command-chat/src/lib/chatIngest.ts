@@ -65,36 +65,49 @@ async function ensureCounterTables() {
   const pool = getDbPool();
   if (!pool) return false;
 
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS app_write_counters (
-      counter_key TEXT PRIMARY KEY,
-      counter_value BIGINT NOT NULL DEFAULT 0,
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    )
-  `);
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS app_write_events (
-      id BIGSERIAL PRIMARY KEY,
-      event_key TEXT NOT NULL,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    )
-  `);
-  await pool.query(`
-    CREATE INDEX IF NOT EXISTS idx_app_write_events_created_at
-    ON app_write_events (created_at DESC)
-  `);
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS app_activity_events (
-      id BIGSERIAL PRIMARY KEY,
-      activity_key TEXT NOT NULL,
-      activity_type TEXT NOT NULL,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    )
-  `);
-  await pool.query(`
-    CREATE INDEX IF NOT EXISTS idx_app_activity_events_created_at
-    ON app_activity_events (created_at DESC)
-  `);
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS app_write_counters (
+        counter_key TEXT PRIMARY KEY,
+        counter_value BIGINT NOT NULL DEFAULT 0,
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `);
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS app_write_events (
+        id BIGSERIAL PRIMARY KEY,
+        event_key TEXT NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `);
+    await pool.query(`
+      CREATE INDEX IF NOT EXISTS idx_app_write_events_created_at
+      ON app_write_events (created_at DESC)
+    `);
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS app_activity_events (
+        id BIGSERIAL PRIMARY KEY,
+        activity_key TEXT NOT NULL,
+        activity_type TEXT NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `);
+    await pool.query(`
+      CREATE INDEX IF NOT EXISTS idx_app_activity_events_created_at
+      ON app_activity_events (created_at DESC)
+    `);
+  } catch (error) {
+    const code = typeof error === "object" && error && "code" in error ? String((error as { code?: unknown }).code) : "";
+    if (code !== "42501") throw error;
+
+    const { rows } = await pool.query<{ exists: boolean }>(`
+      SELECT
+        to_regclass('public.app_write_counters') IS NOT NULL
+        AND to_regclass('public.app_write_events') IS NOT NULL
+        AND to_regclass('public.app_activity_events') IS NOT NULL AS exists
+    `);
+    if (!rows[0]?.exists) throw error;
+  }
 
   return true;
 }

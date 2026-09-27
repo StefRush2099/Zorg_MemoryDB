@@ -8,7 +8,7 @@ The console provides a local browser chat surface that talks to the OpenClaw Gat
 ## Local operating contract on this host
 
 - Primary local service: `lan-chat.service` on port `3001`.
-- LAN front door: `lan-chat-nginx` on port `80`, proxying to the 3001 service.
+- LAN front door: `lan-chat-nginx` on port `80` for HTTP, or `443` for HTTPS when the host installs a certificate, proxying to the 3001 service.
 - Port `3000` is retired for this host and should not be treated as the live console.
 - A user-level `lan-chat-health.timer` checks the 3001 service and LAN front door every minute and safely restarts the affected service if either path fails.
 - This channel must remain available for the operator and authorized local AI-agent coordination, including La DJ Beta / DJ Beta back-channel handoffs.
@@ -58,6 +58,12 @@ The default landing page is a password login gate for the LAN command chat. To r
 The command chat can request browser notification permission and unlock audio playback from a user click via the **Enable alerts + speech** button. This follows browser autoplay/notification policy: notification permission and audio playback must be initiated from a user gesture, and secure contexts are required for the browser prompt. When enabled, new assistant replies may trigger a browser notification and play speech through `/api/tts`; if a browser/API blocks either path, the UI reports the degraded state instead of pretending it is active.
 
 Visual verification for UI changes must include desktop light mode, desktop dark mode, and mobile viewport screenshots, and screenshots must be sent to the operator rather than only saved locally.
+
+## HTTPS certificate setup
+
+Do not commit TLS private keys or generated certificates. For a LAN-only deployment without an approved public certificate, generate a host-local self-signed certificate with subjectAltName entries for every browser-visible LAN address, install it where nginx can read it, and point the nginx `ssl_certificate` and `ssl_certificate_key` directives at those files.
+
+The verified maintainer shape uses SANs for `10.6.69.108`, `zorg.hyperdine.local`, `localhost`, and `127.0.0.1`, with nginx reading `/etc/nginx/certs/10.6.69.108.crt` and `/etc/nginx/certs/10.6.69.108.key`. Other hosts must substitute their own LAN IP and DNS names. Validate with `nginx -t`, reload nginx, then test HTTPS with `curl -k` and the authenticated browser route. Browser notification permission and some speech behaviors require a secure context; HTTPS with a trusted or explicitly accepted certificate is the expected path.
 
 ## Telemetry verification
 

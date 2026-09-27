@@ -7,6 +7,8 @@ import packageMetadata from "../../../package.json";
 type Role = "assistant" | "user" | "system";
 
 const LAN_CHAT_RELEASE_VERSION = packageMetadata.version;
+const DEVICE_ACCESS_VERSION = `${LAN_CHAT_RELEASE_VERSION}:device-access-20260925`;
+const DEVICE_ACCESS_STORAGE_KEY = "lan-chat:device-access";
 
 type ChatMessage = {
   id: string;
@@ -93,8 +95,21 @@ type TuiPayload = {
   error?: string;
 };
 
-const androidInstallUrl = process.env.NEXT_PUBLIC_ANDROID_INSTALL_URL ||
-  "https://github.com/StefRush2099/Zorg_MemoryDB/releases/latest/download/lan-command-chat-android.apk";
+type UsbNavigator = Navigator & {
+  usb?: {
+    requestDevice: (options: { filters: Array<Record<string, never>> }) => Promise<unknown>;
+  };
+};
+
+type DeviceAccessRecord = {
+  version?: string;
+  mediaDone?: boolean;
+  usbDone?: boolean;
+  requested?: string[];
+  updatedAt?: number;
+};
+
+type LiveHistoryFrameWindow = Window & { __lanChatUnlockHistoryAlert?: () => boolean };
 
 function pollIntervalFromEnv(value: string | undefined, fallback: number, min: number) {
   const parsed = Number.parseInt(value || "", 10);
@@ -118,6 +133,11 @@ function buildMemory3dFrameSrc(theme: "light" | "dark") {
   if (typeof window === "undefined") return "";
   const params = new URLSearchParams({ theme, embed: "graph" });
   return `/api/neural-recall?${params.toString()}`;
+}
+
+function buildLiveHistoryFrameSrc(theme: "light" | "dark") {
+  const params = new URLSearchParams({ theme });
+  return `/chat/live-frame?${params.toString()}`;
 }
 
 function formatBytes(value?: number) {
@@ -187,6 +207,14 @@ function isImageAttachment(file: Pick<ChatAttachment, "type" | "url" | "name">) 
   return file.type?.startsWith("image/") || /\.(png|jpe?g|gif|webp|bmp|svg)$/i.test(file.name || file.url || "");
 }
 
+function isAudioAttachment(file: Pick<ChatAttachment, "type" | "url" | "name">) {
+  return file.type?.startsWith("audio/") || /\.(mp3|wav|m4a|aac|ogg|opus|webm)$/i.test(file.name || file.url || "");
+}
+
+function isVideoAttachment(file: Pick<ChatAttachment, "type" | "url" | "name">) {
+  return file.type?.startsWith("video/") || /\.(mp4|mov|m4v|webm|ogv)$/i.test(file.name || file.url || "");
+}
+
 function safeAttachmentUrl(url: string) {
   if (!url) return "";
   if (url.startsWith("/uploads/")) return url;
@@ -221,6 +249,87 @@ function micUnavailableReason() {
   if (!navigator.mediaDevices?.getUserMedia) return "This browser does not expose microphone recording APIs.";
   if (typeof MediaRecorder === "undefined") return "This browser does not expose the MediaRecorder API.";
   return "";
+}
+
+async function requestMediaAccess(kind: "microphone" | "camera") {
+  if (typeof window === "undefined" || !window.isSecureContext || !navigator.mediaDevices?.getUserMedia) return false;
+  const constraints: MediaStreamConstraints = kind === "camera"
+    ? { video: true, audio: false }
+    : {
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,
+      },
+      video: false,
+    };
+  const stream = await navigator.mediaDevices.getUserMedia(constraints);
+  stream.getTracks().forEach((track) => track.stop());
+  return true;
+}
+
+async function requestAvailableMediaAccess() {
+  if (typeof window === "undefined" || !window.isSecureContext || !navigator.mediaDevices?.getUserMedia) return [];
+  const requested: string[] = [];
+  const wantsCamera = await browserHasCamera();
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,
+      },
+      video: wantsCamera,
+    });
+    stream.getTracks().forEach((track) => {
+      if (track.kind === "audio" && !requested.includes("microphone")) requested.push("microphone");
+      if (track.kind === "video" && !requested.includes("camera")) requested.push("camera");
+      track.stop();
+    });
+  } catch {
+    try {
+      if (await requestMediaAccess("microphone")) requested.push("microphone");
+    } catch {
+      // Keep loading the chat if the browser/user declines microphone access.
+    }
+    try {
+      if (wantsCamera && await requestMediaAccess("camera")) requested.push("camera");
+    } catch {
+      // No camera or camera access denied; the page should still work normally.
+    }
+  }
+  return requested;
+}
+
+async function browserHasCamera() {
+  if (typeof navigator === "undefined" || !navigator.mediaDevices?.enumerateDevices) return true;
+  try {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    return devices.length === 0 || devices.some((device) => device.kind === "videoinput");
+  } catch {
+    return true;
+  }
+}
+
+function readDeviceAccessRecord(): DeviceAccessRecord {
+  if (typeof window === "undefined") return {};
+  try {
+    return JSON.parse(localStorage.getItem(DEVICE_ACCESS_STORAGE_KEY) || "{}") as DeviceAccessRecord;
+  } catch {
+    return {};
+  }
+}
+
+function writeDeviceAccessRecord(update: DeviceAccessRecord) {
+  if (typeof window === "undefined") return;
+  const previous = readDeviceAccessRecord();
+  const merged: DeviceAccessRecord = {
+    ...previous,
+    ...update,
+    version: DEVICE_ACCESS_VERSION,
+    updatedAt: Date.now(),
+  };
+  localStorage.setItem(DEVICE_ACCESS_STORAGE_KEY, JSON.stringify(merged));
 }
 
 function metricLabel(key: string) {
@@ -289,6 +398,10 @@ function MessageBubble({ message, identity }: { message: ChatMessage; identity: 
               <a className={cx("message-attachment", isImageAttachment(file) && "image")} href={href || undefined} target="_blank" rel="noreferrer" key={`${file.url || file.name}-${index}`}>
                 {href && isImageAttachment(file) ? (
                   <Image src={href} alt={file.name} width={160} height={120} unoptimized />
+                ) : href && isAudioAttachment(file) ? (
+                  <audio controls src={href} preload="metadata" />
+                ) : href && isVideoAttachment(file) ? (
+                  <video controls src={href} preload="metadata" />
                 ) : (
                   <span className="file-icon">📎</span>
                 )}
@@ -328,82 +441,75 @@ function QueryReadout({ payload, error }: { payload: DbQueries | null; error: st
 }
 
 function TuiConsole({
-  payload,
   input,
   busy,
+  uploading,
+  recording,
+  transcribing,
+  attachments,
   onInput,
   onSend,
-  onStart,
-  onRestart,
-  onKey,
+  onPasteFiles,
+  onRemoveAttachment,
+  onToggleRecording,
   inputRef,
-  scrollRequestId,
 }: {
-  payload: TuiPayload | null;
   input: string;
   busy: boolean;
+  uploading: boolean;
+  recording: boolean;
+  transcribing: boolean;
+  attachments: ChatAttachment[];
   onInput: (value: string) => void;
   onSend: () => void;
-  onStart: () => void;
-  onRestart: () => void;
-  onKey: (key: string) => void;
-  inputRef: RefObject<HTMLInputElement | null>;
-  scrollRequestId: number;
+  onPasteFiles: (files: FileList) => void;
+  onRemoveAttachment: (index: number) => void;
+  onToggleRecording: () => void;
+  inputRef: RefObject<HTMLTextAreaElement | null>;
 }) {
-  const screen = payload?.screen || (payload?.error ? `TUI unavailable: ${payload.error}` : "Opening openclaw tui…");
-  const screenRef = useRef<HTMLPreElement | null>(null);
-  const didInitialScrollRef = useRef(false);
-
-  const scrollToBottom = useCallback(() => {
-    window.requestAnimationFrame(() => {
-      const el = screenRef.current;
-      if (!el) return;
-      el.scrollTop = el.scrollHeight;
-    });
-  }, []);
-
-  useEffect(() => {
-    if (!payload?.screen || didInitialScrollRef.current) return;
-    didInitialScrollRef.current = true;
-    scrollToBottom();
-  }, [payload?.screen, scrollToBottom]);
-
-  useEffect(() => {
-    if (scrollRequestId <= 0) return;
-    scrollToBottom();
-  }, [scrollRequestId, scrollToBottom]);
-
   return (
-    <section className="tui-panel">
-      <div className="tui-toolbar">
-        <div className="tui-actions">
-          <button className="ghost" onClick={onStart} disabled={busy}>Open</button>
-          <button className="ghost" onClick={() => onKey("ctrlc")} disabled={busy}>Ctrl-C</button>
-          <button className="ghost" onClick={onRestart} disabled={busy}>Restart</button>
+    <section className="tui-panel composer">
+      {attachments.length ? (
+        <div className="attachment-shelf">
+          {attachments.map((file, index) => (
+            <button type="button" key={`${file.url}-${index}`} onClick={() => onRemoveAttachment(index)}>
+              <span>{file.name}</span>
+              <b>{formatBytes(file.size)}</b>
+            </button>
+          ))}
         </div>
-      </div>
-      <pre ref={screenRef} className="tui-screen" aria-label="openclaw tui screen output">{screen}</pre>
-      <div className="tui-command-row">
-        <input
+      ) : null}
+      <div className="tui-command-row chat-input-tile">
+        <textarea
           ref={inputRef}
           value={input}
           onChange={(event) => onInput(event.target.value)}
+          onPaste={(event) => {
+            if (!event.clipboardData.files.length) return;
+            event.preventDefault();
+            onPasteFiles(event.clipboardData.files);
+          }}
           onKeyDown={(event) => {
             if (event.key === "Enter") {
               event.preventDefault();
               onSend();
             }
           }}
-          placeholder="Type into openclaw tui and press Enter"
+          placeholder={transcribing ? "Transcribing voice…" : "Type, paste files, or use the microphone"}
+          rows={2}
           spellCheck={false}
         />
-        <button className="primary" onClick={onSend} disabled={busy || !input.trim()}>Send</button>
-      </div>
-      <div className="tui-key-row">
-        {["up", "down", "left", "right", "tab", "escape", "enter"].map((key) => (
-          <button className="ghost" key={key} onClick={() => onKey(key)} disabled={busy}>{key}</button>
-        ))}
-        <span className="mini">{payload?.active ? `session ${payload.session || "open"}` : "session warming"} · {payload?.sampledAt ? formatTime(payload.sampledAt) : "not sampled"}</span>
+        <button
+          className={cx("ghost composer-action mic-button", recording && "recording")}
+          onClick={onToggleRecording}
+          disabled={busy || uploading || transcribing}
+          aria-label={recording ? "Stop recording" : "Start voice input"}
+        >
+          <span className="action-label">{recording ? "Stop recording" : "Start voice input"}</span>
+        </button>
+        <button className="primary composer-action send" onClick={onSend} disabled={busy || uploading || (!input.trim() && attachments.length === 0)}>
+          <span className="action-label">Send</span>
+        </button>
       </div>
     </section>
   );
@@ -411,12 +517,12 @@ function TuiConsole({
 
 export default function Home() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [localMessages, setLocalMessages] = useState<ChatMessage[]>([]);
   const [status, setStatus] = useState<ChatStatus>(emptyStatus);
   const [activity, setActivity] = useState<ActivityPayload | null>(null);
   const [tui, setTui] = useState<TuiPayload | null>(null);
   const [tuiInput, setTuiInput] = useState("");
   const [tuiBusy, setTuiBusy] = useState(false);
-  const [tuiScrollRequestId, setTuiScrollRequestId] = useState(0);
   const [dbStatus, setDbStatus] = useState<DbStatus | null>(null);
   const [dbQueries, setDbQueries] = useState<DbQueries | null>(null);
   const [dbError, setDbError] = useState<string | null>(null);
@@ -435,11 +541,13 @@ export default function Home() {
   const [gaugeView, setGaugeView] = useState<"gauges" | "memory3d">("gauges");
 
   const textRef = useRef<HTMLTextAreaElement | null>(null);
-  const tuiInputRef = useRef<HTMLInputElement | null>(null);
+  const tuiInputRef = useRef<HTMLTextAreaElement | null>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
-  const messagesRef = useRef<HTMLDivElement | null>(null);
-  const bottomRef = useRef<HTMLDivElement | null>(null);
+  const historyFrameRef = useRef<HTMLIFrameElement | null>(null);
   const noticeTimerRef = useRef<number | null>(null);
+  const deviceAccessRequestedRef = useRef(false);
+  const historyAlertUnlockedRef = useRef(false);
+  const usbAccessRequestedRef = useRef(false);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<BlobPart[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
@@ -464,6 +572,26 @@ export default function Home() {
   const canSend = (draft.trim().length > 0 || attachments.length > 0) && !sending && !uploading;
 
   const memory3dFrameSrc = useMemo(() => buildMemory3dFrameSrc(theme), [theme]);
+  const liveHistoryFrameSrc = useMemo(() => buildLiveHistoryFrameSrc(theme), [theme]);
+  const chatMessages = useMemo(() => {
+    const screen = tui?.screen || (tui?.error ? `TUI unavailable: ${tui.error}` : "Opening openclaw tui...");
+    const sampledAt = tui?.sampledAt ? Date.parse(tui.sampledAt) : Date.now();
+    const liveTuiMessage: ChatMessage = {
+      id: `tui-live-${tui?.sampledAt || "warming"}`,
+      role: tui?.error ? "system" : "assistant",
+      text: screen,
+      timestamp: Number.isFinite(sampledAt) ? sampledAt : Date.now(),
+    };
+    return [...messages, ...localMessages, liveTuiMessage];
+  }, [localMessages, messages, tui?.error, tui?.sampledAt, tui?.screen]);
+
+  const toggleTheme = useCallback(() => {
+    setTheme((current) => {
+      const next = current === "light" ? "dark" : "light";
+      localStorage.setItem("lan-chat:theme", next);
+      return next;
+    });
+  }, []);
 
   const showNotice = useCallback((message: string | null, durationMs = 0) => {
     if (noticeTimerRef.current) {
@@ -510,7 +638,7 @@ export default function Home() {
     setTui(data || null);
   }, []);
 
-  const postTui = useCallback(async (body: Record<string, string>, options?: { scrollAfter?: boolean }) => {
+  const postTui = useCallback(async (body: Record<string, string>) => {
     setTuiBusy(true);
     try {
       const res = await fetch("/api/tui", {
@@ -521,7 +649,6 @@ export default function Home() {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error || "TUI command failed");
       setTui(data || null);
-      if (options?.scrollAfter) setTuiScrollRequestId((value) => value + 1);
     } catch (error) {
       setTui((current) => ({ ...(current || {}), error: error instanceof Error ? error.message : "TUI command failed" }));
     } finally {
@@ -544,6 +671,51 @@ export default function Home() {
     } else setQueryError(queriesRes.reason instanceof Error ? queriesRes.reason.message : "Query readout unavailable");
   }, []);
 
+  const pushLiveFrameMessage = useCallback((message: ChatMessage) => {
+    const target = historyFrameRef.current?.contentWindow;
+    if (!target) return;
+    target.postMessage({ type: "lan-chat-local-message", message }, window.location.origin);
+  }, []);
+
+  const unlockLiveHistoryAlert = useCallback(() => {
+    if (historyAlertUnlockedRef.current) return;
+    const target = historyFrameRef.current?.contentWindow as LiveHistoryFrameWindow | null | undefined;
+    if (!target) return;
+    try {
+      if (target.__lanChatUnlockHistoryAlert?.()) {
+        historyAlertUnlockedRef.current = true;
+        return;
+      }
+    } catch {
+      // Fall through to postMessage for browsers that hide same-origin frame internals.
+    }
+    target.postMessage({ type: "lan-chat-unlock-alert" }, window.location.origin);
+  }, []);
+
+  const syncLiveFrameTheme = useCallback(() => {
+    const frame = historyFrameRef.current;
+    const target = frame?.contentWindow;
+    if (!target) return;
+    try {
+      const shell = frame.contentDocument?.querySelector(".live-frame-shell");
+      shell?.classList.toggle("theme-light", theme === "light");
+      shell?.classList.toggle("theme-dark", theme === "dark");
+    } catch {
+      // The frame is same-origin in production; keep postMessage as the safe fallback.
+    }
+    target.postMessage({ type: "lan-chat-theme", theme }, window.location.origin);
+  }, [theme]);
+
+  useEffect(() => {
+    const unlock = () => unlockLiveHistoryAlert();
+    window.addEventListener("pointerdown", unlock, { passive: true });
+    window.addEventListener("keydown", unlock);
+    return () => {
+      window.removeEventListener("pointerdown", unlock);
+      window.removeEventListener("keydown", unlock);
+    };
+  }, [unlockLiveHistoryAlert]);
+
   useEffect(() => {
     const systemTheme = new URLSearchParams(window.location.search).get("theme") === "system";
     if (systemTheme) {
@@ -556,6 +728,61 @@ export default function Home() {
     const savedTheme = localStorage.getItem("lan-chat:theme");
     setTheme(savedTheme === "dark" ? "dark" : "light");
   }, []);
+
+  useEffect(() => {
+    const timer = window.setTimeout(syncLiveFrameTheme, 120);
+    return () => window.clearTimeout(timer);
+  }, [syncLiveFrameTheme, liveHistoryFrameSrc]);
+
+  useEffect(() => {
+    if (deviceAccessRequestedRef.current) return;
+    deviceAccessRequestedRef.current = true;
+    const savedAccess = readDeviceAccessRecord();
+    const accessIsCurrent = savedAccess.version === DEVICE_ACCESS_VERSION;
+
+    const warmUpMediaAccess = async () => {
+      if (accessIsCurrent && savedAccess.mediaDone) return;
+      const results: string[] = [];
+      const mediaResults = await requestAvailableMediaAccess();
+      mediaResults.forEach((result) => {
+        if (!results.includes(result)) results.push(result);
+      });
+
+      writeDeviceAccessRecord({ mediaDone: true, requested: results });
+
+      if (results.length) {
+        showNotice(`Browser access requested: ${results.join(", ")}.`, 2600);
+      }
+    };
+
+    const requestUsbOnGesture = () => {
+      const currentAccess = readDeviceAccessRecord();
+      if (currentAccess.version === DEVICE_ACCESS_VERSION && currentAccess.usbDone) return;
+      if (usbAccessRequestedRef.current) return;
+      usbAccessRequestedRef.current = true;
+      const usb = (navigator as UsbNavigator).usb;
+      if (!usb?.requestDevice) {
+        writeDeviceAccessRecord({ usbDone: true });
+        return;
+      }
+      usb.requestDevice({ filters: [] })
+        .then(() => {
+          writeDeviceAccessRecord({ usbDone: true });
+          showNotice("USB device access granted.", 2200);
+        })
+        .catch(() => writeDeviceAccessRecord({ usbDone: true }));
+    };
+
+    void warmUpMediaAccess();
+    if (!(accessIsCurrent && savedAccess.usbDone)) {
+      window.addEventListener("pointerdown", requestUsbOnGesture, { once: true, passive: true });
+      window.addEventListener("keydown", requestUsbOnGesture, { once: true });
+    }
+    return () => {
+      window.removeEventListener("pointerdown", requestUsbOnGesture);
+      window.removeEventListener("keydown", requestUsbOnGesture);
+    };
+  }, [showNotice]);
 
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -597,9 +824,20 @@ export default function Home() {
 
   function sendTuiInput() {
     const input = tuiInput.trimEnd();
-    if (!input) return;
+    if (!input && attachments.length === 0) return;
+    const outgoing = attachments;
+    const optimistic: ChatMessage = {
+      id: `local-tui-${Date.now()}`,
+      role: "user",
+      text: input || (outgoing.length ? "Attached files" : ""),
+      attachments: outgoing,
+      timestamp: Date.now(),
+    };
     setTuiInput("");
-    void postTui({ action: "send", input }, { scrollAfter: true });
+    setAttachments([]);
+    setLocalMessages((current) => [...current, optimistic]);
+    pushLiveFrameMessage(optimistic);
+    if (input) void postTui({ action: "send", input });
   }
 
   useEffect(() => {
@@ -609,12 +847,6 @@ export default function Home() {
   useEffect(() => {
     localStorage.setItem(GAUGE_VIEW_KEY, gaugeView);
   }, [gaugeView]);
-
-  useEffect(() => {
-    const el = messagesRef.current;
-    if (!el) return;
-    el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
-  }, [messages, sending]);
 
   useEffect(() => {
     if (!textRef.current) return;
@@ -656,6 +888,7 @@ export default function Home() {
       timestamp: Date.now(),
     };
     setMessages((current) => [...current, optimistic]);
+    pushLiveFrameMessage(optimistic);
     setDraft("");
     localStorage.removeItem(STORAGE_KEY);
     const outgoing = attachments;
@@ -754,7 +987,6 @@ export default function Home() {
           const data = await res.json().catch(() => ({}));
           if (!res.ok) throw new Error(data?.error || "transcription failed");
           setDraft((current) => `${current}${current ? "\n" : ""}${data.text || ""}`);
-          setNotice("Voice transcribed into the composer.");
         } catch (error) {
           setNotice(error instanceof Error ? error.message : "Voice transcription failed");
         } finally {
@@ -763,7 +995,7 @@ export default function Home() {
       };
       recorder.start(1000);
       setRecording(true);
-      setNotice("Recording voice note… tap again to stop.");
+      setNotice("");
     } catch (error) {
       streamRef.current?.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
@@ -798,10 +1030,8 @@ export default function Home() {
           <p className="subtle">Local-first back channel for the operator, this agent, and authorized LAN agents.</p>
         </div>
         <div className="top-actions">
-          <button className="ghost" onClick={() => setTheme((value) => (value === "light" ? "dark" : "light"))}>{theme === "light" ? "Dark" : "Light"} mode</button>
-          <a className="ghost" href={androidInstallUrl} download="lan-command-chat-android.apk">Android app</a>
+          <button className="ghost" onClick={toggleTheme}>{theme === "light" ? "Dark" : "Light"} mode</button>
           <button className="ghost" onClick={() => { void loadHistory(); void loadStatus(); void loadActivity(); void loadTui(); void loadDb(); }}>Refresh</button>
-          <button className="primary" onClick={() => tuiInputRef.current?.focus()}>Command</button>
         </div>
       </header>
 
@@ -893,17 +1123,35 @@ export default function Home() {
               {(!activity?.events || activity.events.length === 0) ? <div className="activity-event"><b>No current run</b><span>Messages will show thinking/tools here while this agent works.</span></div> : null}
             </div>
           </section>
+          <section className="messages chat-history-tile live-history-tile" aria-label="chat history and live openclaw tui output">
+            <iframe
+              key={liveHistoryFrameSrc}
+              ref={historyFrameRef}
+              className="live-history-frame"
+              src={liveHistoryFrameSrc}
+              onLoad={syncLiveFrameTheme}
+              title="OpenClaw live chat history"
+              loading="eager"
+            />
+            {activity?.active || sending || tuiBusy || uploading || transcribing ? (
+              <div className="working live-history-working">
+                <span>.</span><span>.</span><span>.</span>
+              </div>
+            ) : null}
+          </section>
           <TuiConsole
-            payload={tui}
-            input={tuiInput}
-            busy={tuiBusy}
-            onInput={setTuiInput}
-            onSend={sendTuiInput}
-            onStart={() => void postTui({ action: "start" })}
-            onRestart={() => void postTui({ action: "restart" })}
-            onKey={(key) => void postTui({ action: "key", key })}
-            inputRef={tuiInputRef}
-            scrollRequestId={tuiScrollRequestId}
+            input={draft}
+            busy={sending}
+            uploading={uploading}
+            recording={recording}
+            transcribing={transcribing}
+            attachments={attachments}
+            onInput={setDraft}
+            onSend={() => void sendMessage()}
+            onPasteFiles={(files) => void uploadFiles(files)}
+            onRemoveAttachment={(index) => setAttachments((current) => current.filter((_, itemIndex) => itemIndex !== index))}
+            onToggleRecording={() => void toggleRecording()}
+            inputRef={textRef}
           />
           {notice ? <div className="notice command-notice" onClick={() => showNotice(null)}>{notice}</div> : null}
         </section>

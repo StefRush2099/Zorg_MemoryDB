@@ -1,5 +1,5 @@
 export async function compileSystemPrompt(inputText: string, metadata: Record<string, unknown> = {}) {
-  const base = process.env.NEURAL_RECALL_ACTIVITY_URL?.trim() || "http://127.0.0.1:8097";
+  const base = process.env.NEURAL_RECALL_ACTIVITY_URL?.trim() || "http://127.0.0.1:8098";
   const response = await fetch(new URL("/api/compile", base), {
     method: "POST",
     headers: { "Content-Type": "application/json" },

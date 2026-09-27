@@ -10,6 +10,8 @@
   `4.1.8`.
 - Align root, LAN Command Chat package/lock, plugin package/lock, plugin
   manifest, and LAN gauge-derived package metadata at `v4.1.8`.
+- Document the missing LAN HTTPS self-signed certificate process and refresh
+  stale HTTP-only guidance for LAN Command Chat and Neural Recall Activity.
 
 ## 4.1.7 - 2026-09-14
 

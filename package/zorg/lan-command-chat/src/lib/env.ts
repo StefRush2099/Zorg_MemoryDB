@@ -11,6 +11,8 @@ export const appConfig = {
   chatterboxVoice: process.env.CHATTERBOX_VOICE?.trim() || "",
   whisperBinary: process.env.WHISPER_BIN?.trim() || "/home/linuxbrew/.linuxbrew/bin/whisper",
   whisperModel: process.env.WHISPER_MODEL?.trim() || "tiny",
+  whisperPrimaryBase: process.env.WHISPER_PRIMARY_BASE?.trim() || "http://10.10.69.42:9000",
+  whisperFallbackBase: process.env.WHISPER_FALLBACK_BASE?.trim() || "http://10.10.69.40:9000",
 };
 
 if (!Number.isFinite(appConfig.historyLimit) || appConfig.historyLimit <= 0) {
